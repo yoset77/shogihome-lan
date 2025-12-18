@@ -1,0 +1,39 @@
+name: Test
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, "support-*"]
+  pull_request:
+    branches: [main, "support-*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: shogihome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: shogihome/package-lock.json
+      - run: npm version
+      - run: npm ci
+      - name: Check engine-wrapper syntax
+        run: |
+          node --check ../engine-wrapper/engine-wrapper.mjs
+          python3 -m py_compile ../engine-wrapper/engine-wrapper.py
+      - run: npm run lint
+      - run: npm run docs
+      - run: git diff --exit-code
+      - run: npm run license
+      - run: npm run coverage
+      - uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+        with:
+          files: shogihome/coverage/clover.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

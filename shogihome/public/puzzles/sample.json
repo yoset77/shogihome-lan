@@ -1,0 +1,2753 @@
+[
+  {
+    "sfen": "l1r3kpl/4Sgg2/3+Bp1nPp/p4pNs1/6n1P/P1n1SP3/2+b1P1P+p1/1P1p1G3/L1Gs1K1RL b 4P 115",
+    "correct_move": "P*7h",
+    "info": "推定選択率：5.7% (5位)",
+    "win_rate_best": 86,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l5gn1/2p2+B3/3B4l/5NpPk/P1PG2Gpp/1p4P2/LSNg+p4/KS2s4/8+r w SPrnl7p 134",
+    "correct_move": "L*2b",
+    "info": "推定選択率：2.0% (5位)",
+    "win_rate_best": 79,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "ln1g4l/5kgs1/pr1ppp1p1/3s2P1p/5np2/Pp1B5/2NPPP2P/S1G1GS1R1/L3K2NL b 3Pbp 51",
+    "correct_move": "P*7f",
+    "info": "推定選択率：17.8% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "ln2k4/2G1g4/2p3P+r1/3pp1p1b/p2n1N3/5P3/3PP4/1SS2GS2/LNK1S1b2 w G2Lr9p 80",
+    "correct_move": "3i4h+",
+    "info": "推定選択率：19.4% (1位)",
+    "win_rate_best": 57,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "ln2k4/2G1g4/2p3P+r1/3pp1p1b/p2n1N3/5P3/3PP4/1SS2SS2/LNK6 w BG2Lrg9p 82",
+    "correct_move": "G*6h",
+    "info": "推定選択率：3.4% (7位)",
+    "win_rate_best": 60,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "l5gn1/2p2s3/3B+B2kl/5NpP1/P1PG3pp/1p4P2/LSNg+p+r3/1S2s2R1/1K5NL w GP7p 126",
+    "correct_move": "2c1d",
+    "info": "推定選択率：19.7% (2位)",
+    "win_rate_best": 69,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "ln2k1s+R+B/4g1g2/2pSp4/3ps1p2/p3N4/5bP2/3PPP3/4LK3/Lg+r2G1N1 b L2Psn7p 45",
+    "correct_move": "4g4f",
+    "info": "推定選択率：13.0% (2位)",
+    "win_rate_best": 63,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "l3s2nl/3g1kg2/p2p1p1pp/1S1Pp1p2/PB7/1P2PSP2/K1g+p1P2P/2+p3R2/LN5NL b RBN2Pgs 93",
+    "correct_move": "B*1e",
+    "info": "推定選択率：7.4% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l4rknl/2+B2gg2/4p3p/p4p3/6spP/P1n2Pp2/2NPPG3/1P1pb1P2/L1GsK2RL b 2SN4P 93",
+    "correct_move": "4g4h",
+    "info": "推定選択率：10.2% (3位)",
+    "win_rate_best": 61,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lr5nl/3gksg2/2n2p3/p2sp1p1p/2P6/P1ppPPP1P/1PN2SN2/2G1SG3/L3K2RL b B3Pbp 55",
+    "correct_move": "P*6e",
+    "info": "推定選択率：10.7% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "ln1g3+Pl/2s6/p1k1+Bp+Rp1/2ppP3p/6P2/P4b3/1PNP3+rP/3GS4/L+p1K1GS1L b 2N2Pgs2p 75",
+    "correct_move": "P*4g",
+    "info": "推定選択率：16.2% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "l5rnl/3+P2kg1/5p1p1/pn2psP1p/2g2Nb2/Ppp1S3P/1S2PP3/1PG2G3/L1K4RL b SN3Pbp 109",
+    "correct_move": "N*2e",
+    "info": "推定選択率：11.1% (3位)",
+    "win_rate_best": 67,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l7+S/1r1+N3g1/4+B1slk/p1p3pPp/3pSp3/P1P2P3/1PN1p1P1L/3G5/L1K1P+b2+r w 2G2Ns4p 132",
+    "correct_move": "1i2h",
+    "info": "推定選択率：12.0% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 8
+  },
+  {
+    "sfen": "ln1g5/2k3+B2/4l4/pr1p2pp1/2s2N3/P1pP1P2P/1P1S+bSP1N/1GR1G2P1/LN1KP3L w 3Pgs2p 114",
+    "correct_move": "S*4i",
+    "info": "推定選択率：0.1% (23位)",
+    "win_rate_best": 58,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "l5gn1/2p4k1/3B+B1spl/5Np2/P1PG4p/1p4P2/LSNg+p+r3/1S2s2R1/1K5NL w G5P4p 118",
+    "correct_move": "3c4b",
+    "info": "推定選択率：10.2% (2位)",
+    "win_rate_best": 72,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l7+S/1r1+N3g1/4+B1slk/p1p3pPp/3pSp3/P1P1nP3/1PN3P1L/2GS5/L2KP+b2+r w 2GN5p 128",
+    "correct_move": "P*5g",
+    "info": "推定選択率：0.5% (7位)",
+    "win_rate_best": 57,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l1p5l/1r1P1B+S2/p1Pk1pn2/3psss1p/P2np4/1PG1n1P2/3G1P2P/1p1B2r2/L2K4L b 2G3Pnp 109",
+    "correct_move": "6g5f",
+    "info": "推定選択率：15.1% (3位)",
+    "win_rate_best": 92,
+    "win_rate_second": 13
+  },
+  {
+    "sfen": "ln1gl4/2k3+B2/4G4/pr1p2pp1/2s2N3/P1pP1P2P/1P1S+bSP1N/1G2G2P1/LN1KP3L w R3Ps2p 112",
+    "correct_move": "5a5c",
+    "info": "推定選択率：5.5% (6位)",
+    "win_rate_best": 59,
+    "win_rate_second": 22
+  },
+  {
+    "sfen": "lnb5l/4gk3/p2P1p2p/1r2P1Pg1/2P2Spp1/1P1ppPn1P/P8/2G1GR3/LN2K2bL b 2SN3Ps 101",
+    "correct_move": "S*5c",
+    "info": "推定選択率：12.3% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l5snl/4gk3/p3p1gp1/3p2p1p/Pp1nB2P1/2r2pP1P/1P1PP4/1SGK1G2R/LN2s2NL b BS2Pp 57",
+    "correct_move": "6h5i",
+    "info": "推定選択率：17.6% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 16
+  },
+  {
+    "sfen": "l6nl/3gksg2/p4p1pp/1r2p1p2/2Pn5/PP2PSP2/1GpS1P2P/1Ks3R2/LN4bNL b BG3Pp 71",
+    "correct_move": "G*6f",
+    "info": "推定選択率：2.7% (7位)",
+    "win_rate_best": 56,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "B2Rl3+L/Png1g2+R1/ssk1ppn1p/1p1Lns3/S1ppb1p2/1P3PP1P/3PP1N2/3G1G3/1+p2K3L b 3p 101",
+    "correct_move": "8f8e",
+    "info": "推定選択率：15.5% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "7nl/5g1g1/2SpP1b1p/p3S1pk1/1pPP3p1/P1+R2s2P/1G4P2/4S4/LNKN3NL w RL2Pbg4p 92",
+    "correct_move": "G*6f",
+    "info": "推定選択率：19.5% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l6nl/2k6/b1ng1+P1p1/p1p1r2Pp/1p7/P1P2S2P/1PS+pGGK2/9/LN5RL b BG3P2sn3p 89",
+    "correct_move": "G*4d",
+    "info": "推定選択率：2.9% (6位)",
+    "win_rate_best": 60,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lr4+Bnl/2g1k1gP1/3s1p1p1/p1p1Nsp1p/3ppNn2/P1PS1PP1P/1P2PK3/2G2G3/L2R4L b B2Ps 75",
+    "correct_move": "4g5h",
+    "info": "推定選択率：15.1% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "3gk1l1l/1+r3g3/3p1p1p1/3S1PP1p/l3S2P1/4+b1B1P/4+n4/1+p4RK1/2g2G1NL b SN3Psn6p 119",
+    "correct_move": "4d4c+",
+    "info": "推定選択率：16.9% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "ln1g1g3/2sk5/2ppp+L+Bpp/p2b5/9/2PS1P1P1/P2PPK2P/3+n1S3/L1+p2G1rL b RSN3Pgnp 59",
+    "correct_move": "6f5e",
+    "info": "推定選択率：6.4% (7位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l4r1nl/1PP1k1g2/4p2p1/pS1p1P1sp/6p2/3P2P1P/P1G1PSN2/2K1G2R1/+b+p6L b GSN3Pbnl 71",
+    "correct_move": "S*6c",
+    "info": "推定選択率：1.2% (9位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "lnb5l/9/p2k1p2p/1r2P1Pg1/2P4p1/1P1p1Pp1P/P3G4/2G2R3/LN2K2bL b GS2N2P3s3p 115",
+    "correct_move": "S*7d",
+    "info": "推定選択率：5.4% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "ln5n1/4g1gk1/3p1p3/psP2s2l/1ppP1s2P/P1l+B1n1+p1/1PGS5/2KG5/LN6+r b RB5P2p 115",
+    "correct_move": "7g7f",
+    "info": "推定選択率：14.9% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l3+R2nl/2kn5/b1n2+P1p1/p1p1g2Pp/1p7/P1P1KS2P/1PS6/9/LN5RL w BS4P3gs3p 100",
+    "correct_move": "G*5g",
+    "info": "推定選択率：6.7% (6位)",
+    "win_rate_best": 89,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "lr3k1nl/4P1gs1/2nbGs1p1/p1pp1Sp1p/9/PPPPpPP1P/2S6/2G1+b4/LNK5L b G2Prnp 89",
+    "correct_move": "5c4c",
+    "info": "推定選択率：17.8% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l5rnl/2+S3gk1/4+Ns3/p2pppspp/P8/2PSP1p1P/1PNP5/1KG2G3/L6RL b G2P2bn3p 121",
+    "correct_move": "P*2e",
+    "info": "推定選択率：3.4% (5位)",
+    "win_rate_best": 56,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l3gk1nl/3s3gs/3p4p/3l1pPP1/5n3/P1Pr1BS2/GPp1+sP2P/6KR1/5G1NL w BN4P3p 102",
+    "correct_move": "P*3e",
+    "info": "推定選択率：14.8% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "lr6l/3+R5/2n1pkp1n/p1p3s2/4s4/PpP6/3pPPP2/1PG1G4/LNK4NL w BG2Pbg2s4p 86",
+    "correct_move": "S*5b",
+    "info": "推定選択率：8.2% (3位)",
+    "win_rate_best": 61,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr5nl/4g4/1+N3gkP1/p1PbppBpp/P3n1P2/1SS5P/1PG1P4/1K3+p3/L6RL b S2Pgsn3p 103",
+    "correct_move": "8c7b",
+    "info": "推定選択率：17.4% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l3g2nl/2+N6/5nkP1/p1P1Spgpp/P3b1P2/1P1S4P/2K+RP4/5+p3/L6RL w SN3Pb2gs3p 122",
+    "correct_move": "S*5h",
+    "info": "推定選択率：8.8% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "lr5nl/3g1kg2/2nSpp1p1/p1pp4p/1p3Ns2/P1PPS3P/1PS1P4/1KG2G3/LN6L w B2Prb2p 68",
+    "correct_move": "6b6c",
+    "info": "推定選択率：9.0% (3位)",
+    "win_rate_best": 64,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "lnr5l/3k1G3/4gGnpp/ps1p1sp2/4N2PP/PPpPP1P2/5S3/4G2R1/L2+p1K2L w B3Pbsnp 84",
+    "correct_move": "S*3g",
+    "info": "推定選択率：18.2% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lr6l/3g2p+R1/2n1pkG1n/p1p3s2/4s4/PpP6/4PPP2/1PGKG4/LN5NL w B2Pb2s5p 82",
+    "correct_move": "3b3c",
+    "info": "推定選択率：14.6% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "8l/3g1kg2/3sp2p1/2pp1pPsp/l5l2/PrnPSP2P/1BP1P4/1PG2G1R1/1K6L w B2N4Psn 102",
+    "correct_move": "7f8h+",
+    "info": "推定選択率：10.3% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lnr5l/3B1G3/4G1npp/pskp1sp2/4N2PP/PPpPP1P2/5SsR1/4G4/L2+p1K2L w G3Pbnp 90",
+    "correct_move": "3c4e",
+    "info": "推定選択率：14.1% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lnB3k1l/4rgn2/pS1pp1np1/2ps1S2p/Pp3p1P1/2P4BP/1PSPPP3/2GK5/LN4r1g b Gl2p 67",
+    "correct_move": "8c7d+",
+    "info": "推定選択率：17.3% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "g2+B3nl/5gk2/KG1Bp1sp1/1Pp3p1p/1+r1L1P1P1/P1P3P1P/6N2/4G4/L7L b 2SN6Prsn 123",
+    "correct_move": "N*9d",
+    "info": "推定選択率：8.1% (4位)",
+    "win_rate_best": 62,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "l8/1skg5/2s2+RGp1/p2pppP1p/2p1P1pN1/NS2b3P/PK1P1P3/3GG4/LN5N+b b SLPrl3p 117",
+    "correct_move": "L*6c",
+    "info": "推定選択率：13.2% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "3+B1k1nl/5g3/K3p1sp1/2p3p1p/3L1P1P1/P1P3P1P/6N2/1+r2G4/L7L b BG2SN7Prgsn 117",
+    "correct_move": "G*8c",
+    "info": "推定選択率：8.7% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "8l/5s3/p2s5/2p1pb1Gn/P2p1pk2/2P1P1p1L/1PNS2N2/1KG2+n1L1/L6R1 b 2G2Prbs6p 125",
+    "correct_move": "2d3d",
+    "info": "推定選択率：11.6% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "lr5nl/6g2/7p1/p1p1k1S1p/4p1pP1/PPP5P/1KSb5/4N4/LN4R1L b 3Gb2sn7p 121",
+    "correct_move": "G*6h",
+    "info": "推定選択率：17.0% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "5+R1Gl/9/p2s2sg1/2p1pbkpn/P2p1pp2/2P1P3L/1PNS2N2/1KG2+n1L1/L6R1 b Pbgs6p 117",
+    "correct_move": "2a2b",
+    "info": "推定選択率：10.4% (4位)",
+    "win_rate_best": 58,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "ln3Sg1l/4g4/5Pkp1/p1Pp1sp1p/3np2R1/PPn5P/2SPP1P2/2G1K1G2/L+p2N3L w RB2Pbsp 92",
+    "correct_move": "5e5f",
+    "info": "推定選択率：7.1% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l6nl/1r1g1k1g1/2n1ppPp1/p2p2S2/1pp1s1pNs/P2P1P1P1/1PS1P4/2G1G2R1/LNK6 b Bbl3p 53",
+    "correct_move": "B*7a",
+    "info": "推定選択率：17.5% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l4B1nl/4Bk3/p1n2gsp1/4sp2p/P5pP1/2GPpS1RP/1+r1pP1N2/4G3L/LNK6 b G4Ps2p 93",
+    "correct_move": "P*7h",
+    "info": "推定選択率：3.0% (6位)",
+    "win_rate_best": 55,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l4B1nl/4Bk3/p1n2gsp1/4sp2p/P5pP1/2GPpS1RP/1+r1pP1N2/2P1G3L/sN1K5 b G3Pl2p 97",
+    "correct_move": "P*8h",
+    "info": "推定選択率：2.9% (10位)",
+    "win_rate_best": 58,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l7l/1r1k5/2ngp+B+Sp1/p2psp3/1pP1N3p/P1KP1G1P1/1P1NP+p3/1sG1+b1s2/LNR5L b G4p 93",
+    "correct_move": "7h8h",
+    "info": "推定選択率：12.8% (3位)",
+    "win_rate_best": 69,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "1r6l/+L2sg1k2/6n+Sp/4pp3/2P4PP/KPnp1P3/2g1P1N2/b+n2G2R1/1L6L w BS7Pgsp 116",
+    "correct_move": "3b4c",
+    "info": "推定選択率：14.0% (3位)",
+    "win_rate_best": 84,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "7nl/3k2g2/5p1p1/2sPpsp1p/1n7/LSPGPPPPP/1p3S3/3+rGK1bG/4L2NL w B2Prn3p 104",
+    "correct_move": "R*6i",
+    "info": "推定選択率：6.1% (4位)",
+    "win_rate_best": 83,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "3n+b1knl/3P1sg2/5p2p/2pNp1pp1/L8/1PP3P1P/1G1pPPS2/1p2G2R1/1L2K1sNL b RGPbs2p 87",
+    "correct_move": "2h2d",
+    "info": "推定選択率：11.9% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "3G5/5+R3/2kspp3/3p1sp2/8P/2PS1PP2/2+nPP2p1/5S2R/b3K3L w GN2L6Pb2g2nlp 108",
+    "correct_move": "7g6h",
+    "info": "推定選択率：10.1% (3位)",
+    "win_rate_best": 66,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l2g5/4k1gbs/plspppn2/2p3pP1/9/Pp1PPPP1l/2G2S3/2GS3R1/L2K3N1 b RNbn5p 73",
+    "correct_move": "N*9e",
+    "info": "推定選択率：1.4% (7位)",
+    "win_rate_best": 59,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l7l/1r1k5/2ngp+B+Sp1/p2p1p3/1pP1s3p/P1KP1G1P1/1P1NP+p3/1G2+b1s2/LNR5L b GSn4p 95",
+    "correct_move": "8h7h",
+    "info": "推定選択率：16.0% (2位)",
+    "win_rate_best": 68,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "1r5nl/3sg1k2/7pp/4ppS2/L1P4PP/KPnp1P3/2G1P1N2/b+n2G2R1/1L1S4L w BS7Pg 108",
+    "correct_move": "G*8g",
+    "info": "推定選択率：10.9% (2位)",
+    "win_rate_best": 80,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l6nl/r5gk1/n1+P5p/1b1B2pp1/8L/LPpSp1P2/3PPp3/3KGs3/1GR4N1 b GS4Psn3p 93",
+    "correct_move": "5g5f",
+    "info": "推定選択率：13.5% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "1+L6l/3sg4/6+S1p/3kp4/2P2N1PP/KPnp1P3/2g1P4/b+n2G2R1/1L6L w RBS8Pgsnp 124",
+    "correct_move": "G*8d",
+    "info": "推定選択率：16.0% (3位)",
+    "win_rate_best": 92,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l3+B2+Pl/1r4+N2/p3p4/3k2pp1/P2P1pP1P/1b+s6/2+p1P1Ng1/3SG4/L1PK2R1L w 2GS4Ps2np 98",
+    "correct_move": "6d5d",
+    "info": "推定選択率：6.4% (3位)",
+    "win_rate_best": 67,
+    "win_rate_second": 11
+  },
+  {
+    "sfen": "1r6l/+L2sg4/5k+S1p/4pp3/2P4PP/KPnp1P3/2g1P1N2/b+n2G2R1/1L6L w BSN7Pgsp 118",
+    "correct_move": "4c5c",
+    "info": "推定選択率：8.6% (2位)",
+    "win_rate_best": 85,
+    "win_rate_second": 22
+  },
+  {
+    "sfen": "ln6l/1kg1g4/1p1s5/3pp3p/p1P3P2/3P1Sp+RP/PPS1PP3/1K1GG3+B/L2S1+r2L w 2N3Pbnp 76",
+    "correct_move": "P*7f",
+    "info": "推定選択率：9.6% (4位)",
+    "win_rate_best": 56,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l5s1l/4k1g2/2g1p1np1/p2pbpN1p/2S3p2/P2P1P3/1PG1Ps1PP/7RK/L4s1NL b RBN2Pg2p 97",
+    "correct_move": "R*7a",
+    "info": "推定選択率：13.4% (3位)",
+    "win_rate_best": 68,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "1+R2g2nl/4ksg2/3ppp1+P1/pp4p1p/3n2PR1/P2S1b2P/2PPP+bN2/2G6/LNK5L w GLP2s3p 90",
+    "correct_move": "6e5g+",
+    "info": "推定選択率：15.6% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lng2l2l/7k1/2Sp2npp/1PP1pG3/2B2p1P1/p2PS1p2/1p1GP3P/P3S4/LNKG3N+r b Srb3p 93",
+    "correct_move": "7e3a+",
+    "info": "推定選択率：0.8% (8位)",
+    "win_rate_best": 68,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l5s1l/2g1k1g2/4ppnp1/p1Ppb1N1p/2S3p2/P2P1Ps2/1P+n1PG2P/3G3RK/L4s1NL b RB3Pp 91",
+    "correct_move": "P*2g",
+    "info": "推定選択率：9.1% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l6nl/r5gk1/n1+P5p/1b1B2pp1/2p5L/LP2P1P2/1S1P+sp3/2K1s4/1GR4N1 b GSN6Pg2p 103",
+    "correct_move": "6d5e",
+    "info": "推定選択率：13.9% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "7nl/5k1g1/2ngp1p2/2p2pLpp/+r8/2PSSP2P/2N1PBN2/2GK1G3/P6RL b SPbsl6p 75",
+    "correct_move": "5f5e",
+    "info": "推定選択率：13.2% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "7nl/3k2g2/5p1p1/2sPpsp1p/1n7/LSP1PPPPP/1p1G1S3/5K3/1+r3G1NL w RGL3P2bn2p 92",
+    "correct_move": "B*2h",
+    "info": "推定選択率：18.3% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "5pknl/4B1g2/+S3p2p1/p1p1g1psp/3n5/PKP2PP2/1P2P1N1P/3R5/L7L w BGSNL3Prgsp 112",
+    "correct_move": "R*8d",
+    "info": "推定選択率：10.6% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l4r1n1/2P1g1gk1/2+Bs2sp1/p2p2p2/1p7/P1SPPP3/1P3SN1+l/2G1KG3/LN5R1 b N3Pbl4p 73",
+    "correct_move": "3g2e",
+    "info": "推定選択率：5.8% (4位)",
+    "win_rate_best": 59,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "+L3n4/R3sk3/4p1g1l/2n3p1p/1npp4L/1G2PpP2/1P1P5/1p2KSSb+p/1NR6 b GSPbgl5p 127",
+    "correct_move": "S*3a",
+    "info": "推定選択率：12.2% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "9/2s4b1/1k1p1gn2/sppn3p1/5pR2/1LPPP4/1P1K2P2/2GS4r/L3L2N1 b BG2Pgsnl6p 125",
+    "correct_move": "B*6b",
+    "info": "推定選択率：6.4% (3位)",
+    "win_rate_best": 67,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "lG3n1nl/6g2/5s1p1/p1pNpkpbp/1p3N3/P1PpPPP1P/1P7/2G1GR3/L1K5L b RSb2s3p 79",
+    "correct_move": "R*6a",
+    "info": "推定選択率：17.9% (3位)",
+    "win_rate_best": 61,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lns1k2nl/1r3gg2/4sS1p1/p1P1pPP1p/1p5P1/2pP3B1/PP6P/1S3R3/LNKGP2+bL w G2Pnp 86",
+    "correct_move": "P*6g",
+    "info": "推定選択率：1.9% (8位)",
+    "win_rate_best": 57,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "+B1nlS3l/6g2/3kp1npp/p1gn1pp2/+r3B2PP/2R3P2/P3PKN2/1L1G1G3/+p7L b P3s5p 127",
+    "correct_move": "5e6d",
+    "info": "推定選択率：18.6% (2位)",
+    "win_rate_best": 75,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l7l/4g2k1/p3ps1pn/2Pp1p2N/2pnP1s2/Pr6p/3P1PR2/3KG4/L6NL w 2B2S5P2gp 100",
+    "correct_move": "2b3a",
+    "info": "推定選択率：18.9% (2位)",
+    "win_rate_best": 71,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "1n1g4l/2s1k2g1/2ppppP1p/4rs3/l4n1p1/p1PPBP3/1P2P1p1P/P2SK1S2/LNG2G1NL b B2Pr 61",
+    "correct_move": "4f4e",
+    "info": "推定選択率：6.4% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lr4knl/6g2/2+P1p4/p5gpp/2pps1p1P/PPn2p3/1K1PP2R1/2Gs1G2L/LN7 b 2BSNs4p 105",
+    "correct_move": "8f8e",
+    "info": "推定選択率：3.1% (6位)",
+    "win_rate_best": 69,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr4knl/6g2/2+PBp4/p5gpp/1Ppp2p1P/PKnsNp3/3sP2R1/3s1G2L/LN7 b BSg5p 113",
+    "correct_move": "8e8d",
+    "info": "推定選択率：6.6% (4位)",
+    "win_rate_best": 73,
+    "win_rate_second": 27
+  },
+  {
+    "sfen": "ln5n1/1r4k2/2p1pg1ps/p8/6P2/P1PP5/1PS1PSg2/2G1K1G1r/LN7 b 2BSN4P2l4p 77",
+    "correct_move": "B*4a",
+    "info": "推定選択率：1.4% (13位)",
+    "win_rate_best": 59,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "ln4snl/3+Pnkg2/3+Rbg1P1/1r6p/p8/1pb1SPP1P/PP1PP1S2/3K1G3/LN1G4L w 6Ps 70",
+    "correct_move": "S*5a",
+    "info": "推定選択率：17.3% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l1nlS3l/2k3g2/2B1p1npp/p1Sn1pp2/2g1B2PP/P1p3P2/1+r2PKN2/3G1G3/+p1R5L b P2s4p 119",
+    "correct_move": "7c9a+",
+    "info": "推定選択率：4.3% (4位)",
+    "win_rate_best": 58,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "7nl/3gk1g2/2p1pp3/1r1pb1PSp/LS2n2P1/pK1P1s2P/2N1P2R1/3G5/L1N5L w BG6Psp 114",
+    "correct_move": "5d2g+",
+    "info": "推定選択率：7.5% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "1n1g4l/2s4g1/2ppp1k1p/4r4/l5Np1/p1PPB4/1P2P3P/P2SK4/LNG2+p1NL b BS3Prgs2p 69",
+    "correct_move": "B*1e",
+    "info": "推定選択率：11.7% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "ln3Bkn1/1r7/2p1pg1ps/p8/6P2/P1PP5/1PS1PSg2/2G1K1G1r/LN7 b BSN4P2l4p 79",
+    "correct_move": "S*5b",
+    "info": "推定選択率：4.6% (7位)",
+    "win_rate_best": 63,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "ln5n1/1r2Sg3/2p1pN2s/p6k1/6P2/P1PP4G/1PS1P+l+p2/2G1KP2B/LN7 b RL4Pbgs3p 101",
+    "correct_move": "5h6i",
+    "info": "推定選択率：17.7% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "lr5nl/2kg5/2ns3p1/p2p4p/4P1BP1/P1KP2P1P/1P7/4p4/LN1R4L w B3GS3P2sn3p 128",
+    "correct_move": "S*4f",
+    "info": "推定選択率：0.0% (16位)",
+    "win_rate_best": 60,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lr5nl/6g2/5psp1/ppS2n2p/2pP1GpkP/PP1N1Bg2/1K1SP2P1/2G2R3/LN6L b bs5p 133",
+    "correct_move": "4h3h",
+    "info": "推定選択率：16.4% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l6nl/1r2g2k1/p3ps1p+P/2Pp1p3/3nP1s2/PP6p/1KNP1P3/3GG2R1/L5bNL w BGS4Psp 80",
+    "correct_move": "2a1c",
+    "info": "推定選択率：14.2% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "l2k3nl/5G3/1+r1s1p3/2pnP2sp/P2p1PPN1/2P1S1G1P/BG1P5/1P3K1p1/L3R3L w G5Pbsn 114",
+    "correct_move": "2d2e",
+    "info": "推定選択率：8.9% (5位)",
+    "win_rate_best": 55,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lr5nl/6g2/5p1p1/ppS2ns1p/2pP1GpkP/PP1N1Bg2/1K1SP2P1/2G3R2/LN6L b bs5p 135",
+    "correct_move": "4f9a+",
+    "info": "推定選択率：14.2% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l6+Pl/1rg1k4/3spp2p/7S1/P2s4L/2Pp1Pp2/1PS4p1/2G1+n1R2/LNK4N1 b BGN5Pbg2p 85",
+    "correct_move": "3h3f",
+    "info": "推定選択率：11.9% (3位)",
+    "win_rate_best": 70,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l6k1/1ps3g2/7pP/1Ppp1SN2/p5SP1/2PPp4/P1KSb2+p1/2G1G3+r/LR6+l w Gb3nl5p 110",
+    "correct_move": "N*9d",
+    "info": "推定選択率：4.6% (5位)",
+    "win_rate_best": 78,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l5snl/1B2gkg2/p2ppp1p1/3r2p1p/3n1P3/3BSs2P/PPPSP1PP1/1G1KR4/LN5NL b g3p 65",
+    "correct_move": "5f6e",
+    "info": "推定選択率：17.2% (2位)",
+    "win_rate_best": 63,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l2k3nl/5G3/1+r1s1p3/2pnP3p/P2p1PPG1/2P1S3P/BG1P5/1P3K1p1/L3R3L w GS5Pbs2n 116",
+    "correct_move": "S*6h",
+    "info": "推定選択率：8.7% (5位)",
+    "win_rate_best": 64,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "lr7/4k2+P1/p3ggn+R1/1npB2p1p/Pn1pS4/2P1ppP1P/1PSP2b2/1KG1G4/LN6L b 2sl4p 97",
+    "correct_move": "2b3b",
+    "info": "推定選択率：7.8% (4位)",
+    "win_rate_best": 66,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l6nl/2+B3g2/2n1+N1kp1/p1p2p2p/3pG1pP1/PSP1P3P/2GP+s3L/7+r1/LNKs2P2 b RGSPb3p 77",
+    "correct_move": "G*4c",
+    "info": "推定選択率：10.9% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 15
+  },
+  {
+    "sfen": "l6nl/3b1Rpk1/8p/p2PsgPp1/1sp3l1P/PpP6/3SPR3/1G1G5/LN1K3N+b w S4Pgn2p 126",
+    "correct_move": "P*4f",
+    "info": "推定選択率：15.1% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "l6nl/9/2+B1+Ng1p1/p1p2G2p/3p2p2/PSP1P1bkP/2GP+s3L/6S+r1/LNKs2P2 b RNPg5p 87",
+    "correct_move": "7i8h",
+    "info": "推定選択率：10.1% (2位)",
+    "win_rate_best": 68,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l6Gl/3k5/2ng1p1p1/1rpb2s1p/p2pp1p2/1pP2P2P/P1S1PS3/1PGKG2R1/LN5NL w SNb3p 70",
+    "correct_move": "9e9f",
+    "info": "推定選択率：16.3% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l2g1k1nl/6g2/p2+Ppp1sp/2pR4b/2+r1NN3/PP3P3/3gPS1pP/5SS2/L3BNKPL w Pg4p 112",
+    "correct_move": "7e5e",
+    "info": "推定選択率：16.4% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "+R4p1nl/6k2/p2sp+Rg2/3p2ppp/3bs2P1/2p1N1P1P/P2PP1NG1/2GK2b2/LN6L w G2S3Plp 80",
+    "correct_move": "3c4c",
+    "info": "推定選択率：13.5% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "7nl/2s2kg2/s1npppbpp/p5p2/9/P2s1L3/1GP1PPP1P/3KG2G1/LN1P3NL b RS4Prb 95",
+    "correct_move": "R*7a",
+    "info": "推定選択率：15.8% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "l7r/2+B+R1G3/p3p1gk1/2ppsPppP/1p2+b2n1/2P2nPG1/PPN2p1P1/2S3s1K/L5G1L b SNL2Pp 107",
+    "correct_move": "N*1g",
+    "info": "推定選択率：5.2% (8位)",
+    "win_rate_best": 60,
+    "win_rate_second": 16
+  },
+  {
+    "sfen": "l6+R1/9/p1ns1s1pk/2p1p+bg2/P2PP4/3G1pGs1/1P3+r3/1KGB5/LN7 b 2NPs2l8p 115",
+    "correct_move": "6h4f",
+    "info": "推定選択率：15.1% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "lr7/4kb1+RP/2ns1l3/p1ppp2b1/1p3g1n1/P1PPP1Sn1/1P1S1G3/2G1K4/LN7 b GL2Ps5p 99",
+    "correct_move": "P*4d",
+    "info": "推定選択率：13.9% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l5knl/1r2g4/4+S1gp1/p3sp2p/1pB4P1/P1p2PP1P/1P1P+n+s3/1SG6/LNK4RL w BN2Pg3p 74",
+    "correct_move": "8b7b",
+    "info": "推定選択率：3.6% (9位)",
+    "win_rate_best": 56,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "5k2l/5g3/+B1+L2snpp/1g4p2/1p1N1P3/2G1b1P2/1P1+ppp2P/1S5R1/1K5NL b RG4P2snl3p 111",
+    "correct_move": "R*9a",
+    "info": "推定選択率：11.4% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "l5knl/2r1g4/4+S1gp1/p2Bsp2p/1p5P1/P1p2PP1P/1P1P+n+s3/1SG6/LNK4RL w BN2Pg3p 76",
+    "correct_move": "5d5e",
+    "info": "推定選択率：14.7% (3位)",
+    "win_rate_best": 88,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l8/3B1b2P/2ns5/p1ppppks1/7N1/PrPPPl1+R1/3S1g1N1/2G6/LN1K5 b SP2gl7p 133",
+    "correct_move": "S*3e",
+    "info": "推定選択率：19.9% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l7r/2+B+R1G2l/p3p1gk1/2ppsPpp1/1p2+b3P/2P2nPG1/PPN2p1P1/2S3s1K/L5G1L b S2N2Pp 103",
+    "correct_move": "N*1d",
+    "info": "推定選択率：14.1% (2位)",
+    "win_rate_best": 69,
+    "win_rate_second": 30
+  },
+  {
+    "sfen": "lr1Bs1snl/4g1k2/p1Gb3p1/4ppp1p/2PpP4/PGp3P2/1P1P1SN1P/3K1G3/L+p5RL b NPsnp 83",
+    "correct_move": "N*5c",
+    "info": "推定選択率：6.7% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "l8/4B1gp1/4p1k1l/prg1s1pP1/1n1p1ps1p/P2PP1N2/2N2S3/3G1GR2/L2K4L b N2Pbs5p 133",
+    "correct_move": "P*8f",
+    "info": "推定選択率：6.1% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "3p2rnl/P1+L2kgs1/1+N1gpp2p/7p1/1pBS1Sp2/p1p2P3/1P1PP1P1P/2G1GK1R1/7NL w 2Pbsnl 102",
+    "correct_move": "S*7d",
+    "info": "推定選択率：10.9% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "1+S3b1nl/2R3gk1/6sp1/6p1p/1p1pNp1P1/4P1P1P/+lPN6/1G2+B4/1K1R4L b SN4P2gsl3p 117",
+    "correct_move": "S*4c",
+    "info": "推定選択率：14.9% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "lr7/3g4+L/3G5/pkGPp1+Pp1/1ppn1s1n1/P1Pp2+b2/3BP4/2K6/L6R1 w GSNL5P2sn2p 136",
+    "correct_move": "8d9c",
+    "info": "推定選択率：19.6% (2位)",
+    "win_rate_best": 92,
+    "win_rate_second": 17
+  },
+  {
+    "sfen": "ln4k1l/1r3g3/p2+NS1Ppb/5g2p/3nP4/Ps4R2/1p1PpP2P/2KG1G3/LNS1B3L w 7Ps 84",
+    "correct_move": "4d3e",
+    "info": "推定選択率：13.5% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "ln4k1l/9/pr1+NS1gpb/1P1R4p/4P1g2/P1s6/3PpP2P/1+s1G1G3/LN1KB3L w N6Ps2p 98",
+    "correct_move": "S*7e",
+    "info": "推定選択率：12.7% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "ln1g3n1/2s6/2g1+Rp1gp/pPppn1pp1/3Pk4/P1G6/4pPP1P/K1S3+b2/L1P1Rb1NL b L2P2sp 121",
+    "correct_move": "5i4i",
+    "info": "推定選択率：12.3% (4位)",
+    "win_rate_best": 83,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "ln6l/7k1/p+P1+NS1gpb/3s4p/2p1P1g2/P8/2+RPpP2P/1+s1G1G3/LN1KB3L w SN6Prp 106",
+    "correct_move": "8h9i",
+    "info": "推定選択率：10.2% (4位)",
+    "win_rate_best": 55,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "l4BSn1/1r5Pk/4ppgpl/p2g2p+b1/3S5/PpP2P3/1P2P1R2/2GK1G1+l1/LN7 w SNPsn5p 92",
+    "correct_move": "P*6g",
+    "info": "推定選択率：11.4% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l3k1gnl/3g1p1b1/1r1sp2pp/p1pp1P+SP1/3nPN3/2PB2P2/PP1P1S2P/2GS5/LN1K1G2L w 2Pr 60",
+    "correct_move": "3a3b",
+    "info": "推定選択率：8.6% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "l7+P/1rgk2+S2/2np5/p2Lp2Rp/2PssBp2/PP1nNp2P/2G1P4/6G2/LNK5L b G5Pbsp 101",
+    "correct_move": "2d2c+",
+    "info": "推定選択率：0.8% (11位)",
+    "win_rate_best": 55,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "1+N2k2nl/3sg1g2/1+R2pp2p/2L3pp1/1b6P/1+bP2PP2/P2GPSN2/3PR2g1/4K1s1L w SNL3P3p 112",
+    "correct_move": "8e7d",
+    "info": "推定選択率：1.6% (7位)",
+    "win_rate_best": 56,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "5r2l/1G1B1kPs1/3+Ppp3/3p3pP/pp7/2LPlP1+n1/PPS1P4/4R4/LN1G1K1+n1 w BSNP2gs3p 106",
+    "correct_move": "S*6g",
+    "info": "推定選択率：13.7% (4位)",
+    "win_rate_best": 71,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "6knl/1r1+B2g1p/4p1sp1/2lp1sp1P/4Pp1PN/2PPG1P2/1SN6/K6R1/8L b BNL3P2gs3p 123",
+    "correct_move": "6b9e",
+    "info": "推定選択率：13.1% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "1R5nl/4skg2/2g1ppspp/B2pl1p2/N1PP3PP/GP1+b1PP2/S3PS3/+p2K2GR1/1N5NL b 3Pl 73",
+    "correct_move": "4g5h",
+    "info": "推定選択率：9.5% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "1+N2k2nl/3sg1g2/4pp2p/+R1L3pp1/1N6P/1PbpSPP2/P3PSN2/1+b1KG2R1/8L w SL4Pg2p 96",
+    "correct_move": "8h8g",
+    "info": "推定選択率：8.9% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "1+N2k2nl/3sg1g2/4pp2p/2+R1g1pp1/3pnN2P/B1PL1PP2/P3PS3/3PK4/1r4s1g w BS2L5P 138",
+    "correct_move": "6e6f",
+    "info": "推定選択率：7.4% (2位)",
+    "win_rate_best": 69,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l1pg+R3+P/k5r2/2n+B5/p1NL4p/2Ps2p2/PP1nPp2P/2G6/2sK2G2/LN6L b G7Pb2s 121",
+    "correct_move": "5a5c",
+    "info": "推定選択率：5.9% (6位)",
+    "win_rate_best": 58,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "l2gk3l/2s2s3/2P1p1g1p/p1G3pp1/1N3p2P/PP+sP3R1/2+p2PP2/2r1PK3/L3+nBSNL w BGNP2p 106",
+    "correct_move": "7f6g",
+    "info": "推定選択率：9.5% (4位)",
+    "win_rate_best": 66,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr6l/4Pk1g1/2B1pp1p1/2sg1sp1p/P2n1N3/1P1S1PP1P/9/2G2K3/1N5RL w BN2Pgsl5p 104",
+    "correct_move": "4d4e",
+    "info": "推定選択率：13.9% (2位)",
+    "win_rate_best": 69,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l2rg1k1l/9/4+Np1pp/p1p1s1gP1/3P4P/PPP1PP3/L2G1BN+n1/4GS3/2+b2K2L w 2S4Prnp 78",
+    "correct_move": "5a4b",
+    "info": "推定選択率：7.1% (6位)",
+    "win_rate_best": 61,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "ln1gk2n+B/1r7/3pp2pp/1PPsb1gs1/p6N1/1pp1S1p1P/P2PP4/1SGK1G3/LN5RL b L4p 79",
+    "correct_move": "5f5e",
+    "info": "推定選択率：10.8% (4位)",
+    "win_rate_best": 56,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l2+Bb2nl/1r5g1/4k4/p1psps1pp/3p1p3/P1P2Pp1P/1PNPP4/2G1KG1R1/L7L w GP2s2n2p 92",
+    "correct_move": "S*4b",
+    "info": "推定選択率：2.3% (11位)",
+    "win_rate_best": 56,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "lr5nl/2g4k1/p2P2g2/2ppp1pP1/PP1n1P1Rp/1pPS2P1P/1s4S2/2G2G3/LNK5L w BSPbn2p 92",
+    "correct_move": "P*4g",
+    "info": "推定選択率：4.7% (5位)",
+    "win_rate_best": 65,
+    "win_rate_second": 38
+  },
+  {
+    "sfen": "lr5nl/3g1kg2/3pppsp1/pB4p1p/2R4P1/P2sNPP1P/1P1gP1N2/5G3/LN1K4L b B2S3Pp 81",
+    "correct_move": "7e7f",
+    "info": "推定選択率：2.8% (7位)",
+    "win_rate_best": 57,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "+R1p2gknl/2+P3g2/4ppspp/2s3p2/1p6N/1K1L1PPP1/1SG+B4P/9/Lr1+b3NL b GSN6P 115",
+    "correct_move": "8f9f",
+    "info": "推定選択率：10.8% (4位)",
+    "win_rate_best": 74,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "ln3+LS1k/r3g1g2/8s/p1pPp1plP/7L1/PPP1Pn3/2NS1KPp1/2G6/+b7+r w BSN5Pgp 126",
+    "correct_move": "1i4i",
+    "info": "推定選択率：15.1% (2位)",
+    "win_rate_best": 71,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l3B1k1l/3r1Pgp1/2n1p1n2/p7p/1bPs2p2/P2PP1gRP/1P3S3/2GS1G3/LN2K3L w S4Pn2p 102",
+    "correct_move": "3f4g",
+    "info": "推定選択率：15.2% (2位)",
+    "win_rate_best": 65,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l5knl/4g1g2/1rn1p2p1/p1plsPP2/1p6p/P1PpS1pG1/SP2P4/1K5R1/LN1G3N1 b BSb4p 91",
+    "correct_move": "2f1e",
+    "info": "推定選択率：0.2% (11位)",
+    "win_rate_best": 55,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l2R3nl/4S1gk1/2n1p2p1/p1pls+rP2/1p5G1/P1P1S1p2/SP1+pP4/1K1P3+b1/LN1G3N1 b Gb5p 107",
+    "correct_move": "6a9a+",
+    "info": "推定選択率：16.4% (3位)",
+    "win_rate_best": 61,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l2B2knl/1r2g1g2/2n1p2p1/p1plsPP2/1p6G/P1PpSbp2/SP2P4/1K5R1/LN1G3N1 b SP4p 95",
+    "correct_move": "6a5b+",
+    "info": "推定選択率：16.6% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "l1l2+R3/5r3/p1spp1k2/6p1p/3PnG2b/1P4P2/PS2PS3/2G2G3/+p3K4 b GN3Pbs2n2l4p 117",
+    "correct_move": "N*2e",
+    "info": "推定選択率：16.5% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 38
+  },
+  {
+    "sfen": "l2g3n1/5g2s/2+PPpk1+L1/p2Sg1p1S/3B1p2p/P1p2PP2/1+r2P4/1+b1K1G3/LN5RL b SN2Pn4p 107",
+    "correct_move": "6e5d",
+    "info": "推定選択率：11.5% (2位)",
+    "win_rate_best": 61,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "8l/2kg2+N2/2n1p4/N1pPsB1Rp/3p5/2P1Ss2P/L+rSGP4/5+p3/2K5L b GL3Pbgn6p 135",
+    "correct_move": "G*8h",
+    "info": "推定選択率：14.3% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "7nl/1k1+P3g1/5+Pp2/2pgp1Lpp/+r2B5/2PS1ns1P/p3P1N2/L1G2G3/P4K1RL b BNP2s5p 109",
+    "correct_move": "P*8c",
+    "info": "推定選択率：13.5% (2位)",
+    "win_rate_best": 79,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l1l2+R3/5r3/p1spp4/5kp1p/3Pn3b/1P4P2/PS2PS3/2G2G3/+p3K4 b 2GN3Pbs2n2l4p 115",
+    "correct_move": "G*4e",
+    "info": "推定選択率：6.2% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "l4k1nl/1+B7/1s3gsp1/p1pp2p1p/2R2p1P1/PP2P1P1P/2S6/2K1+p4/LN2G3L b BGN2Prgsn2p 113",
+    "correct_move": "7e4e",
+    "info": "推定選択率：18.2% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l1l2+R3/5r3/p1spp4/6pkp/3PnG1Nb/1P4P2/PS2PS3/2G2G3/+p3K4 b G2Pbs2n2l5p 121",
+    "correct_move": "G*3e",
+    "info": "推定選択率：15.4% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "lR5nl/3gk1gbs/2n2p3/p1s3pPp/3p5/2p3PBP/PKPP1G3/1P1G3R1/LNs4NL w 3Ps2p 80",
+    "correct_move": "P*5c",
+    "info": "推定選択率：7.6% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "lr5n1/2Sks2+R1/2n1p4/2pp4L/p4P+b2/3P2p2/PPN1P4/2G1K4/L8 w 2GSN8Pbgsl 128",
+    "correct_move": "B*4g",
+    "info": "推定選択率：4.4% (3位)",
+    "win_rate_best": 78,
+    "win_rate_second": 38
+  },
+  {
+    "sfen": "lr4k1l/3g1Ppn1/p3p1gB1/4ssNPp/P4p3/1PppSn2P/3PP4/1KGG3p1/L4R2L b B3Psn 89",
+    "correct_move": "3d2b+",
+    "info": "推定選択率：16.4% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "2+B4nl/l2g3g1/1rn1k2s1/p1pPNp1pp/1P4p2/P3pP2P/1G1SP1b2/9/LNK4RL w S3Pgs2p 94",
+    "correct_move": "G*6a",
+    "info": "推定選択率：13.8% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "l4r1nl/1+N2k1g2/3g2sp1/p+BPpp4/3n2pPp/P2P5/1PN1P+p3/1KGS5/L3G2+sL w B3Prs2p 98",
+    "correct_move": "S*9c",
+    "info": "推定選択率：13.7% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l2g2gn1/1r3k3/2n+Pp1Psp/ps3P3/7+b1/PPP1G1pp1/2S1PS1+l1/2G1K4/LN2B3R b N6Pl 101",
+    "correct_move": "N*4e",
+    "info": "推定選択率：13.7% (1位)",
+    "win_rate_best": 65,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l5g1l/4+Sp1k1/b1+B1p2g1/p3sspp1/2P4np/PP+Rp1KP1P/2N1P4/1pG4R1/L7L w S2N4Pg 120",
+    "correct_move": "5d5e",
+    "info": "推定選択率：3.7% (5位)",
+    "win_rate_best": 60,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "1r6l/k2s2g2/6n2/p2spgp2/Lp6p/n1GSP1PR1/1PK2GN1P/9/8L b BN5Pbsl4p 127",
+    "correct_move": "P*9c",
+    "info": "推定選択率：4.3% (5位)",
+    "win_rate_best": 55,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "+B2g1g1nl/5k3/1s+P2pspp/3pp1p2/P8/2KB2PPP/6N2/2+s+r5/4RG1NL w SN2L7Pg 84",
+    "correct_move": "8c8d",
+    "info": "推定選択率：3.1% (5位)",
+    "win_rate_best": 66,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l2g1g1nl/2s2k3/4ppspp/3p2p2/P1P6/1G4PPP/3K2N2/2S4R1/+b3RG1NL w BN5Psl2p 58",
+    "correct_move": "S*6f",
+    "info": "推定選択率：19.2% (4位)",
+    "win_rate_best": 55,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l6nl/1k1g5/p1n1p+B1p1/1Ps4gp/Pp1p+RPP2/1nG5P/1+s1PG4/1sP6/L1SKP1r1L b BNP3p 125",
+    "correct_move": "7i8h",
+    "info": "推定選択率：17.7% (3位)",
+    "win_rate_best": 73,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "l1S1S1k1l/7g1/3pg1nsp/p2P1ppP1/1pr1n2p1/P1P2PP1P/4P4/5GS2/L3K2RL w BGb2n3p 92",
+    "correct_move": "7e6e",
+    "info": "推定選択率：11.1% (3位)",
+    "win_rate_best": 79,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "ln1g3nl/1r3kgp1/p2pp3P/5ppPB/8p/P1ps5/1S2P1P2/2GK3R1/LN5NL b BSgs5p 71",
+    "correct_move": "S*8c",
+    "info": "推定選択率：15.4% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "lr3+B2l/2kg3s1/4p1+N2/p2ps1pPp/1Pp1+bP3/PGPN2P2/3PPS2P/1S1KG4/L6NL b GPrn2p 67",
+    "correct_move": "6f5d",
+    "info": "推定選択率：6.0% (6位)",
+    "win_rate_best": 62,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "+RR2pk1nl/3g2g2/2s4p1/p4np1p/2p2p1P1/PPKP2P1P/5s3/1+p1S5/L7L b BGS2NL2Pbg2p 135",
+    "correct_move": "7f8e",
+    "info": "推定選択率：7.4% (2位)",
+    "win_rate_best": 61,
+    "win_rate_second": 7
+  },
+  {
+    "sfen": "lr7/3g2gk1/4p1npl/p1P3s2/1pBp1sp1p/P1SnSN3/1P2PG3/2G6/LNK4RL b Pb6p 81",
+    "correct_move": "7e6f",
+    "info": "推定選択率：17.0% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l7l/3+Rn1g2/3p1p1p1/2k1N1S1p/pPpPpnp2/4PSb1P/2S+b5/4GK3/L6RL b Ggsn6p 113",
+    "correct_move": "G*8d",
+    "info": "推定選択率：17.6% (3位)",
+    "win_rate_best": 74,
+    "win_rate_second": 4
+  },
+  {
+    "sfen": "l3r2nl/1P1k3G1/3s1p3/4P1p1p/Pn1plS3/1G2NPP1P/3PKB1r1/4G4/1+p6L w BG4P2sn2p 114",
+    "correct_move": "5e5f",
+    "info": "推定選択率：12.8% (3位)",
+    "win_rate_best": 71,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l5knl/4g1gP1/p3p1s2/2p3pp1/P2nSS2p/2P3P2/1+rSGP3P/1P3G1R1/LNK5L w BNPb4p 68",
+    "correct_move": "B*7h",
+    "info": "推定選択率：2.2% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "l6nl/2g1k1g2/3p1p1p1/2Ns4p/pPpNpPpS1/4Pn2P/2SG5/2b1GK3/L6RL b RSPb5p 91",
+    "correct_move": "S*5c",
+    "info": "推定選択率：10.8% (5位)",
+    "win_rate_best": 62,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "5kpRl/3sg4/1+B1p1p1gp/p1p1p1P2/3P3l1/2Pn4P/P2SPPR2/1+b3K3/9 w S3N2L4P2gs 102",
+    "correct_move": "S*3b",
+    "info": "推定選択率：5.0% (8位)",
+    "win_rate_best": 65,
+    "win_rate_second": 21
+  },
+  {
+    "sfen": "+R3pk1nl/3gg1g2/5s1p1/p+BppPnp1p/3SKp1P1/PP1P2P1P/5s3/1+p1S5/L7L b RBNLPgnp 121",
+    "correct_move": "6e6d",
+    "info": "推定選択率：5.7% (7位)",
+    "win_rate_best": 59,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "5kpRl/3sg4/1+B1p1pngp/p1p1p1P2/3P3l1/2P3R1P/P2SPPS2/1+b2K4/9 w S2NL4P2gnl 94",
+    "correct_move": "3c4e",
+    "info": "推定選択率：0.7% (10位)",
+    "win_rate_best": 60,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "ln1g3nl/5kg2/p2pp2+Pp/5pP2/1r7/P1pP1PS1P/B3P1N2/3K2S2/LN5RL w GS3Pbgs2p 58",
+    "correct_move": "8e8g+",
+    "info": "推定選択率：17.6% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 27
+  },
+  {
+    "sfen": "l6+P1/3r5/1Png1k3/2ppp2pP/p5s1p/2SSL1g2/PGNPPP3/3K2G2/L6RL b SN2P2bn3p 97",
+    "correct_move": "S*4e",
+    "info": "推定選択率：16.2% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l2R1p1kl/4g1g2/p3p1s2/2p3pp1/P2nSS2p/2P3P2/1PS+bPG2P/7R1/LNK5L w B2NPg4p 76",
+    "correct_move": "P*6h",
+    "info": "推定選択率：6.3% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l5rnl/1+R3pg1k/2n2sp2/7Pp/Pp4s1L/p1SPP4/+pPNG2B2/2G1+p4/2K4N1 b BG3Psl3p 127",
+    "correct_move": "B*4g",
+    "info": "推定選択率：19.3% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l2+B4l/1r1s1k1g1/p3p1npp/3p2p2/2P1gP1R1/P1nS2P1P/1P1PP4/1G3G3/L3K1S1+b b SP2nl3p 77",
+    "correct_move": "4e4d",
+    "info": "推定選択率：19.2% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 22
+  },
+  {
+    "sfen": "l2+B2k1l/1r1s3g1/p3ppnpp/3p2p2/2P1R4/P1nS2P1P/1P1PP4/1G3G3/L3K1S1+b b GSP2nl3p 83",
+    "correct_move": "6a5b",
+    "info": "推定選択率：8.6% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l2sbS1nl/1R1p2gk1/2n1pp1p1/p1p+B3Pp/6P2/P1PP1P2P/1PN1P4/1KG1+p4/L1G1r3L w NPg2s 102",
+    "correct_move": "3b3c",
+    "info": "推定選択率：17.2% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l+bs3knl/2b+R2g2/2nGp1sp1/p1pP1p2p/4S1PP1/PPPp1P2P/4PKG2/2G6/LN1R4L b 2Psn 75",
+    "correct_move": "6b5a",
+    "info": "推定選択率：18.7% (2位)",
+    "win_rate_best": 62,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr4knl/6g2/3gpps2/p1pp2p1p/3s1P1NP/PP+bS1BP2/4PG3/2G4R1/LNK5L b N2Ps3p 67",
+    "correct_move": "6f6e",
+    "info": "推定選択率：19.6% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "2B2k2l/6g2/2sp1ln1p/2p2p1Ps/1r4Sp1/2PPN1g1P/1L2G1P2/2S2K3/2b4NL b GN5Pr3p 95",
+    "correct_move": "7a5c+",
+    "info": "推定選択率：1.3% (5位)",
+    "win_rate_best": 60,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "3S5/6g2/2gpkpsp1/4l4/S3B1P2/1P3PS1l/4PK3/2b2G3/LN1+rR4 b 2N8Pgnl3p 99",
+    "correct_move": "5e7c+",
+    "info": "推定選択率：3.0% (4位)",
+    "win_rate_best": 85,
+    "win_rate_second": 27
+  },
+  {
+    "sfen": "l4k2l/2Sg5/4p1+N2/pr6p/2Ps5/Pp3p2P/1nSGP1p2/1P1K1G3/LNb5L b GN3Prbs4p 107",
+    "correct_move": "6h7h",
+    "info": "推定選択率：17.6% (2位)",
+    "win_rate_best": 83,
+    "win_rate_second": 14
+  },
+  {
+    "sfen": "l6nl/1s2gkgs1/p3pp3/2pp2p1p/2Pn5/1PnG1P2P/Pb1PP1P2/1S1K1S1R1/LR3G1NL b B3P 43",
+    "correct_move": "6h7i",
+    "info": "推定選択率：8.8% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "1nrS4l/4gkgb1/4ps2n/3p1L2p/4BP3/2p1S1PpP/N1lPP4/2GG3R1/2K4NL w 8Ps 84",
+    "correct_move": "2f2g+",
+    "info": "推定選択率：0.4% (12位)",
+    "win_rate_best": 60,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "3g2knl/+R5g2/p3p2pp/2p2pN2/1P4s1P/3S2p2/P+b1pPG2N/2R1K4/LN6L w 2SL2Pbg4p 107",
+    "correct_move": "G*5b",
+    "info": "推定選択率：11.2% (4位)",
+    "win_rate_best": 58,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l5k1l/3sg1g2/p3ppsp1/3p2N1p/S1P3P2/P1bP1P3/2K1P3P/2G1G4/2+r4SL b R3NL4Pbp 85",
+    "correct_move": "5h6h",
+    "info": "推定選択率：4.4% (4位)",
+    "win_rate_best": 61,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "1nrS4l/4gkgb1/4ps2n/3p1L2p/4BP3/2p1S1P1P/N1lPP2R1/2GG5/2K4NL w 9Ps 86",
+    "correct_move": "S*8g",
+    "info": "推定選択率：8.2% (4位)",
+    "win_rate_best": 59,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l5r1l/1kS3g2/2n1+Np1s1/p1pN2Ppp/1p2g4/PPPPP3P/1KS2S3/2G2G3/LN6L w 2Pr2b3p 126",
+    "correct_move": "8e8f",
+    "info": "推定選択率：10.0% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "pn1g3pl/5+B3/P1p3nPp/k1s3R2/2N6/2P2P3/3PS1P1P/1P+p1G4/+p+rG1K2NL w B2Sg2l4p 108",
+    "correct_move": "L*4g",
+    "info": "推定選択率：13.0% (2位)",
+    "win_rate_best": 75,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "ln7/5rgk1/4ppn2/p7R/1pPG2PPp/P6n1/1P3+bN2/2GS5/L1K5L b GL2Pb3s6p 119",
+    "correct_move": "L*2d",
+    "info": "推定選択率：14.9% (4位)",
+    "win_rate_best": 85,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "l4g2+R/2Pk1g3/2g1ppb2/prsp1P2l/1pp1N1p2/P2P1n3/1PSSP4/2G2+n3/LNK5L b SPb4p 95",
+    "correct_move": "P*2b",
+    "info": "推定選択率：11.7% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l6r1/2sgk1g2/4p1+Np1/p1ppl4/3n2pP1/PPPS1p+b2/3PP1N1R/2GK2G1p/LN1sL4 w BS3Pp 76",
+    "correct_move": "5d5g+",
+    "info": "推定選択率：9.2% (3位)",
+    "win_rate_best": 65,
+    "win_rate_second": 38
+  },
+  {
+    "sfen": "lnnRl2np/1r1s1ggk1/p1pp1p1p1/1p7/4p1p2/P1P1PP1P1/1PBP5/2S3S2/LNKG1G3 w SPblp 62",
+    "correct_move": "B*5g",
+    "info": "推定選択率：12.5% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lnnRl2np/1r1s1ggk1/p1pp1p1p1/1p7/4P+bp2/P1P2P1P1/1PBP5/1KS3S2/LN1G1G3 w SPl2p 68",
+    "correct_move": "4e4f",
+    "info": "推定選択率：16.8% (3位)",
+    "win_rate_best": 57,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "lnR4nl/5gg1k/3p3sp/3spPp1L/P4N3/1pGPPpP2/2K4R1/6S2/L+b2G4 w B6Psnp 98",
+    "correct_move": "S*8g",
+    "info": "推定選択率：1.0% (11位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l6nl/3gk1gp1/3s1p3/p2sp1pPp/5P1N1/PrS1PBP1P/1p7/2K1G4/L2R4L b BSN4Pgnp 81",
+    "correct_move": "7h7g",
+    "info": "推定選択率：15.7% (2位)",
+    "win_rate_best": 58,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "lnR4nl/5gg1k/3p4s/3spPpp1/P4N2p/2GPPpP2/1K1b5/6S2/LN2G2RL w B4Ps3p 86",
+    "correct_move": "P*8f",
+    "info": "推定選択率：9.5% (4位)",
+    "win_rate_best": 56,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lr1S2knl/4g1sg1/4N1b2/2p1PPppp/PS7/LPPB2g1P/3K5/9/2R5L w SN8Pgn 104",
+    "correct_move": "8a6a",
+    "info": "推定選択率：11.4% (3位)",
+    "win_rate_best": 73,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "ln1g4l/5k3/3s1G1p1/p2p1bK1p/2S6/PPn2G2P/2NPP2+b1/2G4r1/+p6+lL w RN5P2s3p 106",
+    "correct_move": "4b3a",
+    "info": "推定選択率：2.2% (2位)",
+    "win_rate_best": 78,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l6nl/1r4gk1/2+Pp1gspp/p3pbp2/1P1P1p2P/P2gP1P2/2NB1PN2/1K2GS1R1/L7L b 2SN2Pp 69",
+    "correct_move": "S*7h",
+    "info": "推定選択率：7.5% (6位)",
+    "win_rate_best": 58,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "ln1gk3l/9/3s3p1/p2p1+S2p/2S3K2/PPn2G2P/2NPP2+b1/2G4r1/+p6+lL w RGSN5Pb3p 100",
+    "correct_move": "B*2f",
+    "info": "推定選択率：10.2% (4位)",
+    "win_rate_best": 58,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "lr6l/4g1g1k/2ns2ppn/p2P4N/1Pp1s2P1/PBP6/1K1GP+p3/7R1/LN6L w BS7Pgs 100",
+    "correct_move": "6c7d",
+    "info": "推定選択率：3.9% (5位)",
+    "win_rate_best": 70,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l6nl/2R+N2G2/pb3psg1/1k4ppp/s2sK4/P4GPbP/1P2S2+r1/2G2P3/L7L b 2N2P6p 125",
+    "correct_move": "4h4g",
+    "info": "推定選択率：9.6% (4位)",
+    "win_rate_best": 56,
+    "win_rate_second": 18
+  },
+  {
+    "sfen": "l7l/2+B4R1/5S3/p5ksp/3p1np2/1S2P3P/PP1G1+p1+r1/2KP5/LNG5L w b2gs2n8p 134",
+    "correct_move": "3d4c",
+    "info": "推定選択率：18.1% (2位)",
+    "win_rate_best": 61,
+    "win_rate_second": 18
+  },
+  {
+    "sfen": "2+R1g1knl/3+Ng2g1/p+B1ppp1p1/6p2/P6N1/Sp1l1SNPp/4PPS2/2g3PK1/L2r1+b2L b SP4p 117",
+    "correct_move": "P*1h",
+    "info": "推定選択率：5.4% (8位)",
+    "win_rate_best": 84,
+    "win_rate_second": 13
+  },
+  {
+    "sfen": "l7l/7R1/5k3/p6sp/3p1+Bp2/1S2P3P/PP1G1+p1+r1/2KP5/LNG5L w Nb2g2s2n8p 136",
+    "correct_move": "2g2i",
+    "info": "推定選択率：4.2% (7位)",
+    "win_rate_best": 64,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l6nl/6gs1/5n3/p2G1spkp/1n2sN1p1/P4GP1P/4PKG2/9/L6RL b RB5Pbs5p 111",
+    "correct_move": "2i2e",
+    "info": "推定選択率：5.8% (7位)",
+    "win_rate_best": 69,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "2+R1g1knl/3+Ng2g1/p+B1ppp1p1/6p2/P6N1/Sp1l1SNPp/4PPSK1/2g3P1P/L4+r+b1L b S4p 121",
+    "correct_move": "3f2d",
+    "info": "推定選択率：14.3% (3位)",
+    "win_rate_best": 88,
+    "win_rate_second": 6
+  },
+  {
+    "sfen": "3r2kn+B/2+B3g2/4p1sp1/pG1ps1pPp/3n1p3/P1n1SPP1P/1PN1P4/1G1K1G3/L7L b SL3Prlp 91",
+    "correct_move": "6h5i",
+    "info": "推定選択率：18.6% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "3r2kn+B/2+B3g2/4p1sp1/pG1ps1pPp/3n1p3/P1n1SPP1P/1PN1P4/1G3G3/L3K1r1L b SL3Plp 93",
+    "correct_move": "S*4i",
+    "info": "推定選択率：10.1% (3位)",
+    "win_rate_best": 61,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr5+Pl/3k5/2nsp+N1p1/p1ppgBp1p/8P/P1P1S1P2/1P1G2s2/2G1K4/LN6L b GSN4Prbp 107",
+    "correct_move": "N*4e",
+    "info": "推定選択率：14.0% (3位)",
+    "win_rate_best": 65,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l4klBl/3gpsg2/3p1p1p1/prp1Pnp1p/4NR1N1/P1PP1S2P/1SGK5/5S3/L7+b b Gn5p 109",
+    "correct_move": "G*3c",
+    "info": "推定選択率：11.5% (3位)",
+    "win_rate_best": 57,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lr5nl/3gk1gb1/4ps1p1/p1pp4p/1p1N1NS2/P1Ps2R1P/1P1PPP3/1SG1G2P1/L1K5L w NPb2p 70",
+    "correct_move": "6f5e",
+    "info": "推定選択率：19.0% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "+P3+R2nl/4l1g2/2npkpsp1/p3p1p1p/1p5R1/P3P1P2/1P1G2+b1P/1SK6/LN1G4L b GPb2sn3p 75",
+    "correct_move": "5f5e",
+    "info": "推定選択率：8.3% (5位)",
+    "win_rate_best": 57,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "l6kl/5g1s1/p2pb2p1/bp4Psp/5+R3/3S2psP/PP2GP1n1/6RK1/L2G4L b G3N6Pp 95",
+    "correct_move": "N*5d",
+    "info": "推定選択率：2.3% (9位)",
+    "win_rate_best": 56,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "+B+R1n1g2k/4s1L2/p2p+B1Pp1/1p3p2l/3PN2nP/4PPlP1/PP3K2+l/5S3/9 w RGS2P2gsn3p 134",
+    "correct_move": "G*6g",
+    "info": "推定選択率：6.6% (4位)",
+    "win_rate_best": 92,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l7l/4gkg2/2ppg1np1/p3npp2/2N1SP3/P1P3PPp/6N2/3LS1GK1/1+r1P3RL b 2BP2s4p 119",
+    "correct_move": "5e5d",
+    "info": "推定選択率：11.2% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "+B+R1n1g2k/4s1L2/p2p+B1Pp1/1p3pl1l/3PN2nP/4PPGP1/PP7/5S3/8K w RGS2Pgsnl3p 128",
+    "correct_move": "L*1f",
+    "info": "推定選択率：5.1% (4位)",
+    "win_rate_best": 69,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "ln2k1p+R+P/4s4/5p2p/pr1bs4/8P/PPPPP4/1G4N2/5G1G1/LNK5+b w G2L7P2sn 108",
+    "correct_move": "N*7d",
+    "info": "推定選択率：5.3% (3位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l4g1nl/3+N1kg2/3+Bpp1pp/6p2/p1s3sPP/P1+bPR4/4PPP2/3S1SK2/1+r2+l2NL b GN3Pg2p 79",
+    "correct_move": "5f5c+",
+    "info": "推定選択率：14.9% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l1r3knl/1p5g1/4ps1p1/p+BPgsbp2/3p1pP1p/P4P1N1/1G1SP4/5G3/LNK4RL b N2Ps3p 83",
+    "correct_move": "6g7h",
+    "info": "推定選択率：7.8% (5位)",
+    "win_rate_best": 57,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l1r3knl/1p1+B1g1g1/2+P1p2p1/p2gs1P2/3p1p2p/P2l1P3/1S2P4/5G3/+bNK4RL b S2N3Ps3p 99",
+    "correct_move": "P*6g",
+    "info": "推定選択率：8.4% (3位)",
+    "win_rate_best": 64,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "lr5B+P/2g2k3/4ps3/p1p3p1p/1n2S2g1/PSP3P1P/1GN1P+p3/1K7/LN1+p3+pL b BSLPrgn3p 119",
+    "correct_move": "8h9h",
+    "info": "推定選択率：0.4% (7位)",
+    "win_rate_best": 61,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l2g1k1nl/4g1s2/2+P1Sp2p/p5p2/5N1pP/PP1+b1PS2/3+b1S3/4PG3/5K2L b RGL3Pr2n4p 121",
+    "correct_move": "L*5g",
+    "info": "推定選択率：16.8% (2位)",
+    "win_rate_best": 70,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l2k5/1r4p1+S/3Gp2pl/1+b1p1pR2/p2n4p/1SP2P3/PP1Ps+b3/K1+p6/LNG4NL w GSN3Pg2p 112",
+    "correct_move": "6e7g+",
+    "info": "推定選択率：8.3% (4位)",
+    "win_rate_best": 65,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "l8/1r2k1p1+S/4p2pl/1+b1p1pR2/p2n4p/1SP2P3/PP1PsG3/K1+p6/LN1b3NL w 3GSN3P2p 108",
+    "correct_move": "5b6a",
+    "info": "推定選択率：17.4% (2位)",
+    "win_rate_best": 62,
+    "win_rate_second": 8
+  },
+  {
+    "sfen": "l7l/4+B1gk1/p4p1s1/1+r2p1ppp/3NSP3/2PPK1P1P/P8/1P1G2S2/L7L b BGS2N5Prgn 135",
+    "correct_move": "B*7c",
+    "info": "推定選択率：2.4% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "ln2S3l/4r2kp/pSpgpG3/5pppP/9/2S1+n4/PP2b1P2/K6R1/LN5NL w S2Pb2g5p 104",
+    "correct_move": "B*7i",
+    "info": "推定選択率：12.8% (2位)",
+    "win_rate_best": 62,
+    "win_rate_second": 21
+  },
+  {
+    "sfen": "lnp1p2nl/1+R2g1k2/1+B1p+P2pp/p2n2g2/1p3p2R/P1sS1P3/1P1P4P/1K1G1+p3/LN2+b3L b SPgs2p 95",
+    "correct_move": "5c5b",
+    "info": "推定選択率：2.1% (7位)",
+    "win_rate_best": 80,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l7l/1P1k1g3/2ng2sr1/p1pspp2p/5n+B2/P1PpPS2P/1GN2K3/3P1Gpp1/LR6L b BNs4p 103",
+    "correct_move": "4f4e",
+    "info": "推定選択率：14.0% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "+B5knl/3+P1sg2/p1n1pp3/1P4p1p/P1S4p1/5rPPP/2PsP+s3/1G7/LNKP2R1L b BGNL2Pgp 75",
+    "correct_move": "G*7h",
+    "info": "推定選択率：18.9% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "ln5nl/1+Bs1gkg2/2p1pp1pp/p8/1P7/P8/3+pgSP1P/4PS3/L3K1GNL w 2RNPbs5p 102",
+    "correct_move": "5g4g",
+    "info": "推定選択率：0.8% (16位)",
+    "win_rate_best": 61,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "ln5nl/1+Bs1g1g2/2p1ppkpp/p5N2/1P7/P8/3+p1SP1P/4P4/L3K1GNL w 2RGPb2s5p 106",
+    "correct_move": "S*4f",
+    "info": "推定選択率：18.6% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l1r3snl/4g1k2/2Ps5/p2ppp2p/1NS1n1gp1/P3P3P/1P1P2p2/1+BG1KG3/L6RL b B4Psnp 89",
+    "correct_move": "P*3i",
+    "info": "推定選択率：19.2% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l4kB+Pl/PR1g5/+P1n1pg1p1/2p2s2p/4bSP2/2Pp4P/KPS1+p1N2/2+sN1+r3/LN6L w G2Pg3p 98",
+    "correct_move": "4d4e",
+    "info": "推定選択率：3.1% (8位)",
+    "win_rate_best": 64,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "l3g1snl/4g1k2/5p1p1/p3p1R1p/5Np2/3p1P2P/P3PSPP1/3+b2S2/L1P3KNL w GSN3Prbgp 88",
+    "correct_move": "3b4a",
+    "info": "推定選択率：16.5% (2位)",
+    "win_rate_best": 67,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "lr5nl/2g2k3/4ps3/p1Pp1NPsp/1pp2Sp2/P2P1P2P/1PS1P4/1KG2G3/LN6L b BGrbn3p 73",
+    "correct_move": "G*6c",
+    "info": "推定選択率：10.3% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "l4kB+Pl/PR1g5/+P1n1pg1p1/2p2P2p/4bsP2/2Pp4P/KPS1+p1N2/2+sN1+r3/LN6L w GPgs3p 100",
+    "correct_move": "5e4d",
+    "info": "推定選択率：7.9% (5位)",
+    "win_rate_best": 63,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "4k1snl/3g5/1r2pPp2/2pP1p1pp/6P2/2Ps1N2P/LP2PBb2/1SSK1R3/4N3L b GNL4P2gp 107",
+    "correct_move": "4g7d",
+    "info": "推定選択率：14.9% (3位)",
+    "win_rate_best": 65,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l6nl/2G2k3/4ps3/prPp1NPsp/1p3Sp2/P1pP1P2P/1P2P4/1K1G1G3/LN6L b BGPrbsn2p 85",
+    "correct_move": "B*6a",
+    "info": "推定選択率：14.0% (3位)",
+    "win_rate_best": 72,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l1R1g+N1+B1/4gk3/3p3p1/4pp3/Pn6p/3PPS1g1/+p4PN1P/2+p2+b1K1/L+r1S4L w GSL3Psn3p 104",
+    "correct_move": "4b5c",
+    "info": "推定選択率：19.5% (2位)",
+    "win_rate_best": 84,
+    "win_rate_second": 8
+  },
+  {
+    "sfen": "lnR1nk2l/4gs3/p2p1pbp1/8p/6S2/PB2p4/1PGPPP2P/4G2R1/L+p1K4L b N2Pg2sn3p 67",
+    "correct_move": "3e3d",
+    "info": "推定選択率：4.2% (7位)",
+    "win_rate_best": 57,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l1R1g2s+B/4g1k2/3p2Np1/4pp3/Pn6p/3PPS3/+p4PN1P/2+p2GK2/L+r1S+b3L w GL3Psn3p 98",
+    "correct_move": "5i4h",
+    "info": "推定選択率：7.1% (6位)",
+    "win_rate_best": 83,
+    "win_rate_second": 22
+  },
+  {
+    "sfen": "l1R1+N1s2/4g4/3pk2p1/4pp3/Pn3S2p/3PPS1g1/+p4PNbP/2+p6/L2+r1BsKL w 2GL4Pn2p 120",
+    "correct_move": "4d4e",
+    "info": "推定選択率：17.8% (1位)",
+    "win_rate_best": 91,
+    "win_rate_second": 10
+  },
+  {
+    "sfen": "l2g4l/6g2/p1n1ks1pp/1r1p1SP2/1pP4P1/3SPR1B1/PPNP1P+p1P/1+n2G4/L2K1b2L w SN3Pg 80",
+    "correct_move": "5c6c",
+    "info": "推定選択率：19.0% (2位)",
+    "win_rate_best": 80,
+    "win_rate_second": 19
+  },
+  {
+    "sfen": "l2g4l/6g2/p1n1k2pp/1r1ps1P2/1pPn2SP1/2nSPR3/PP1P1P+p1P/1G2G4/LN1K4L w BS3Pb 72",
+    "correct_move": "5d4c",
+    "info": "推定選択率：7.0% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 25
+  },
+  {
+    "sfen": "lr6+B/6g2/1knS3p1/ps2G1p1p/2b6/Pp3PP1P/6N2/1KS4R1/LN1L4L w GN8Pgsp 96",
+    "correct_move": "S*8g",
+    "info": "推定選択率：9.4% (3位)",
+    "win_rate_best": 67,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l6rl/5kg2/p1gsppnP1/2p3p1p/1p1p2s2/P1PP2n1P/1PS1PPN+b1/2GKG4/LN4R1L b BS2P 67",
+    "correct_move": "3g2e",
+    "info": "推定選択率：10.0% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr6+B/6g2/1knS3p1/ps2G1p1p/2b6/Pp3PP1P/6N2/2K4R1/LN1L4L w GSN9Pgs 102",
+    "correct_move": "7e5g+",
+    "info": "推定選択率：16.3% (3位)",
+    "win_rate_best": 68,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "lng3bnl/1R+Snk4/p2n2p1p/2ppSB3/9/PPPPp4/K1S4gP/1Sg6/L+r6L w 2Pg5p 122",
+    "correct_move": "6b5d",
+    "info": "推定選択率：5.0% (4位)",
+    "win_rate_best": 67,
+    "win_rate_second": 14
+  },
+  {
+    "sfen": "ln5nl/1r3ggk1/3ppps1p/2S4p1/pp2PBp1P/2S+b2n2/PP7/2GS2G2/LNK4RL b 4P2p 77",
+    "correct_move": "7h7g",
+    "info": "推定選択率：11.0% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l7l/3R2g2/3+S2gk1/p3ppppN/2p2n2P/PP2SbPPL/8K/3+n1BGS1/LN3r3 b S4Pg3p 131",
+    "correct_move": "6b6a+",
+    "info": "推定選択率：11.1% (4位)",
+    "win_rate_best": 55,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "lnGS3nl/r6g1/1k1p1B1pp/p1ps1p3/1p2p1n2/2PPg4/PPB4RP/2G1P4/L2K4L b 2sn4p 85",
+    "correct_move": "6a7b",
+    "info": "推定選択率：13.3% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "2s1l2nl/5+P3/p2k1+Np2/1p1g4p/1np+r5/P4+BPpP/1P2PP3/3S1KG2/3G4L b BSLrgsn5p 93",
+    "correct_move": "B*9b",
+    "info": "推定選択率：18.5% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l3S1knl/3s5/5g2+P/p3r1pR1/2P+bp4/PPb2SP1L/4P1N1s/4NG3/L4K3 w G4Pgn5p 104",
+    "correct_move": "5d5b",
+    "info": "推定選択率：10.2% (5位)",
+    "win_rate_best": 76,
+    "win_rate_second": 25
+  },
+  {
+    "sfen": "l6+Rl/6g2/p1ngppskp/6p2/2B5P/3pSP3/PPS1P1P2/2GKG4/L5rN+b w SNPnl5p 68",
+    "correct_move": "3b2b",
+    "info": "推定選択率：15.4% (2位)",
+    "win_rate_best": 63,
+    "win_rate_second": 18
+  },
+  {
+    "sfen": "l1R4nl/3g2gk1/p1n1pps+Pp/6p2/2B5P/3pSP3/PPS1P1P2/2GKG4/L5rN+b w S2Pnl3p 64",
+    "correct_move": "2b2c",
+    "info": "推定選択率：6.6% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "ln1S3nl/r1G4g1/1k1p1B1pp/p1ps1p3/1p2p4/2PPg4/PPB4RP/2G1P4/L2K4L b 2s2n4p 83",
+    "correct_move": "7b7a",
+    "info": "推定選択率：1.1% (8位)",
+    "win_rate_best": 57,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "ln1g1k1nl/1r4g2/p1pp1p1pp/3s2G2/1p2pN3/2P1PP1R1/PPBP4P/2G2K3/L7L w BN2P3sp 52",
+    "correct_move": "S*4d",
+    "info": "推定選択率：14.3% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l4r1nl/2S3g2/9/2pp2k2/P2nPNB2/1PPS1PPGp/1G1S5/LK2G4/1N1b4L b 8Prsp 97",
+    "correct_move": "6f6e",
+    "info": "推定選択率：16.2% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l2g3nl/1p3kgs1/p1sRp4/1P1p1p2p/2Bn1N3/4P1PpP/PSgP1P3/+R3KG3/L5S1L w 2Pbn2p 78",
+    "correct_move": "7g6g",
+    "info": "推定選択率：6.1% (4位)",
+    "win_rate_best": 63,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr5kl/3B5/2nsn1Pg1/p3pG1pp/2P3S2/PP+bpPpS1P/4K4/9/LN5RL b N3P2gs3p 133",
+    "correct_move": "3e2d",
+    "info": "推定選択率：15.8% (4位)",
+    "win_rate_best": 83,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l4ksn+B/1r4g2/p1bp+LP1p1/6p2/8p/4P1P2/P2PGp3/2+p1K4/L5SRL b GSNPgs2n5p 79",
+    "correct_move": "S*5b",
+    "info": "推定選択率：9.0% (4位)",
+    "win_rate_best": 59,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lr5nl/9/5gsp1/p2ks1p1p/2N1bp1P1/PP1P2P1P/1KN1G4/1G7/Lr6L w BGSN4Ps3p 130",
+    "correct_move": "S*7f",
+    "info": "推定選択率：18.0% (3位)",
+    "win_rate_best": 71,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l5sn+B/2Rsk1g2/p1bp1P1p1/6p2/8p/4P1P2/P2PGp3/2+p1K4/L5SRL b GNPgs2nl5p 85",
+    "correct_move": "G*5c",
+    "info": "推定選択率：18.0% (1位)",
+    "win_rate_best": 61,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l3B2nl/6+N2/4p2p1/p1p1kPs1p/5p1P1/P2s2n1P/1PPp2N2/2G2G3/L+p1RK3L b 2G2SPrb3p 113",
+    "correct_move": "P*5e",
+    "info": "推定選択率：11.5% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l2k2sn+B/2Rb2g2/p2p1P1p1/6p2/8p/4P1P2/P2PGp3/2+p1K4/L5SRL b SNP2gs2nl5p 89",
+    "correct_move": "S*7c",
+    "info": "推定選択率：20.0% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "l4n3/2gk3+P+B/4s1+R2/2sG1p2g/pp1ppGK1p/2pb1P3/PP4+nL1/7+r1/L4N3 b SL3Psn4p 135",
+    "correct_move": "S*5a",
+    "info": "推定選択率：10.6% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l2R3nl/4gkgb1/2+P2s1pp/p2pppp2/1PKl4P/P2BSP3/2GPP1P2/1+r7/L6N+s b SN3Pgn 89",
+    "correct_move": "6a9a+",
+    "info": "推定選択率：19.4% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "ln1+S4l/1k7/1r1p+B4/p1p5p/1N2P2p1/PPP5P/1SS3S2/2KP5/LN3b1gL w G6Pr2gnp 114",
+    "correct_move": "R*5i",
+    "info": "推定選択率：16.7% (4位)",
+    "win_rate_best": 55,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l2g1S2l/1r4pk1/p1n2S1p1/2ppSpP1p/8+b/PSPPP4/1P3PN1P/2G2G3/LN1K3+nL w GPrb2p 88",
+    "correct_move": "2b1c",
+    "info": "推定選択率：10.7% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "1r5nl/2n2kg2/3Bp2p1/2p3P1p/lN2NP1P1/S2S4P/pP1sP4/1K3G3/7RL b BGgsl7p 103",
+    "correct_move": "G*4c",
+    "info": "推定選択率：15.1% (3位)",
+    "win_rate_best": 67,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "lgG+N4l/1k7/1r1p+B4/p1p5p/1N2P2p1/PPP5P/KSS3S2/N2P+b4/+r6gL w 6Pgsnlp 132",
+    "correct_move": "5h5g",
+    "info": "推定選択率：5.8% (6位)",
+    "win_rate_best": 76,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "ln5nl/1r4k1b/p2+Pp3p/2p3Pp1/2+b1P4/1P3P3/P2G2p1P/2KG2R2/LN5NL b G2S3Pg2s2p 109",
+    "correct_move": "2i3g",
+    "info": "推定選択率：10.6% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "ln1k4l/1r2gS1s1/p2ppPSpp/2N2g3/2p4PP/1PPgP1P2/PGN2R3/4K4/L5+bNL w B4Ps 76",
+    "correct_move": "S*5g",
+    "info": "推定選択率：15.6% (3位)",
+    "win_rate_best": 90,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l4RS1l/9/3gP1kp1/p1p5p/1P1N2p2/PSP+bp3P/1K3S3/2G1G3L/L8 b GNPrbs2n6p 125",
+    "correct_move": "G*2e",
+    "info": "推定選択率：11.1% (4位)",
+    "win_rate_best": 70,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "R2b1k2l/3bg1g2/2ns3pp/l1PppP1n1/1pp3n1P/3PSp3/+pP1SP4/2G2KG2/L6RL b sn4p 91",
+    "correct_move": "7d7c+",
+    "info": "推定選択率：11.9% (2位)",
+    "win_rate_best": 65,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "ln1g2+B1l/1rs1k4/2p1pp3/3p2+Bpp/p5p2/1PP1P1n1P/P1SP+nS3/9/L+p1GK2R1 b GSLgn3p 65",
+    "correct_move": "6i5h",
+    "info": "推定選択率：15.6% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "4k3l/1+B1bg1g2/l1ns1snpp/3pp4/rpp5P/p2P1P3/NP1SPSN2/2G2KG2/L6RL b P5p 71",
+    "correct_move": "8b8c",
+    "info": "推定選択率：9.7% (4位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l7l/7S1/3gP2p1/p1p5p/1P1kp+RG2/PSP+b1N2P/1K2+pS3/2G1G3L/L8 b R2Pbs3n5p 137",
+    "correct_move": "5h5g",
+    "info": "推定選択率：9.8% (3位)",
+    "win_rate_best": 80,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "l7l/3+P5/4p2sk/p1g1sB1pp/2sP1Np2/P1P1PP2P/1+r1GN4/1s1KNG3/L6RL b G5Pbnp 115",
+    "correct_move": "6h5i",
+    "info": "推定選択率：8.8% (3位)",
+    "win_rate_best": 73,
+    "win_rate_second": 11
+  },
+  {
+    "sfen": "1n5kl/7r1/2s+PB2p1/5p2p/2Pp1Pp2/LPpn2+b2/3SP3P/1SGG5/1NKP1r1+sL w GNL2Pg3p 106",
+    "correct_move": "G*5h",
+    "info": "推定選択率：10.2% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "lrk3+P1l/9/1s1S2n2/1pp3p1p/p2N1S3/2Pp1b2P/PP7/3GG2R1/LNK5L b G2Pbgsn5p 121",
+    "correct_move": "G*7c",
+    "info": "推定選択率：19.2% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "lr3k1+Pl/6g2/2gspp3/p2p2ppp/2nNBP1N1/PPS1G1P1P/2K1PgN2/9/L6RL w SPbs3p 106",
+    "correct_move": "B*5h",
+    "info": "推定選択率：9.8% (3位)",
+    "win_rate_best": 64,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "lr6l/4k1+P2/2gspp3/p2p2ppp/2Ss1P1N1/PP2G1P1P/2B1PgN2/1K7/L7L w BGSN2Prn2p 120",
+    "correct_move": "P*7f",
+    "info": "推定選択率：17.9% (3位)",
+    "win_rate_best": 70,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "6knl/3s1bg2/5p1p1/1S1gp1psp/3p5/4SPPNP/1P2PKN2/2G2G3/1+l5RL w RPbnl6p 78",
+    "correct_move": "L*2e",
+    "info": "推定選択率：6.1% (6位)",
+    "win_rate_best": 65,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "lR2gk1nl/1+N2ss1g1/p6p1/4ppP1p/1+B5R1/2nS4P/PPK1PP3/4G4/L6NL w 3Pbgs4p 88",
+    "correct_move": "B*6c",
+    "info": "推定選択率：13.0% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l5knl/2+S2ggs1/5p3/1r+Pp2P1p/p1pBp1p2/Sp1G1P3/P3PS1pP/2GR5/L1K1b2NL b N2Pnp 99",
+    "correct_move": "6e5d",
+    "info": "推定選択率：13.1% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "ln2k1B1l/7+S1/4pg2p/3p1P1g1/P2s2PpP/3N5/LPGSP1NP1/1K1PG3+r/1N2S3+r w 4Pbl2p 96",
+    "correct_move": "1h5h",
+    "info": "推定選択率：4.5% (3位)",
+    "win_rate_best": 94,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l3B1Snl/2+S3kg1/2ng1P3/2p1pp1pp/p4b1P1/PS6P/1p1pP4/K1G5R/LNP4+rL w S2Pgn2p 104",
+    "correct_move": "2b3c",
+    "info": "推定選択率：18.5% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "+R7l/6s2/pK1lpp1p1/1+SN2gn1p/6pk1/P4P2P/1PP1+b1PP1/4+r4/L3P3L w 2GS2N2Pbgs2p 122",
+    "correct_move": "5g8d",
+    "info": "推定選択率：16.7% (2位)",
+    "win_rate_best": 80,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l7l/2s1k2g1/p2pppn2/2p2bp1P/6N2/P1P2rP2/1PNPP1G2/2GSK4/L3G2PL w BN3Pr2sp 82",
+    "correct_move": "S*4i",
+    "info": "推定選択率：6.5% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "r6nl/l1S2g1k1/3B1p1p1/3pp1p2/P2nnP2p/1P1G2P2/1Kp5P/1S1SS1+r2/L1G5L b GN4Pb2p 115",
+    "correct_move": "7b8a+",
+    "info": "推定選択率：6.4% (4位)",
+    "win_rate_best": 61,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l2r2snl/6k2/4+Bs1pp/4pp1P1/p5g1P/2s2P1N1/PP2P4/2G1G2R1/LN2K2NL w GPbs6p 84",
+    "correct_move": "S*4b",
+    "info": "推定選択率：19.8% (2位)",
+    "win_rate_best": 56,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "2k4nl/+L1gg1s1r1/1p1sp2p1/5p2p/2P3PP1/1+B2LP3/1PK1PSN1P/2G1R4/3b4L w SN5Pgnp 70",
+    "correct_move": "6i5h+",
+    "info": "推定選択率：17.3% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l3r1nnl/3g2Sk1/4PG1p1/1p3PpRp/Pn1P5/5+bP1P/1P7/1+b4G2/LN2K3L w G2S5Ps2p 116",
+    "correct_move": "P*5h",
+    "info": "推定選択率：19.4% (2位)",
+    "win_rate_best": 87,
+    "win_rate_second": 15
+  },
+  {
+    "sfen": "l3r1n+Sl/3g3k1/4PG1p1/1p3Pp+bp/Pn1P5/6P1P/1P7/1+b2p1G2/LN3K2L w G2SN5Prsp 120",
+    "correct_move": "2b1b",
+    "info": "推定選択率：19.1% (2位)",
+    "win_rate_best": 89,
+    "win_rate_second": 0
+  },
+  {
+    "sfen": "lr2k1+P1l/3g5/4ps1p1/5P1gp/p2p3N1/PPp1SN2P/3PP4/1K2+p1+p2/LNP5L b BG2SN2Prbg 97",
+    "correct_move": "B*3c",
+    "info": "推定選択率：16.8% (2位)",
+    "win_rate_best": 68,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "lr2k1+P1l/3g5/4ps1p1/5P1gp/p1pp3N1/PP2SN2P/1G1PP4/1K2+p1+p2/LN6L b BGSN3Prbs 93",
+    "correct_move": "P*7i",
+    "info": "推定選択率：16.5% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l5k2/1r1g1sg2/4ppn1l/p1pP2Np1/5PR2/PPPS5/3sPG2+p/2G6/LNK2b2L b BS2Pn4p 71",
+    "correct_move": "S*7a",
+    "info": "推定選択率：5.4% (5位)",
+    "win_rate_best": 64,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l4k2l/2+N1gg3/5s2p/5pgp1/P2PP2PB/2S6/LPp1bP2P/1K2+p2R1/1NP5L b RS2N4Pgsp 117",
+    "correct_move": "S*6g",
+    "info": "推定選択率：6.3% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "l4+R1n1/8k/2+P1p1g2/2p2pppp/p2Pb4/1GP3P1P/P1N6/1K1N1S3/LN6L w 2GSL3Prb2s2p 110",
+    "correct_move": "P*6g",
+    "info": "推定選択率：3.6% (7位)",
+    "win_rate_best": 60,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "l4g1n+B/7sS/2+P1pg1k1/2p2pppp/p2Pb4/1GP3P1P/P1N6/1K1N1S3/LN6L w RL3Prgs2p 102",
+    "correct_move": "2c1c",
+    "info": "推定選択率：4.9% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 13
+  },
+  {
+    "sfen": "8l/3r1gk2/1S1p1gs2/l3Ppppp/1NP6/nb1PNP1PP/3S1S3/K1G1G1R2/8L w BL4Pn3p 94",
+    "correct_move": "9f8h+",
+    "info": "推定選択率：7.5% (5位)",
+    "win_rate_best": 56,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l7l/9/p1pkgpb2/1N5pp/2Ppp1p2/P2nP1g1P/1P1S1P3/1BG2ss2/L2KR3L b RGSP2n3p 105",
+    "correct_move": "6g6f",
+    "info": "推定選択率：10.6% (3位)",
+    "win_rate_best": 65,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l7l/4k4/p1p2pb2/1N2GsRpp/2PSpgp2/P2pP1g1P/1P3P3/1BG2ss2/L2KR3L b 3n4p 119",
+    "correct_move": "5d4d",
+    "info": "推定選択率：3.0% (5位)",
+    "win_rate_best": 85,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l7l/9/p1pkgpb2/1N5pp/2P1p1p2/P2pP1g1P/1P3P3/1BG2ss2/L2KR3L b RGSNPs2n3p 107",
+    "correct_move": "S*6e",
+    "info": "推定選択率：17.1% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "ln1g3+R+P/+N8/p2pp1G1p/3k5/1pL5P/2P2sP2/PPSP5/2G1s1+bP1/LNKs4+b w RNL2Pg3p 94",
+    "correct_move": "4f5g+",
+    "info": "推定選択率：14.2% (1位)",
+    "win_rate_best": 60,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l3k2nl/1r1s2B2/2n2g2p/2p1p1sp1/p4p3/1pPGP4/P1N2P2P/1P1G3R1/L1K1s2NL b GS2Pb3p 71",
+    "correct_move": "6h5h",
+    "info": "推定選択率：7.1% (6位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lr6l/3g1kgs1/2+P1p2p1/pb1P1pp2/5n2p/Pp1pS4/1P2P1P2/2GKG2R1/LN5NL w BSNs4p 80",
+    "correct_move": "8d7c",
+    "info": "推定選択率：5.8% (4位)",
+    "win_rate_best": 55,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l6nl/1r2pk1s1/2nS1g1b1/p1ppP1ppp/1p3N3/P1PP2P1P/1PSG1P3/1KG2S3/LN6L b GPrbp 79",
+    "correct_move": "6c5b+",
+    "info": "推定選択率：8.6% (5位)",
+    "win_rate_best": 59,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l7l/3g5/2s2+N1p1/2P1P2kp/2GP2p2/pK2SP1sP/4G4/2b4R1/1Nrg4L w BSL5P2n4p 128",
+    "correct_move": "N*9d",
+    "info": "推定選択率：3.9% (5位)",
+    "win_rate_best": 93,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "ln2GS1n1/8g/4p+P1p1/p2p2klL/2S3r2/PSpBP1p2/NG1P5/4KS3/+p8 b GN2Prbl5p 109",
+    "correct_move": "G*1f",
+    "info": "推定選択率：15.2% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "+N2gkg2l/2s4g1/3ppS1p1/2Nblp2p/n2B1P3/P2PP1P2/2G1sLpPP/8R/4K2NL w R5Ps 118",
+    "correct_move": "3g3h+",
+    "info": "推定選択率：19.1% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "+N2g4l/2s1k2g1/3ppS1p1/3blp2p/n2B1P3/P2PP1P2/2+pG2pPP/5L2R/4K2NL w RN4Pg2s 112",
+    "correct_move": "5b5a",
+    "info": "推定選択率：17.4% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "ln4k2/1r4p2/2p2+SPp1/4G4/p7p/2P1pP3/PP1PP4/2GK1N+r2/LN2G3L w GS5P2b2snl 106",
+    "correct_move": "S*8h",
+    "info": "推定選択率：0.6% (7位)",
+    "win_rate_best": 66,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l2+B3nl/6gs1/4k2p1/pr3np1p/2pPSp1P1/PPs3P1P/KbG1P4/2Pr1G3/LN6L w GSPn3p 92",
+    "correct_move": "6h6e+",
+    "info": "推定選択率：9.8% (5位)",
+    "win_rate_best": 75,
+    "win_rate_second": 27
+  },
+  {
+    "sfen": "+N2gkg2l/2s4g1/3ppS1p1/2N1Bp2p/n4P3/P2PP1P2/2G1sL1PP/6R2/4K2N+b w RL6Psl 122",
+    "correct_move": "5c5d",
+    "info": "推定選択率：14.6% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l2+B3nl/6gs1/4k2p1/pr3np1p/2pPSp1P1/PPs3P1P/2G1P4/K1Pr1G3/LN6L w GSPbn3p 90",
+    "correct_move": "B*8g",
+    "info": "推定選択率：14.2% (3位)",
+    "win_rate_best": 76,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l7l/3g5/2s2+N1p1/n1P1P2kp/2GP2p2/p3+bP1sP/1KL1G4/1P5R1/1+r1g4L w B2S4P2n4p 136",
+    "correct_move": "8i7h",
+    "info": "推定選択率：19.6% (2位)",
+    "win_rate_best": 94,
+    "win_rate_second": 25
+  },
+  {
+    "sfen": "+R2Sn1knl/2+P2bg2/4gp1pp/4p1P2/p6P1/PpngP4/BPs2R2P/K8/L4G1NL w 2SL4Pp 86",
+    "correct_move": "8f8g+",
+    "info": "推定選択率：7.6% (6位)",
+    "win_rate_best": 75,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l8/3R5/6kg1/5pps1/P1p4pp/6P2/LP1PPS3/2K6/1N6R b S3N2L5P2b3gs3p 125",
+    "correct_move": "N*3g",
+    "info": "推定選択率：11.8% (3位)",
+    "win_rate_best": 63,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l7l/3+P2g2/2n4p1/b2S1pN1k/2rp2Pgp/2+b2P3/PPS2K2P/1G3G3/LN4R1L b 2S7Pnp 113",
+    "correct_move": "S*2g",
+    "info": "推定選択率：2.8% (6位)",
+    "win_rate_best": 65,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "l8/6kr1/5p1g1/2p+Bpsps1/P6pp/1S2N1P2/LP1+pPS3/1K1P5/1N6R b G2NL3Pb2gl3p 107",
+    "correct_move": "5f4d",
+    "info": "推定選択率：5.9% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l7l/3+P2g2/2n4p1/b2S1pN1k/2rp2P1p/2+b2P3/PPS1K3P/1G3G3/LN4R1L b 2S7Pgnp 111",
+    "correct_move": "5g4g",
+    "info": "推定選択率：15.1% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "l7l/3+P2g2/2n4p1/b4pN1k/2Spn1Pgp/4+bP3/PPS4SP/1G3GK2/LN4R1L b RS7Pp 119",
+    "correct_move": "3h3g",
+    "info": "推定選択率：16.6% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 23
+  },
+  {
+    "sfen": "5ksRl/6g2/n1gs1psNp/p5ppP/2pG1R3/PP+bP2n1K/4PP3/6S2/L4G2L w NL2Pb4p 126",
+    "correct_move": "6c5d",
+    "info": "推定選択率：9.8% (3位)",
+    "win_rate_best": 74,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "l2bk2nl/1s1g2gP1/p1n4p1/2Bp4p/P1P1p1P2/3P3S1/1pN1G3P/1sK1G4/L1S4NL w R5Prp 82",
+    "correct_move": "8h7i+",
+    "info": "推定選択率：13.5% (2位)",
+    "win_rate_best": 70,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l3r2pl/6G1k/4P1+Pnp/3g5/p2N2p1P/1Pp3P2/P2SKSG2/2G3Sr1/L7L b N2P2bsn5p 115",
+    "correct_move": "P*2f",
+    "info": "推定選択率：10.0% (3位)",
+    "win_rate_best": 69,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr4k1l/9/4G+P1np/3g5/p2Np1p1P/1Pp1P1P2/P2S1SG2/2G1K2r1/L7L b SN2P2bsn5p 103",
+    "correct_move": "S*3h",
+    "info": "推定選択率：8.2% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "l1g5l/5B1k1/4+Npgs1/p3S1ppp/9/3pSPP1P/PP+r1P4/4KG3/7RL b 2N5Pbgsnlp 107",
+    "correct_move": "5c4c",
+    "info": "推定選択率：14.1% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "6s1l/2s+P+N1g2/4p1kp1/6p1P/l2p1pb1p/p2PP4/1PSnG1P2/P1G1K4/LN6L w 2RBgsn4p 116",
+    "correct_move": "S*6i",
+    "info": "推定選択率：11.1% (2位)",
+    "win_rate_best": 64,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "6s1+B/2+P3g2/2R1bg1p1/6p1k/l2p1g1Pp/p2PPp3/1P+sn2P2/P5K2/LN3g2L b RSLs2n5p 139",
+    "correct_move": "3h4i",
+    "info": "推定選択率：2.1% (10位)",
+    "win_rate_best": 64,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "lr4s+R1/1l1gk2+B1/4pgP2/p1ppsp2p/3n5/PpPN5/1P1P1P2P/1G1SP4/LN1K1G1N+b b Psl2p 75",
+    "correct_move": "2a3a",
+    "info": "推定選択率：1.4% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 38
+  },
+  {
+    "sfen": "r2g3+Pl/2s1ks3/3pppn+R1/1Ppb2p2/4PP2P/1pG2BP1p/P1+n+s1GN2/5K3/L7L b GL2Psn2p 99",
+    "correct_move": "7f7g",
+    "info": "推定選択率：19.2% (2位)",
+    "win_rate_best": 61,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "l6+Pl/2s1+N4/4+B4/2p3ppk/pr5Np/P1P3PGP/G2S5/KP1PS+b2+r/LN1+p5 w GNL3Pgs2p 102",
+    "correct_move": "9e9f",
+    "info": "推定選択率：14.1% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "l5+B2/1l1gk4/4pgP2/p1ppsp2p/3n5/P1PN5/1+p1P1P2P/1G1SP4/LN1K1G1N+b b RSPrsl3p 79",
+    "correct_move": "R*7a",
+    "info": "推定選択率：9.7% (3位)",
+    "win_rate_best": 68,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l7l/1g7/1kP2g3/pp1p1bp1p/1Sp2N1p1/P2SGPP1P/1P1GP4/3K2+n2/L1R5L b R3Pb2s2np 121",
+    "correct_move": "7c7b+",
+    "info": "推定選択率：17.7% (2位)",
+    "win_rate_best": 57,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l2+RS1+B2/1l2g4/4pkg2/p1pps3p/3n1pP2/P1PN5/1+p1P1P2P/1G1SP4/LN1K1G1N+b b rsl4p 87",
+    "correct_move": "5a6b+",
+    "info": "推定選択率：1.9% (10位)",
+    "win_rate_best": 73,
+    "win_rate_second": 18
+  },
+  {
+    "sfen": "l2g3nl/2s2kg2/p3p1sp1/2p+BPpp1p/4l2P1/P1PP1PP1P/3G2N2/1S1K1G3/LN6+b w RNPrs2p 62",
+    "correct_move": "3b4c",
+    "info": "推定選択率：3.7% (7位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "lr7/3gk2l1/p2sp1B2/2pbsppP1/P2R3N1/1pP1SPP+l1/4PG3/1PG6/LNK6 b GN2Psn3p 109",
+    "correct_move": "G*5a",
+    "info": "推定選択率：12.0% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l7l/1gk6/5g3/pp1p1bp1p/1Sp2N1p1/P2SGPP1P/1P1GP4/3K2+n2/L1R5L b R3Pb2s2n2p 123",
+    "correct_move": "5f5e",
+    "info": "推定選択率：4.9% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "lrk2+S3/9/p2+rpp+B1p/1pPp2p2/3P1g2L/1N+b6/PPN1PPP2/4G4/3NK2N1 b GSg2s2l4p 117",
+    "correct_move": "3c5a",
+    "info": "推定選択率：3.4% (6位)",
+    "win_rate_best": 69,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l2r2B1p/4kgSP1/1Lngp4/p5p2/2P1sN2+R/PP1p1pb2/2KsP4/1G3G3/LN7 w SLPn6p 120",
+    "correct_move": "6a3a",
+    "info": "推定選択率：18.2% (2位)",
+    "win_rate_best": 65,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "lr1k5/2g3SB1/p2+rpp2p/1pPp2p2/5g2L/1NGP5/PPN1PPP2/9/1+b1NKG1N1 b 2SPs2l3p 103",
+    "correct_move": "6f6e",
+    "info": "推定選択率：11.6% (3位)",
+    "win_rate_best": 57,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "lr6p/3g1kg2/2nbp1n2/p2pssp2/8+R/PPlP2P2/2P1PGN2/1G1K5/LN7 w BSL6Psp 86",
+    "correct_move": "5d5e",
+    "info": "推定選択率：13.2% (3位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l8/1rg1k3+P/3spp+P2/3p+b3p/P1P1n2p1/1PGP1P2L/LSSgP4/1K3Gp2/1N6R w B2N4Psl 106",
+    "correct_move": "S*7h",
+    "info": "推定選択率：10.0% (4位)",
+    "win_rate_best": 60,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "lr4knl/3g2s2/5p1p1/3PpPpsp/P1PSn4/L2BNGb1P/NPG1s4/K1G1+p2R1/8L b 5Pp 119",
+    "correct_move": "6f5e",
+    "info": "推定選択率：7.6% (4位)",
+    "win_rate_best": 59,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l3k3l/3g3g1/b1n1ppn1p/p1N+B5/1pKp5/P1P5P/1PS1PP3/2G1s+sr2/LN6L b RG5Psp 97",
+    "correct_move": "R*8d",
+    "info": "推定選択率：12.5% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 0
+  },
+  {
+    "sfen": "lr5nl/3k5/2gsg2p1/pP1pSn1Pp/2p1P1BS1/P8/1GPbRPp1P/1K7/LN6L w S5Pgn 122",
+    "correct_move": "G*5f",
+    "info": "推定選択率：15.4% (2位)",
+    "win_rate_best": 55,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "lR1g3nl/4skg2/2p1pp1p1/p2p2l1p/1n3+BP2/+r2P1P2P/2K1P1+p2/1G7/1P2SSB1L b S2N3Pgp 99",
+    "correct_move": "7g7h",
+    "info": "推定選択率：5.8% (3位)",
+    "win_rate_best": 62,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "2B5p/2s4p1/3k2+L1+P/2p1p4/pr1p2n2/g+bP1P4/3PG1P2/1SG6/1KN3+r1L b G2SNL5Pnl2p 133",
+    "correct_move": "N*7g",
+    "info": "推定選択率：7.5% (4位)",
+    "win_rate_best": 82,
+    "win_rate_second": 28
+  },
+  {
+    "sfen": "l4B1nl/4+Bsnk1/4n1g2/p1p3pgp/1p1SPS3/P1P3P1P/1PKP1P3/2G1+p2R1/L+r5NL w G3Psp 110",
+    "correct_move": "S*6h",
+    "info": "推定選択率：1.2% (10位)",
+    "win_rate_best": 66,
+    "win_rate_second": 36
+  },
+  {
+    "sfen": "8p/2s4p1/4k1+L1+P/2p1p4/pr1p2n2/g+bP1P4/3PG1P2/1SG6/1KN3+r1L b BG2SNL5Pnl2p 131",
+    "correct_move": "B*7a",
+    "info": "推定選択率：14.3% (2位)",
+    "win_rate_best": 81,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lr4s2/3B2g2/3p1+Lpkp/2N1P4/p2S1n1Pb/6PG1/PP1P1P1n1/2+n1LKS2/L2sG3r b G4P3p 135",
+    "correct_move": "3h2g",
+    "info": "推定選択率：11.3% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 3
+  },
+  {
+    "sfen": "lr4s2/3B2g2/3p1lp1p/2N1P2b1/p2S1k1p1/6PP1/PP1P1P3/2+n2KS2/L2s1G3 b GL3Prg2n3p 121",
+    "correct_move": "L*4f",
+    "info": "推定選択率：17.0% (2位)",
+    "win_rate_best": 62,
+    "win_rate_second": 24
+  },
+  {
+    "sfen": "l2Rg3l/3b2k2/2ns5/p1p3g1p/4P1pP1/PP1g1GPKP/9/2R6/LNB4NL b N8P3s 121",
+    "correct_move": "6a6b+",
+    "info": "推定選択率：4.3% (2位)",
+    "win_rate_best": 66,
+    "win_rate_second": 32
+  },
+  {
+    "sfen": "l7l/3b2k2/2ns2g2/p1p5p/4P1pP1/PP1g1GPKP/9/2R6/LNB4NL b RG8P3sn 115",
+    "correct_move": "G*4e",
+    "info": "推定選択率：0.2% (10位)",
+    "win_rate_best": 61,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "ln3S2+P/6G2/4g2p1/1r4p1k/p6Lp/2PS1PP2/P+p1KP4/5G3/LN3R2L b S2NP2bgs6p 101",
+    "correct_move": "S*2g",
+    "info": "推定選択率：4.8% (5位)",
+    "win_rate_best": 66,
+    "win_rate_second": 49
+  },
+  {
+    "sfen": "lr1pB2+Pl/3g2g2/2k1pp1p1/p1ps1s2p/1p2NN1b1/P1P1SP2P/1PN1P1+p2/2G1G1P2/L1KR4L b Psn 73",
+    "correct_move": "4e5c+",
+    "info": "推定選択率：2.6% (7位)",
+    "win_rate_best": 63,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "ln3S1+Pl/6G1k/4g2p1/1r4p1p/p6sP/2PS1PP2/P+p1KP4/5G3/LN3R2L b 2NP2bgs5p 95",
+    "correct_move": "2a1a",
+    "info": "推定選択率：14.2% (3位)",
+    "win_rate_best": 65,
+    "win_rate_second": 31
+  },
+  {
+    "sfen": "lr5+Pl/3g2g2/2k1pp1p1/p1ps1s2p/1p2NN1b1/P1P1SP2P/1PN1P1+p2/2G1G1P2/L1KR4L b BPsnp 71",
+    "correct_move": "B*5a",
+    "info": "推定選択率：1.1% (10位)",
+    "win_rate_best": 61,
+    "win_rate_second": 37
+  },
+  {
+    "sfen": "ln1g2p2/1ks4+R1/1pl2gPpp/3B5/p4p1P1/2Pp1P1+r1/PP1P4P/2KSP4/L1SG3+l1 b BS2Pg3n 135",
+    "correct_move": "S*5b",
+    "info": "推定選択率：16.9% (3位)",
+    "win_rate_best": 60,
+    "win_rate_second": 45
+  },
+  {
+    "sfen": "lnkg4l/2sn4s/1p1p2P1p/2l4P1/4SP3/L1p6/1P1Pp3P/1SKG5/5G1b1 w RBG2N6Prp 104",
+    "correct_move": "R*9h",
+    "info": "推定選択率：14.8% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 46
+  },
+  {
+    "sfen": "lr2B2+Pl/3p2g2/3ksp1p1/p1pn4p/1p1R5/P1P1SP2P/1P1GP1+p2/2G1+b1P2/L1K5L b 2SPg3np 89",
+    "correct_move": "S*5d",
+    "info": "推定選択率：11.6% (3位)",
+    "win_rate_best": 85,
+    "win_rate_second": 34
+  },
+  {
+    "sfen": "lr6l/9/2nk5/p1pnPp1R1/1p2S1P1p/PP1S1P2P/1GN+b1S3/2SN1G3/LK6L w 2Pb2g5p 136",
+    "correct_move": "B*6i",
+    "info": "推定選択率：1.7% (5位)",
+    "win_rate_best": 58,
+    "win_rate_second": 29
+  },
+  {
+    "sfen": "lr6l/9/2nk3b1/p1pnPp1R1/1p2S1P1p/PP1S1P2P/1GNP1S3/2KN1G3/L7L w 2Pb2gs4p 132",
+    "correct_move": "S*8i",
+    "info": "推定選択率：18.0% (2位)",
+    "win_rate_best": 60,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l6+Bl/3g5/6k2/Prpb1pgpp/3p2p2/L1P1p3P/1P1Ps+s3/1KG6/1N5RL b S3N4Pgs2p 101",
+    "correct_move": "2a6e",
+    "info": "推定選択率：11.8% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 43
+  },
+  {
+    "sfen": "8l/3g5/5+N2k/1rp2plpp/l2+B2p2/P1P1pb2P/KP1Ps+s3/1NG6/1N5RL b G6Pg2snp 121",
+    "correct_move": "8g8f",
+    "info": "推定選択率：3.6% (4位)",
+    "win_rate_best": 64,
+    "win_rate_second": 41
+  },
+  {
+    "sfen": "l2gk2nl/3s5/p3pgsp1/2pp2p2/P1g4Pp/3P2P2/2N1GPS1P/2K4R1/L6NL w RBN2Pbs3p 52",
+    "correct_move": "P*8f",
+    "info": "推定選択率：8.1% (4位)",
+    "win_rate_best": 57,
+    "win_rate_second": 47
+  },
+  {
+    "sfen": "l5+R2/3kg1G2/2n5p/p1p1ss3/4pp3/P1Pr5/1P3P2P/1G1Bg4/L1KP3NL w BSN5Psnl2p 98",
+    "correct_move": "N*5f",
+    "info": "推定選択率：15.3% (2位)",
+    "win_rate_best": 71,
+    "win_rate_second": 50
+  },
+  {
+    "sfen": "l4kb+R1/3rg4/2n5p/p1p1ss3/4pp3/P1PGn4/1PSp1P2P/1G7/L2KB2NL w GS5Pnl2p 86",
+    "correct_move": "6b6f",
+    "info": "推定選択率：12.7% (3位)",
+    "win_rate_best": 69,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "lr6+P/3gk4/3s1g1p1/p1psp4/3n5/P1PSP4/1P3+bS1L/2GG3R1/LN3K3 b BNL3Pn6p 75",
+    "correct_move": "2h2c+",
+    "info": "推定選択率：18.3% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 39
+  },
+  {
+    "sfen": "ln1l3n1/1r3g2p/p6k1/3s1gppP/1p7/4P1PR1/PPSP2N2/2G1GSb2/LN1K5 b SL3Pb4p 79",
+    "correct_move": "L*2i",
+    "info": "推定選択率：12.0% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "l1s4nl/7k1/2+Bp1Sbp1/5pg1P/pr1P3P1/2pnP1P2/PP7/3KG4/L6RL w GS5Pgs2np 94",
+    "correct_move": "S*3b",
+    "info": "推定選択率：11.2% (2位)",
+    "win_rate_best": 59,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "lR5nl/3g3s1/psPp1p1g1/3k2pp1/2p2N2p/5PP2/P1GPP4/3S1KS2/L+r1b1G2L b B2n5p 75",
+    "correct_move": "B*4b",
+    "info": "推定選択率：9.9% (5位)",
+    "win_rate_best": 58,
+    "win_rate_second": 48
+  },
+  {
+    "sfen": "l2r3nl/1P7/1k2G2+P1/4+B1p1p/1+B2s4/1pP2PP1P/2NSPp3/2G3Gp1/L1K1s3L b 4Prgs2n2p 129",
+    "correct_move": "7g6e",
+    "info": "推定選択率：4.3% (9位)",
+    "win_rate_best": 91,
+    "win_rate_second": 6
+  },
+  {
+    "sfen": "l1s4nl/5Gsk1/2+Bp1Sbp1/5p1gP/pr1P5/2pnP1P2/PP7/3KG4/L6RL w S5Pg2n2p 98",
+    "correct_move": "G*3a",
+    "info": "推定選択率：2.0% (6位)",
+    "win_rate_best": 59,
+    "win_rate_second": 42
+  },
+  {
+    "sfen": "l2r3nl/1P2k1B2/4b2+P1/2p3p1p/3Ns4/1pP2PP1P/2NSPp3/2G3Gp1/L1K1s3L b G3Prgsn2p 115",
+    "correct_move": "G*4c",
+    "info": "推定選択率：10.9% (2位)",
+    "win_rate_best": 84,
+    "win_rate_second": 35
+  },
+  {
+    "sfen": "l1s2k1nl/4n4/4N1bp1/5p1gP/p+B1P5/2p1PsP2/PPg6/4K4/L6RL w RGS6Pgsn2p 114",
+    "correct_move": "4a4b",
+    "info": "推定選択率：12.7% (2位)",
+    "win_rate_best": 78,
+    "win_rate_second": 0
+  },
+  {
+    "sfen": "2R1sk2l/1P2g4/2+P1pgnpp/s2p1p3/b5pPP/b1pSPP3/p+p1P2P2/7R1/PG3K1NL b GNsn2l 131",
+    "correct_move": "2e2d",
+    "info": "推定選択率：9.4% (3位)",
+    "win_rate_best": 59,
+    "win_rate_second": 27
+  },
+  {
+    "sfen": "l7l/1r7/3s3pp/p1ppp1NP1/1p1n3nP/P1PSPp+B1k/1P1G5/1KGS2L1g/LN7 w GS2Prb2p 118",
+    "correct_move": "R*2g",
+    "info": "推定選択率：11.1% (3位)",
+    "win_rate_best": 56,
+    "win_rate_second": 40
+  },
+  {
+    "sfen": "l7l/1r7/3s3pp/p1ppp+BNP1/1p1n1s1nP/P1PSPp1k1/1P1G5/1KGS2L1g/LN7 w GPrb3p 114",
+    "correct_move": "2f1f",
+    "info": "推定選択率：1.4% (3位)",
+    "win_rate_best": 55,
+    "win_rate_second": 33
+  },
+  {
+    "sfen": "l7l/1r7/3s3pp/p1ppp1NP1/1p1n1+B1nP/P1PSPp2k/1P1G5/1KGS2L1g/LN7 w GSPrb3p 116",
+    "correct_move": "P*3f",
+    "info": "推定選択率：0.7% (10位)",
+    "win_rate_best": 57,
+    "win_rate_second": 44
+  },
+  {
+    "sfen": "+L7l/4gk3/3s2n2/2pppg1pp/9/1GPPS1G1P/4P1N2/1K3R3/8L w RBN7Pb2snl2p 98",
+    "correct_move": "B*5i",
+    "info": "推定選択率：6.2% (4位)",
+    "win_rate_best": 61,
+    "win_rate_second": 41
+  }
+]

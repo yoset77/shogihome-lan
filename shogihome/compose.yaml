@@ -1,0 +1,11 @@
+services:
+  server:
+    container_name: shogihome-lan
+    image: shogihome-lan:latest
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT}:8080"
+    env_file:
+      - .env
+      

@@ -1,0 +1,82 @@
+button {
+  color: var(--control-button-color);
+  background: linear-gradient(to top, var(--control-button-bg-color) 80%, white 140%);
+  border-color: var(--control-button-border-color);
+  border-style: solid;
+  border-width: 0px 1px 1px 0px;
+  font-size: 0.8rem;
+}
+
+button:active {
+  border-width: 1px 0px 0px 1px;
+}
+
+button:disabled {
+  background: linear-gradient(to top, var(--disabled-control-button-bg-color) 80%, white 140%);
+}
+
+button:hover:enabled {
+  background: linear-gradient(to top, var(--hovered-control-button-bg-color) 80%, white 140%);
+}
+
+button.close:enabled {
+  background: linear-gradient(to top, var(--close-button-bg-color) 80%, white 140%);
+}
+
+button.close:hover:enabled {
+  background: linear-gradient(to top, var(--hovered-close-button-bg-color) 80%, white 140%);
+}
+
+button.thin {
+  margin: 0;
+  padding: 2px 25px 2px 25px;
+}
+
+button.wide {
+  width: 100%;
+  margin: 5px 0px 5px 0px;
+  padding: 5px 0px 5px 0px;
+}
+
+input {
+  color: var(--text-color);
+  background-color: var(--text-bg-color);
+  border-color: var(--input-border-color);
+  border-style: solid;
+  border-width: 0.8px;
+  height: 20px;
+  padding: 1px 2px;
+  font-size: 0.9rem;
+}
+
+input:disabled {
+  background: var(--text-bg-color-disabled);
+}
+
+input:read-only {
+  background: var(--text-bg-color-disabled);
+}
+
+select {
+  color: var(--text-color);
+  background-color: var(--text-bg-color);
+  border-width: 0.8px;
+  height: 23.6px;
+  padding: 1px 2px;
+  font-size: 0.9rem;
+}
+
+textarea {
+  color: var(--text-color);
+  background-color: var(--text-bg-color);
+  border-width: 0.8px;
+  font-size: 0.9rem;
+}
+
+textarea:disabled {
+  background: var(--text-bg-color-disabled);
+}
+
+textarea:read-only {
+  background: var(--text-bg-color-disabled);
+}

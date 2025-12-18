@@ -1,0 +1,60 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows
+            os_short: win
+          - os: macos
+            os_short: mac
+          - os: ubuntu
+            os_short: linux
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        working-directory: shogihome
+    steps:
+      - run: git config --global core.autocrlf false
+        if: matrix.os == 'windows'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: shogihome/package-lock.json
+      - run: npm version
+      - run: npm ci
+      - run: npm run electron:build
+      - run: node scripts/archive.mjs ${{ matrix.os_short }} ${{ github.ref_name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os}}-release
+          path: shogihome/dist/release-*.zip
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create GitHub Release
+        run: |
+          gh release create "$TAG_NAME" \
+            --title "ShogiHome $TAG_NAME" \
+            --draft \
+            dist/release-*.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
