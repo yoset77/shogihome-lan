@@ -1,0 +1,38 @@
+.DS_Store
+node_modules
+dist
+dev-dist
+dist_electron
+coverage
+records
+logs
+__pycache__
+.venv
+
+# local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# build artifacts
+shogihome/docs/webapp/
+shogihome/docs/webapp-dev/
+
+# puzzles
+shogihome/public/puzzles/*.json
+!shogihome/public/puzzles/sample.json
+shogihome/public/puzzles-manifest.json
