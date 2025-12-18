@@ -1,0 +1,15 @@
+{
+  "name": "shogihome-lan-engine-wrapper",
+  "version": "1.0.0",
+  "description": "USI Engine wrapper for ShogiHome LAN",
+  "main": "engine-wrapper.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node engine-wrapper.mjs"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

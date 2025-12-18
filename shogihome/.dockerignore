@@ -1,0 +1,47 @@
+# Gitリポジトリのメタデータ
+.git
+.github
+
+# Docker関連ファイル
+Dockerfile
+.dockerignore
+
+# IDE/エディタ設定
+.vscode
+.editorconfig
+
+# Node.jsの依存関係 (コンテナ内でインストールするため不要)
+node_modules
+
+# 開発用のビルド出力
+dev-dist
+
+# ビルド出力 (コンテナ内で生成するため不要)
+dist
+
+# ログファイル
+*.log
+
+# 環境変数ファイル (ホストからマウントするためイメージに含めない)
+.env
+.env.*
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
+
+# npmのデバッグログ
+npm-debug.log*
+
+# スクリプトやドキュメント類 (実行に不要なもの)
+# /scripts
+/docs-templates
+/README.md
+/README.en.md
+/GEMINI.md
+docker-deploy.ps1
+compose.yaml
+
+# 不要なエンジンラッパー
+engine-wrapper.py
+engine-wrapper.mjs

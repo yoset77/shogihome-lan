@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # shogihome (Frontend/Server) dependencies
+  - package-ecosystem: "npm"
+    directory: "/shogihome"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "17:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    groups:
+      shogihome-dependencies:
+        patterns:
+          - "*"
+
+  # engine-wrapper (Engine Control) dependencies
+  - package-ecosystem: "npm"
+    directory: "/engine-wrapper"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "17:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    groups:
+      engine-wrapper-dependencies:
+        patterns:
+          - "*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "17:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
