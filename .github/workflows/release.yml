@@ -27,7 +27,7 @@ jobs:
       - run: git config --global core.autocrlf false
         if: matrix.os == 'windows'
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: "npm"
