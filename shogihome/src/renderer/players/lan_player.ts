@@ -17,6 +17,7 @@ export class LanPlayer implements Player {
   private currentSfen: string = "";
   private isThinking: boolean = false;
   private stopPromiseResolver: (() => void) | null = null;
+  private _multiPV: number = 1;
 
   constructor(engineId: string, engineName: string, onSearchInfo?: (info: SearchInfo) => void) {
     this.engineId = engineId;
@@ -45,6 +46,9 @@ export class LanPlayer implements Player {
         })
         .then(() => {
           lanEngine.startEngine(this.engineId);
+          if (this._multiPV !== 1) {
+            lanEngine.setOption("MultiPV", this._multiPV);
+          }
           resolve();
         })
         .catch(reject);
@@ -55,9 +59,7 @@ export class LanPlayer implements Player {
     if (this.isThinking) {
       await this.stopAndWait();
     }
-    lanEngine.sendCommand("isready");
-    // Also send usinewgame? USI protocol says isready -> readyok -> usinewgame -> go
-    lanEngine.sendCommand("usinewgame");
+    // Note: 'isready' and 'usinewgame' are handled automatically by the server.
   }
 
   async startSearch(
@@ -135,11 +137,14 @@ export class LanPlayer implements Player {
   }
 
   get multiPV(): number | undefined {
-    return 1; // Default or fetch?
+    return this._multiPV;
   }
 
   async setMultiPV(multiPV: number): Promise<void> {
-    lanEngine.setOption("MultiPV", multiPV);
+    this._multiPV = multiPV;
+    if (lanEngine.isConnected()) {
+      lanEngine.setOption("MultiPV", multiPV);
+    }
   }
 
   private async stopAndWait(): Promise<void> {

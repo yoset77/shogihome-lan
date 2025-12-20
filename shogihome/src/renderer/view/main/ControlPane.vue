@@ -365,6 +365,8 @@ const onResearch = async () => {
       store.startResearch({
         ...defaultResearchSettings(),
         usi: engine,
+        overrideMultiPV: true,
+        multiPV: appSettings.researchMultiPV,
       });
       return;
     }

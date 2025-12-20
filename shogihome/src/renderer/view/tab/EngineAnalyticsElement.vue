@@ -309,8 +309,7 @@ const formatNodeCount = computed(() => {
 });
 
 const multiPV = computed(() => {
-  // LAN engine uses a dummy session ID (-1)
-  if (props.monitor.sessionID === -1) {
+  if (props.monitor.sessionID < 0) {
     return store.volatileResearchMultiPV;
   }
   return store.getResearchMultiPV(props.monitor.sessionID);
@@ -392,13 +391,13 @@ const updateMultiPV = (add: number) => {
   }
   const newValue = value + add;
 
-  // LAN engine
-  if (props.monitor.sessionID === -1) {
+  // Legacy LAN engine
+  if (props.monitor.sessionID < 0) {
     store.changeVolatileResearchMultiPV(newValue);
     return;
   }
 
-  // Local engine
+  // Standard engines (including new LAN engine)
   // Confirm if the suggestions count is too large
   if (
     !ignoreSuggestionsCountLimit &&

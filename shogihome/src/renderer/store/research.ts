@@ -128,6 +128,9 @@ export class ResearchManager {
     // エンジンを起動する。
     try {
       await Promise.all(this.engines.map((engine) => engine.usi.launch()));
+      if (settings.overrideMultiPV) {
+        await Promise.all(this.engines.map((engine) => engine.usi.setMultiPV(settings.multiPV)));
+      }
       await Promise.all(this.engines.map((engine) => engine.usi.readyNewGame()));
       this.ready = true;
     } catch (e) {
@@ -229,14 +232,13 @@ export class ResearchManager {
 
   setMultiPV(sessionID: number, multiPV: number) {
     const engine = this.engines.find((engine) => engine.usi.sessionID === sessionID);
-    if (!engine?.usi.multiPV) {
+    if (!engine || engine.usi.multiPV === undefined) {
       return;
     }
-    // Send stop command to let the engine change the multiPV.
-    // Then, start the search again.
+    // Stop the engine first, then change MultiPV, then resume.
     engine.usi
-      .setMultiPV(multiPV)
-      .then(() => engine.usi.stop())
+      .stop()
+      .then(() => engine.usi.setMultiPV(multiPV))
       .then(() => {
         if (this.record && !engine.paused) {
           engine.usi.startResearch(this.record.position, this.record.usi).catch((e) => {

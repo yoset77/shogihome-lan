@@ -85,10 +85,11 @@ import { IconType } from "@/renderer/assets/icons";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DialogFrame from "./DialogFrame.vue";
-
 import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { useAppSettings } from "@/renderer/store/settings";
 
 const store = useStore();
+const appSettings = useAppSettings();
 const busyState = useBusyState();
 const researchSettings = ref(defaultResearchSettings());
 const engines = ref(new USIEngines());
@@ -101,7 +102,12 @@ busyState.retain();
 onMounted(async () => {
   try {
     researchSettings.value = await api.loadResearchSettings();
+    if (!researchSettings.value.usi) {
+      researchSettings.value.overrideMultiPV = true;
+      researchSettings.value.multiPV = appSettings.researchMultiPV;
+    }
     engines.value = await api.loadUSIEngines();
+
     engineURI.value = researchSettings.value.usi?.uri || "";
     secondaryEngineURIs.value =
       researchSettings.value.secondaries?.map((engine) => engine.usi?.uri || "") || [];

@@ -409,6 +409,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         sendError("remote engine connection failed");
         onEngineClose();
       });
+      // Initiate USI handshake automatically
       sendToEngine("usi");
     });
 
@@ -504,6 +505,21 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         isWaitingForBestmove = false;
         currentEngineSfen = null;
         engineHandle.close();
+      }
+      return;
+    }
+
+    if (command === "usi" || command === "isready") {
+      // Handshake is managed by the server automatically.
+      return;
+    }
+
+    if (command.startsWith("setoption ")) {
+      if (engineState >= EngineState.WAITING_USIOK) {
+        sendToEngine(command);
+      } else {
+        console.log(`Engine connection in progress, queueing: ${command}`);
+        commandQueue.push(command);
       }
       return;
     }
