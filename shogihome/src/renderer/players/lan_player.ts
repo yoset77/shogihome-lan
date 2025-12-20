@@ -44,14 +44,7 @@ export class LanPlayer implements Player {
           this.onMessage(message);
         })
         .then(() => {
-          // If the ID is 'game' or 'research', use the legacy commands for compatibility
-          if (this.engineId === "game") {
-            lanEngine.startGameEngine();
-          } else if (this.engineId === "research") {
-            lanEngine.startResearchEngine();
-          } else {
-            lanEngine.startEngine(this.engineId);
-          }
+          lanEngine.startEngine(this.engineId);
           resolve();
         })
         .catch(reject);

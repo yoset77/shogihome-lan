@@ -123,14 +123,6 @@ class LanEngine {
     this.sendCommand(`start_engine ${engineId}`);
   }
 
-  startResearchEngine() {
-    this.sendCommand("start_research_engine");
-  }
-
-  startGameEngine() {
-    this.sendCommand("start_game_engine");
-  }
-
   stopEngine() {
     this.sendCommand("stop_engine");
   }

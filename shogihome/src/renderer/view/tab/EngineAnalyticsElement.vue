@@ -282,12 +282,12 @@ const isResearchSession = computed(() => {
 const paused = computed(() => {
   if (props.mobileLayout) {
     if (props.monitor.sessionID === -1) {
-      return (
-        store.lanEngineState === ResearchState.PAUSED ||
-        store.lanEngineState === ResearchState.IDLE
-      );
+      return store.lanEngineState !== ResearchState.RUNNING;
     }
-    return store.isPausedResearchEngine(props.monitor.sessionID);
+    return (
+      store.researchState !== ResearchState.RUNNING ||
+      store.isPausedResearchEngine(props.monitor.sessionID)
+    );
   }
   if (props.monitor.sessionID === -1) {
     return store.lanEngineState === ResearchState.PAUSED;

@@ -392,14 +392,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
-      // Use 'run <id>' for new protocol, but keep 'research'/'game' as is for backward compatibility if needed.
-      // Actually our new wrapper handles both, so sending 'run <id>' or just 'id' is fine.
-      // To be safe and clean, we'll use the 'run ' prefix for everything except the legacy types.
-      if (engineId === "research" || engineId === "game") {
-        socket.write(engineId + "\n");
-      } else {
-        socket.write(`run ${engineId}\n`);
-      }
+      socket.write(`run ${engineId}\n`);
 
       engineState = EngineState.WAITING_USIOK;
       engineHandle = {
@@ -493,16 +486,6 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     if (isWaitingForBestmove) {
       postStopCommandQueue.push(command);
-      return;
-    }
-
-    if (command === "start_research_engine") {
-      startEngine("research");
-      return;
-    }
-
-    if (command === "start_game_engine") {
-      startEngine("game");
       return;
     }
 

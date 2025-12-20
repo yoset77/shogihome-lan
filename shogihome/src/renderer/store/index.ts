@@ -1177,7 +1177,7 @@ class Store {
         }
       })
       .then(() => {
-        lanEngine.startResearchEngine();
+        lanEngine.startEngine("research");
         lanEngine.setOption("MultiPV", this.volatileResearchMultiPV!);
         this.updateResearchPosition();
       })
