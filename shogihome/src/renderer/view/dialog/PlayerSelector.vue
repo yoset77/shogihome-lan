@@ -140,6 +140,13 @@ const listItems = computed(() => {
   if (props.containsHuman || props.containsLan) {
     if (lanEngineList.value.length > 0) {
       for (const info of lanEngineList.value) {
+        // Filter by type if context is known
+        if (props.defaultTag === getPredefinedUSIEngineTag("game")) {
+          if (info.type && info.type !== "game" && info.type !== "both") continue;
+        } else if (props.defaultTag === getPredefinedUSIEngineTag("research")) {
+          if (info.type && info.type !== "research" && info.type !== "both") continue;
+        }
+
         items.push({
           label: `LAN: ${info.name}`,
           value: `lan-engine:${info.id}`,

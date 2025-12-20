@@ -21,7 +21,9 @@
         </button>
         <template v-if="lanEngineList.length > 0">
           <button
-            v-for="info in lanEngineList"
+            v-for="info in lanEngineList.filter(
+              (e) => !e.type || e.type === 'game' || e.type === 'both',
+            )"
             :key="info.id"
             @click="selectPlayer(`lan-engine:${info.id}`, info.name)"
           >
