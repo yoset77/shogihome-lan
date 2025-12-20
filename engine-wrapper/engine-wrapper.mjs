@@ -11,15 +11,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const RESEARCH_ENGINE_PATH = process.env.RESEARCH_ENGINE_PATH;
-const GAME_ENGINE_PATH = process.env.GAME_ENGINE_PATH;
-
 const HOST = process.env.BIND_ADDRESS || '127.0.0.1';
 const PORT = parseInt(process.env.LISTEN_PORT || '4082', 10);
 
 /**
  * Load engine list from engines.json.
- * Falls back to .env if engines.json doesn't exist.
  */
 function getEngineList() {
   const enginesJsonPath = path.join(__dirname, 'engines.json');
@@ -32,14 +28,8 @@ function getEngineList() {
     } catch (e) {
       console.error(`[${new Date().toISOString()}] Failed to parse engines.json: ${e.message}`);
     }
-  }
-
-  // Add default engines from .env for backward compatibility if not already present in engines.json
-  if (RESEARCH_ENGINE_PATH && !engines.find(e => e.id === 'research')) {
-    engines.push({ id: 'research', name: 'Research Engine (Default)', path: RESEARCH_ENGINE_PATH });
-  }
-  if (GAME_ENGINE_PATH && !engines.find(e => e.id === 'game')) {
-    engines.push({ id: 'game', name: 'Game Engine (Default)', path: GAME_ENGINE_PATH });
+  } else {
+    console.error(`[${new Date().toISOString()}] engines.json not found at ${enginesJsonPath}. No engines available.`);
   }
 
   return engines;
@@ -227,11 +217,8 @@ server.listen(PORT, HOST, () => {
       console.error(`[${new Date().toISOString()}] Failed to parse engines.json: ${e.message}`);
     }
   } else {
-    console.log(`[${new Date().toISOString()}] engines.json not found. Falling back to .env configuration.`);
+    console.error(`[${new Date().toISOString()}] engines.json not found. Please create one based on engines.json.example.`);
   }
-  
-  if (RESEARCH_ENGINE_PATH) console.log(`[${new Date().toISOString()}] Legacy Research Engine: ${RESEARCH_ENGINE_PATH}`);
-  if (GAME_ENGINE_PATH) console.log(`[${new Date().toISOString()}] Legacy Game Engine: ${GAME_ENGINE_PATH}`);
 });
 
 // Graceful shutdown

@@ -255,6 +255,7 @@ import { InitialPositionType } from "tsshogi";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DialogFrame from "./DialogFrame.vue";
+import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
 
 const store = useStore();
 const busyState = useBusyState();
@@ -272,6 +273,7 @@ const gameSettings = ref(defaultGameSettings());
 const engines = ref(new USIEngines());
 const blackPlayerURI = ref("");
 const whitePlayerURI = ref("");
+const lanEngineList = ref<LanEngineInfo[]>([]);
 
 busyState.retain();
 
@@ -292,6 +294,13 @@ onMounted(async () => {
     whiteIncrement.value = whiteTimeLimit.increment;
     setDifferentTime.value = !!gameSettings.value.whiteTimeLimit;
     startPositionListShuffle.value = gameSettings.value.startPositionListOrder === "shuffle";
+    
+    // Fetch LAN engines
+    try {
+      lanEngineList.value = await lanEngine.getEngineList();
+    } catch (e) {
+      console.warn("Failed to load LAN engines:", e);
+    }
   } catch (e) {
     useErrorStore().add(e);
     store.destroyModalDialog();
@@ -302,8 +311,16 @@ onMounted(async () => {
 
 const buildPlayerSettings = (playerURI: string): PlayerSettings => {
   if (playerURI === "lan-engine" || playerURI.startsWith("lan-engine:")) {
-    const name =
-      playerURI === "lan-engine" ? "LAN Engine" : `LAN Engine (${playerURI.split(":")[1]})`;
+    let name = "LAN Engine";
+    if (playerURI.startsWith("lan-engine:")) {
+        const id = playerURI.split(":")[1];
+        const info = lanEngineList.value.find(e => e.id === id);
+        if (info) {
+            name = info.name; // Use name from engines.json
+        } else {
+            name = `LAN Engine (${id})`;
+        }
+    }
     return {
       name: name,
       uri: playerURI,

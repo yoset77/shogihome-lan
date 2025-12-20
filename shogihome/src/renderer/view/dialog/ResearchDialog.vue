@@ -86,12 +86,15 @@ import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DialogFrame from "./DialogFrame.vue";
 
+import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+
 const store = useStore();
 const busyState = useBusyState();
 const researchSettings = ref(defaultResearchSettings());
 const engines = ref(new USIEngines());
 const engineURI = ref("");
 const secondaryEngineURIs = ref([] as string[]);
+const lanEngineList = ref<LanEngineInfo[]>([]);
 
 busyState.retain();
 
@@ -102,6 +105,12 @@ onMounted(async () => {
     engineURI.value = researchSettings.value.usi?.uri || "";
     secondaryEngineURIs.value =
       researchSettings.value.secondaries?.map((engine) => engine.usi?.uri || "") || [];
+    
+    try {
+      lanEngineList.value = await lanEngine.getEngineList();
+    } catch (e) {
+      console.warn("Failed to load LAN engines:", e);
+    }
   } catch (e) {
     useErrorStore().add(e);
     store.destroyModalDialog();
@@ -112,9 +121,19 @@ onMounted(async () => {
 
 const resolveEngine = (uri: string): USIEngine | undefined => {
   if (uri.startsWith("lan-engine")) {
+    let name = "LAN Engine";
+    if (uri.startsWith("lan-engine:")) {
+      const id = uri.split(":")[1];
+      const info = lanEngineList.value.find((e) => e.id === id);
+      if (info) {
+        name = info.name;
+      } else {
+        name = `LAN Engine (${id})`;
+      }
+    }
     return {
       uri: uri,
-      name: "LAN Engine",
+      name: name,
       defaultName: "LAN Engine",
       author: "",
       path: "",
