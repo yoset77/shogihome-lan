@@ -289,7 +289,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     }
   };
 
-  const startEngine = (engineType: "research" | "game") => {
+  const startEngine = (engineId: string) => {
     if (engineHandle) {
       sendError("engine already running");
       return;
@@ -391,8 +391,15 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
-      console.log("Connected to remote engine. Specifying engine type...");
-      socket.write(engineType + "\n");
+      console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
+      // Use 'run <id>' for new protocol, but keep 'research'/'game' as is for backward compatibility if needed.
+      // Actually our new wrapper handles both, so sending 'run <id>' or just 'id' is fine.
+      // To be safe and clean, we'll use the 'run ' prefix for everything except the legacy types.
+      if (engineId === "research" || engineId === "game") {
+        socket.write(engineId + "\n");
+      } else {
+        socket.write(`run ${engineId}\n`);
+      }
 
       engineState = EngineState.WAITING_USIOK;
       engineHandle = {
@@ -429,9 +436,51 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
   };
 
+  const getEngineList = () => {
+    console.log(`Fetching engine list from ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
+    const socket = new net.Socket();
+    let data = "";
+
+    const connectionTimeout = setTimeout(() => {
+      socket.destroy(new Error("Connection timed out"));
+    }, 5000);
+
+    socket.on("connect", () => {
+      clearTimeout(connectionTimeout);
+      socket.write("list\n");
+    });
+
+    socket.on("data", (chunk) => {
+      data += chunk.toString();
+    });
+
+    socket.on("end", () => {
+      try {
+        const engines = JSON.parse(data.trim());
+        ws.send(JSON.stringify({ engineList: engines }));
+      } catch (e) {
+        console.error("Failed to parse engine list from wrapper:", e);
+        sendError("failed to parse engine list");
+      }
+    });
+
+    socket.on("error", (err) => {
+      clearTimeout(connectionTimeout);
+      console.error("Failed to get engine list:", err);
+      sendError(`failed to connect to engine wrapper (${err.message})`);
+    });
+
+    socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
+  };
+
   ws.on("message", (message) => {
     const command = message.toString();
     console.log(`Received command: ${command}`);
+
+    if (command === "get_engine_list") {
+      getEngineList();
+      return;
+    }
 
     if (command === "stop") {
       if (engineState === EngineState.READY && isThinking && !isWaitingForBestmove) {
@@ -454,6 +503,12 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     if (command === "start_game_engine") {
       startEngine("game");
+      return;
+    }
+
+    if (command.startsWith("start_engine ")) {
+      const engineId = command.substring("start_engine ".length).trim();
+      startEngine(engineId);
       return;
     }
 

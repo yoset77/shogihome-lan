@@ -1017,11 +1017,34 @@ class Store {
   }
 
   stopResearch(): void {
-    if (this._researchState !== ResearchState.RUNNING) {
+    if (
+      this._researchState !== ResearchState.RUNNING &&
+      this._researchState !== ResearchState.PAUSED
+    ) {
       return;
     }
     this.researchManager.close();
     this._researchState = ResearchState.IDLE;
+  }
+
+  pauseResearch(): void {
+    if (this._researchState === ResearchState.RUNNING) {
+      this.researchManager.pause();
+      this._researchState = ResearchState.PAUSED;
+    }
+    if (this._lanEngineState === ResearchState.RUNNING) {
+      this.pauseLanResearch();
+    }
+  }
+
+  resumeResearch(): void {
+    if (this._researchState === ResearchState.PAUSED) {
+      this.researchManager.unpause();
+      this._researchState = ResearchState.RUNNING;
+    }
+    if (this._lanEngineState === ResearchState.PAUSED) {
+      this.resumeLanResearch();
+    }
   }
 
   get lanEngineState(): ResearchState {

@@ -13,6 +13,7 @@ __pycache__
 .env
 .env.local
 .env.*.local
+engine-wrapper/engines.json
 
 # Log files
 npm-debug.log*

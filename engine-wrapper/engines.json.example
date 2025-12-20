@@ -1,0 +1,12 @@
+[
+  {
+    "id": "yaneuraou",
+    "name": "YaneuraOu",
+    "path": "/path/to/yaneuraou-executable"
+  },
+  {
+    "id": "koma-sen",
+    "name": "Koma-sen",
+    "path": "engines/koma-sen/koma-sen.exe"
+  }
+]

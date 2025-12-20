@@ -19,7 +19,17 @@
           <Icon :icon="IconType.ROBOT" />
           <div class="label">{{ `${t.beginner} (${t.rangingRook})` }}</div>
         </button>
-        <button @click="selectPlayer('lan-engine')">
+        <template v-if="lanEngineList.length > 0">
+          <button
+            v-for="info in lanEngineList"
+            :key="info.id"
+            @click="selectPlayer(`lan-engine:${info.id}`, info.name)"
+          >
+            <Icon :icon="IconType.ROBOT" />
+            <div class="label">LAN: {{ info.name }}</div>
+          </button>
+        </template>
+        <button v-else @click="selectPlayer('lan-engine')">
           <Icon :icon="IconType.ROBOT" />
           <div class="label">LAN Engine</div>
         </button>
@@ -67,6 +77,7 @@ import { showModalDialog } from "@/renderer/helpers/dialog";
 import { useStore } from "@/renderer/store";
 import { Color, InitialPositionType } from "tsshogi";
 import { onBeforeUnmount, onMounted, ref } from "vue";
+import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
 
 type View = "selectPlayer" | "selectPosition" | "selectTurn";
 
@@ -74,7 +85,9 @@ const store = useStore();
 const dialog = ref();
 const currentView = ref<View>("selectPlayer");
 const playerURI = ref("");
+const playerName = ref("");
 const startPosition = ref<InitialPositionType | "current">(InitialPositionType.STANDARD);
+const lanEngineList = ref<LanEngineInfo[]>([]);
 
 const emit = defineEmits<{
   close: [];
@@ -84,17 +97,23 @@ const onClose = () => {
   emit("close");
 };
 
-onMounted(() => {
+onMounted(async () => {
   showModalDialog(dialog.value, onClose);
   installHotKeyForDialog(dialog.value);
+  try {
+    lanEngineList.value = await lanEngine.getEngineList();
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 onBeforeUnmount(() => {
   uninstallHotKeyForDialog(dialog.value);
 });
 
-const selectPlayer = (uri: string) => {
+const selectPlayer = (uri: string, name?: string) => {
   playerURI.value = uri;
+  playerName.value = name || "";
   currentView.value = "selectPosition";
 };
 
@@ -105,8 +124,18 @@ const selectStartPosition = (position: InitialPositionType | "current") => {
 
 const selectTurn = (turn: Color) => {
   let black = { name: t.human, uri: uri.ES_HUMAN };
+  let name = playerName.value;
+  if (!name) {
+    if (playerURI.value === "lan-engine") {
+      name = "LAN Engine";
+    } else if (playerURI.value.startsWith("lan-engine:")) {
+      name = `LAN: ${playerURI.value.split(":")[1]}`;
+    } else {
+      name = uri.basicEngineName(playerURI.value);
+    }
+  }
   let white = {
-    name: playerURI.value === "lan-engine" ? "LAN Engine" : uri.basicEngineName(playerURI.value),
+    name: name,
     uri: playerURI.value,
   };
   if (turn === Color.WHITE) {

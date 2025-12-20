@@ -322,8 +322,7 @@ const onJishogiPoints = () => {
 };
 
 const onResearch = () => {
-  // Directly start the LAN research.
-  store.startLanResearch();
+  store.showResearchDialog();
 };
 
 const onEndResearch = () => {

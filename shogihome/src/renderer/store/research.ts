@@ -1,5 +1,6 @@
 import { ResearchSettings, defaultResearchSettings } from "@/common/settings/research.js";
 import { USIPlayer } from "@/renderer/players/usi.js";
+import { LanPlayer } from "@/renderer/players/lan_player.js";
 import { SearchInfo } from "@/renderer/players/player.js";
 import { ImmutableRecord } from "tsshogi";
 import { MultiPV, USIEngine, USIMultiPV } from "@/common/settings/usi.js";
@@ -25,7 +26,7 @@ function getSenderTypeByIndex(index: number): SearchInfoSenderType | undefined {
 type UpdateSearchInfoCallback = (type: SearchInfoSenderType, info: SearchInfo) => void;
 
 type Engine = {
-  usi: USIPlayer;
+  usi: USIPlayer | LanPlayer;
   timer?: NodeJS.Timeout;
   paused: boolean;
 };
@@ -80,6 +81,31 @@ export class ResearchManager {
     const appSettings = useAppSettings();
     const usiEngines = [settings.usi, ...(settings.secondaries?.map((s) => s.usi) || [])];
     this.engines = usiEngines.map((usi, index) => {
+      const type = getSenderTypeByIndex(index);
+
+      if (usi!.uri.startsWith("lan-engine")) {
+        const uri = usi!.uri;
+        let engineId = "research";
+        let engineName = "LAN Engine";
+
+        if (uri.startsWith("lan-engine:")) {
+          engineId = uri.split(":")[1];
+          engineName = usi!.name || `LAN:${engineId}`;
+        } else if (uri === "lan-engine") {
+          // legacy
+          engineId = "research";
+        }
+
+        return {
+          usi: new LanPlayer(engineId, engineName, (info) => {
+            if (type !== undefined && this.synced) {
+              this.onUpdateSearchInfo(type, info);
+            }
+          }),
+          paused: false,
+        };
+      }
+
       const options = usi!.options;
       if (settings.overrideMultiPV) {
         if (options[USIMultiPV]?.type === "spin") {
@@ -89,7 +115,6 @@ export class ResearchManager {
         }
       }
       const usiEngine: USIEngine = { ...usi!, options };
-      const type = getSenderTypeByIndex(index);
       return {
         usi: new USIPlayer(usiEngine, appSettings.engineTimeoutSeconds, (info) => {
           if (type !== undefined && this.synced) {
@@ -142,29 +167,59 @@ export class ResearchManager {
     return this.engines.find((engine) => engine.usi.sessionID === sessionID)?.paused || false;
   }
 
-  pause(sessionID: number) {
-    const engine = this.engines.find((engine) => engine.usi.sessionID === sessionID);
-    if (!engine) {
-      return;
-    }
-    engine.paused = true;
-    engine.usi.stop().catch((e) => {
-      this.onError(e);
-    });
-  }
-
-  unpause(sessionID: number) {
-    const engine = this.engines.find((engine) => engine.usi.sessionID === sessionID);
-    if (!engine) {
-      return;
-    }
-    engine.paused = false;
-    if (this.record) {
-      engine.usi.startResearch(this.record.position, this.record.usi).catch((e) => {
+  pause(sessionID: number): void;
+  pause(): void;
+  pause(sessionID?: number) {
+    if (sessionID !== undefined) {
+      const engine = this.engines.find((engine) => engine.usi.sessionID === sessionID);
+      if (!engine) {
+        return;
+      }
+      engine.paused = true;
+      engine.usi.stop().catch((e) => {
         this.onError(e);
       });
-      // タイマーを初期化する。
-      this.setupTimer(engine);
+    } else {
+      this.engines.forEach((engine) => {
+        if (!engine.paused) {
+          engine.paused = true;
+          engine.usi.stop().catch((e) => {
+            this.onError(e);
+          });
+        }
+      });
+    }
+  }
+
+  unpause(sessionID: number): void;
+  unpause(): void;
+  unpause(sessionID?: number) {
+    if (sessionID !== undefined) {
+      const engine = this.engines.find((engine) => engine.usi.sessionID === sessionID);
+      if (!engine) {
+        return;
+      }
+      engine.paused = false;
+      if (this.record) {
+        engine.usi.startResearch(this.record.position, this.record.usi).catch((e) => {
+          this.onError(e);
+        });
+        // タイマーを初期化する。
+        this.setupTimer(engine);
+      }
+    } else {
+      this.engines.forEach((engine) => {
+        if (engine.paused) {
+          engine.paused = false;
+          if (this.record) {
+            engine.usi.startResearch(this.record.position, this.record.usi).catch((e) => {
+              this.onError(e);
+            });
+            // タイマーを初期化する。
+            this.setupTimer(engine);
+          }
+        }
+      });
     }
   }
 

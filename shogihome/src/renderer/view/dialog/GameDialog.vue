@@ -301,10 +301,12 @@ onMounted(async () => {
 });
 
 const buildPlayerSettings = (playerURI: string): PlayerSettings => {
-  if (playerURI === "lan-engine") {
+  if (playerURI === "lan-engine" || playerURI.startsWith("lan-engine:")) {
+    const name =
+      playerURI === "lan-engine" ? "LAN Engine" : `LAN Engine (${playerURI.split(":")[1]})`;
     return {
-      name: "LAN Engine",
-      uri: "lan-engine",
+      name: name,
+      uri: playerURI,
     };
   }
   if (uri.isUSIEngine(playerURI) && engines.value.hasEngine(playerURI)) {

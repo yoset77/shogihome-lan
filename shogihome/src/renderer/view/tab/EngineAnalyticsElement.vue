@@ -281,11 +281,18 @@ const isResearchSession = computed(() => {
 
 const paused = computed(() => {
   if (props.mobileLayout) {
-    return (
-      store.lanEngineState === ResearchState.PAUSED || store.lanEngineState === ResearchState.IDLE
-    );
+    if (props.monitor.sessionID === -1) {
+      return (
+        store.lanEngineState === ResearchState.PAUSED ||
+        store.lanEngineState === ResearchState.IDLE
+      );
+    }
+    return store.isPausedResearchEngine(props.monitor.sessionID);
   }
-  return store.lanEngineState === ResearchState.PAUSED;
+  if (props.monitor.sessionID === -1) {
+    return store.lanEngineState === ResearchState.PAUSED;
+  }
+  return store.isPausedResearchEngine(props.monitor.sessionID);
 });
 
 const formatNodeCount = computed(() => {
@@ -363,11 +370,19 @@ const showPreview = (ite: USIInfo) => {
 };
 
 const onPause = () => {
-  store.pauseLanResearch();
+  if (props.monitor.sessionID === -1) {
+    store.pauseLanResearch();
+  } else {
+    store.pauseResearchEngine(props.monitor.sessionID);
+  }
 };
 
 const onResume = () => {
-  store.resumeLanResearch();
+  if (props.monitor.sessionID === -1) {
+    store.resumeLanResearch();
+  } else {
+    store.unpauseResearchEngine(props.monitor.sessionID);
+  }
 };
 
 const updateMultiPV = (add: number) => {

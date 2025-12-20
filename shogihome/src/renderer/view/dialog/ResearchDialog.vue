@@ -6,6 +6,7 @@
         <PlayerSelector
           v-model:player-uri="engineURI"
           :engines="engines"
+          :contains-lan="true"
           :default-tag="getPredefinedUSIEngineTag('research')"
           :display-thread-state="true"
           :display-multi-pv-state="true"
@@ -16,6 +17,7 @@
         <PlayerSelector
           v-model:player-uri="secondaryEngineURIs[index]"
           :engines="engines"
+          :contains-lan="true"
           :default-tag="getPredefinedUSIEngineTag('research')"
           :display-thread-state="true"
           :display-multi-pv-state="true"
@@ -73,7 +75,7 @@ import {
   ResearchSettings,
   validateResearchSettings,
 } from "@/common/settings/research";
-import { getPredefinedUSIEngineTag, USIEngines } from "@/common/settings/usi";
+import { USIEngine, getPredefinedUSIEngineTag, USIEngines } from "@/common/settings/usi";
 import { useStore } from "@/renderer/store";
 import { onMounted, ref } from "vue";
 import PlayerSelector from "@/renderer/view/dialog/PlayerSelector.vue";
@@ -108,14 +110,32 @@ onMounted(async () => {
   }
 });
 
+const resolveEngine = (uri: string): USIEngine | undefined => {
+  if (uri.startsWith("lan-engine")) {
+    return {
+      uri: uri,
+      name: "LAN Engine",
+      defaultName: "LAN Engine",
+      author: "",
+      path: "",
+      options: {},
+      labels: {},
+      enableEarlyPonder: false,
+    };
+  }
+  return engines.value.getEngine(uri);
+};
+
 const onStart = () => {
-  const engine = engines.value.getEngine(engineURI.value);
+  const engine = resolveEngine(engineURI.value);
   const secondaries = [];
   for (const uri of secondaryEngineURIs.value) {
-    const secondary = engines.value.getEngine(uri);
-    secondaries.push({
-      usi: secondary,
-    });
+    const secondary = resolveEngine(uri);
+    if (secondary) {
+      secondaries.push({
+        usi: secondary,
+      });
+    }
   }
   const newSettings: ResearchSettings = {
     ...researchSettings.value,

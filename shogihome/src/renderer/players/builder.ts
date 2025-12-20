@@ -19,8 +19,14 @@ export function defaultPlayerBuilder(engineTimeoutSeconds?: number): PlayerBuild
       if (playerSettings.uri === uri.ES_HUMAN) {
         return humanPlayer;
       }
-      if (playerSettings.uri === "lan-engine") {
-        const player = new LanPlayer();
+      if (playerSettings.uri === "lan-engine" || playerSettings.uri.startsWith("lan-engine:")) {
+        let engineId = "game";
+        let engineName = "LAN Engine";
+        if (playerSettings.uri.startsWith("lan-engine:")) {
+          engineId = playerSettings.uri.split(":")[1];
+          engineName = playerSettings.name || `LAN:${engineId}`;
+        }
+        const player = new LanPlayer(engineId, engineName, onSearchInfo);
         await player.launch();
         return player;
       }

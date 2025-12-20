@@ -34,7 +34,7 @@ export function validatePlayerSettings(settings: PlayerSettings): Error | undefi
     if (!uri.ES_BASIC_ENGINE_LIST.some((uri) => uri === settings.uri)) {
       return new Error("invalid player URI");
     }
-  } else if (settings.uri !== uri.ES_HUMAN && settings.uri !== "lan-engine") {
+  } else if (settings.uri !== uri.ES_HUMAN && !settings.uri.startsWith("lan-engine")) {
     return new Error("invalid player URI");
   }
 }
