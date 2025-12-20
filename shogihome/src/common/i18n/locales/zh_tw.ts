@@ -762,7 +762,8 @@ export const zh_tw: Texts = {
   directoryNotFound(path: string) {
     return `無法找到該目錄。 [${path}]`;
   },
-  researchEngineMultiPV: "研究引擎的 MultiPV",
-  changeMultiPVFromPVTab: "從PV分頁變更 MultiPV",
-  multiPVMustBe1To10: "MultiPV必須介於1和10之間。",
+  researchEngineMultiPV: "檢討引擎的候補手數",
+  defaultResearchEngine: "默認檢討引擎", // Added
+  changeMultiPVFromPVTab: "從讀筋標籤變更候補手數",
+  multiPVMustBe1To10: "MultiPV 必須介於 1 到 10 之間。",
 };

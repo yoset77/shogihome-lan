@@ -294,7 +294,7 @@ onMounted(async () => {
     whiteIncrement.value = whiteTimeLimit.increment;
     setDifferentTime.value = !!gameSettings.value.whiteTimeLimit;
     startPositionListShuffle.value = gameSettings.value.startPositionListOrder === "shuffle";
-    
+
     // Fetch LAN engines
     try {
       lanEngineList.value = await lanEngine.getEngineList();
@@ -313,13 +313,13 @@ const buildPlayerSettings = (playerURI: string): PlayerSettings => {
   if (playerURI === "lan-engine" || playerURI.startsWith("lan-engine:")) {
     let name = "LAN Engine";
     if (playerURI.startsWith("lan-engine:")) {
-        const id = playerURI.split(":")[1];
-        const info = lanEngineList.value.find(e => e.id === id);
-        if (info) {
-            name = info.name; // Use name from engines.json
-        } else {
-            name = `LAN Engine (${id})`;
-        }
+      const id = playerURI.split(":")[1];
+      const info = lanEngineList.value.find((e) => e.id === id);
+      if (info) {
+        name = info.name; // Use name from engines.json
+      } else {
+        name = `LAN Engine (${id})`;
+      }
     }
     return {
       name: name,

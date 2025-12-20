@@ -178,7 +178,7 @@ import { installHotKeyForDialog, uninstallHotKeyForDialog } from "@/renderer/dev
 import { openCopyright } from "@/renderer/helpers/copyright";
 import { RecordFileFormat } from "@/common/file/record";
 import MobileGameMenu from "@/renderer/view/menu/MobileGameMenu.vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { lanEngine } from "@/renderer/network/lan_engine";
 import { defaultResearchSettings } from "@/common/settings/research";
 import { USIEngine } from "@/common/settings/usi";
 

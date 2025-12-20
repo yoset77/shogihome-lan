@@ -27,7 +27,7 @@
           {{ t.remove }}
         </button>
       </div>
-      <button class="center thin" @click="secondaryEngineURIs.push('')">
+      <button class="center thin" disabled @click="secondaryEngineURIs.push('')">
         <Icon :icon="IconType.ADD" />
         {{ t.addNthEngine(secondaryEngineURIs.length + 2) }}
       </button>
@@ -105,7 +105,7 @@ onMounted(async () => {
     engineURI.value = researchSettings.value.usi?.uri || "";
     secondaryEngineURIs.value =
       researchSettings.value.secondaries?.map((engine) => engine.usi?.uri || "") || [];
-    
+
     try {
       lanEngineList.value = await lanEngine.getEngineList();
     } catch (e) {

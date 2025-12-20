@@ -99,6 +99,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  showNone: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits<{
@@ -124,6 +128,10 @@ onMounted(async () => {
 const listItems = computed(() => {
   const items = [];
   const tag = props.defaultTag || getPredefinedUSIEngineTag("game");
+
+  if (props.showNone) {
+    items.push({ label: t.none, value: "", tags: [tag] });
+  }
 
   if (props.containsHuman) {
     items.push({ label: t.human, value: uri.ES_HUMAN, tags: [tag] });

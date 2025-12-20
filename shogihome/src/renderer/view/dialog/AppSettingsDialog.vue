@@ -590,6 +590,7 @@
               :contains-lan="true"
               :default-tag="getPredefinedUSIEngineTag('research')"
               :enable-edit-button="false"
+              :show-none="true"
             />
           </div>
         </div>

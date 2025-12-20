@@ -146,14 +146,14 @@ export class LanPlayer implements Player {
     return new Promise((resolve) => {
       this.stopPromiseResolver = resolve;
       lanEngine.sendCommand("stop");
-      
+
       // Fallback timeout in case engine doesn't respond or message is lost
       setTimeout(() => {
         if (this.stopPromiseResolver === resolve) {
-            console.warn("LanPlayer: stopAndWait timed out, forcing resume.");
-            this.isThinking = false;
-            this.stopPromiseResolver = null;
-            resolve();
+          console.warn("LanPlayer: stopAndWait timed out, forcing resume.");
+          this.isThinking = false;
+          this.stopPromiseResolver = null;
+          resolve();
         }
       }, 5000);
     });
