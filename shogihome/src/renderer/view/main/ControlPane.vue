@@ -260,6 +260,10 @@ import {
   uninstallHotKeyForMainWindow,
 } from "@/renderer/devices/hotkey";
 import { useConfirmationStore } from "@/renderer/store/confirm";
+import api from "@/renderer/ipc/api";
+import { lanEngine } from "@/renderer/network/lan_engine";
+import { defaultResearchSettings } from "@/common/settings/research";
+import { USIEngine } from "@/common/settings/usi";
 
 defineProps({
   group: {
@@ -321,7 +325,50 @@ const onJishogiPoints = () => {
   store.showJishogiPoints();
 };
 
-const onResearch = () => {
+const onResearch = async () => {
+  const uri = appSettings.defaultResearchEngineURI;
+  if (uri) {
+    let engine: USIEngine | undefined;
+    if (uri.startsWith("lan-engine")) {
+      let name = "LAN Engine";
+      if (uri.startsWith("lan-engine:")) {
+        const id = uri.split(":")[1];
+        try {
+          const list = await lanEngine.getEngineList();
+          const info = list.find((e) => e.id === id);
+          if (info) name = info.name;
+          else name = `LAN Engine (${id})`;
+        } catch {
+          name = `LAN Engine (${id})`;
+        }
+      }
+      engine = {
+        uri,
+        name,
+        defaultName: "LAN Engine",
+        author: "",
+        path: "",
+        options: {},
+        labels: {},
+        enableEarlyPonder: false,
+      };
+    } else {
+      try {
+        const engines = await api.loadUSIEngines();
+        engine = engines.getEngine(uri);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    if (engine) {
+      store.startResearch({
+        ...defaultResearchSettings(),
+        usi: engine,
+      });
+      return;
+    }
+  }
   store.showResearchDialog();
 };
 

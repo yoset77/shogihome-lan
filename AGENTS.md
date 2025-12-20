@@ -44,16 +44,15 @@
 ```mermaid
 graph LR
     A["Browser (Frontend)"] -- "WebSocket (ws)" --> B["Middle Server (Node.js)"]
-    B -- "TCP Socket" --> C["Engine Wrapper"]
+    B -- "TCP Socket (run <id>)" --> C["Engine Wrapper"]
     C -- "Stdin/Stdout" --> D["USI Engine (YaneuraOu, etc.)"]
 ```
 
-1.  **Frontend (`shogihome/src`)**: Vue.js 3 + TypeScript。ユーザーインターフェース。
+1.  **Frontend (`shogihome/src`)**: Vue.js 3 + TypeScript。ユーザーインターフェース。複数エンジンからID指定で起動可能。
 2.  **Middle Server (`shogihome/server.ts`)**: Node.js。
-    - USI State Machine: エンジンの起動シーケンス、思考中のコマンドキューイング、stop コマンド時の同期制御など、USIプロトコルの複雑な状態管理を一手に担います。
-    - Security: コマンドのバリデーションとサニタイズを行います。
+    - WebSocketとTCPのブリッジ。`start_engine <id>` コマンドを Wrapper の `run <id>` へ変換。
 3.  **Engine Wrapper (`engine-wrapper/`)**: Node.js/Python。
-    - Stateless Pipe: TCPソケットと標準入出力を直結する純粋なパイプです。USIコマンドの内容は解釈せず、単にデータを中継します。
+    - `engines.json` に基づき、指定されたIDのエンジンプロセスを起動・中継。
 
 ## 5. 技術スタックと環境
 
@@ -86,7 +85,8 @@ graph LR
 | :--- | :--- |
 | `server.ts` | **中核サーバー**。Expressでのアプリ配信と、WebSocketによるエンジン中継ロジックが含まれます。 |
 | `src/renderer/store/index.ts` | **状態管理**。LANエンジン制御、パズル機能、局面管理のロジックが集約されています。 |
-| `src/renderer/players/lan_player.ts` | **LANプレイヤー**。既存の `Player` インターフェースを実装し、通信経由で指し手を取得します。 |
+| `src/renderer/players/lan_player.ts` | **LANプレイヤー**。USIプロトコルの同期制御（Stop待ち）を実装し、通信経由で指し手を操作。 |
+| `src/renderer/network/lan_engine.ts` | **LAN通信クライアント**。WebSocket接続とコマンド送信、エンジンリスト取得を管理。 |
 | `public/puzzles/` | 次の一手問題データ（JSON）。 |
 | `scripts/build-puzzles.ts` | ビルド時にパズルデータを集計し、マニフェストファイルを生成するスクリプト。 |
 
@@ -94,17 +94,19 @@ graph LR
 
 | パス | 説明 |
 | :--- | :--- |
-| `engine-wrapper.mjs` | **推奨ラッパー**。Node.js製。TCPポート(デフォルト4082)で待機し、接続時に `research` / `game` の種別を受け取ってエンジンを起動します。 |
+| `engine-wrapper.mjs` | **推奨ラッパー**。Node.js製。TCPポートで待機し、`engines.json` に基づきエンジンを起動。 |
+| `engines.json` | **エンジン設定ファイル**。ID、表示名、実行パスのリストを定義。 |
 | `engine-wrapper.py` | **代替ラッパー**。Python製。機能はNode.js版と同等です。 |
-| `.env` | エンジンのパスやポート番号を設定します。 |
+| `.env` | ポート番号やバインディングアドレスを設定します。 |
 
 ## 8. 機能実装の詳細仕様
 
 ### LANエンジン通信フロー
-1.  **接続**: フロントエンドが `server.ts` へWebSocket接続。
-2.  **起動**: フロントエンドが `start_research_engine` または `start_game_engine` を送信。
-3.  **中継**: `server.ts` が `engine-wrapper` へTCP接続。接続確立後、以降のメッセージは双方向にパイプされます。
-4.  **同期**: ネットワーク遅延による盤面の不整合を防ぐため、サーバーはエンジンからの応答（`info`, `bestmove`）に「どの局面に対する応答か（SFEN）」を付与して返します。フロントエンドはSFENが一致する場合のみUIを更新します。
+1.  **リスト取得**: フロントエンドが `get_engine_list` を送信。サーバーは Wrapper から `list` コマンドで取得したJSONを返却。
+2.  **起動**: フロントエンドが `start_engine <id>` を送信。
+3.  **中継**: `server.ts` が `engine-wrapper` へTCP接続し `run <id>` を送信。以降はパイプ。
+4.  **同期**: 局面移動時、`LanPlayer.ts` は `stop` コマンドを送り、エンジンから `bestmove` を受信するまで次の `position` コマンドの送信を待機する。
+5.  **リアルタイム更新**: サーバーはエンジン出力に SFEN を付与して返却。フロントエンドは `dispatchUSIInfoUpdate` を通じて `usiMonitor` を更新し、読み筋タブへ反映。
 
 ### 次の一手問題（Puzzles）
 - **データ構造**: 静的なJSONファイルとして `/public/puzzles` に配置。

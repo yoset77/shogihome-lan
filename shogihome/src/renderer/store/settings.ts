@@ -208,6 +208,9 @@ class AppSettingsStore {
   get researchChangeMultiPVFromPV(): boolean {
     return this.merged.researchChangeMultiPVFromPV;
   }
+  get defaultResearchEngineURI(): string {
+    return this.merged.defaultResearchEngineURI;
+  }
   get coefficientInSigmoid(): number {
     return this.merged.coefficientInSigmoid;
   }

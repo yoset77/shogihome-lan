@@ -580,6 +580,19 @@
       <!-- 評価値・期待勝率・読み筋 -->
       <div class="section">
         <div class="section-title">{{ t.evaluationAndEstimatedWinRateAndPV }}</div>
+        <!-- デフォルトの検討エンジン -->
+        <div class="form-item">
+          <div class="form-item-label-wide">{{ t.defaultResearchEngine }}</div>
+          <div class="selector">
+            <PlayerSelector
+              v-model:player-uri="update.defaultResearchEngineURI"
+              :engines="engines"
+              :contains-lan="true"
+              :default-tag="getPredefinedUSIEngineTag('research')"
+              :enable-edit-button="false"
+            />
+          </div>
+        </div>
         <!-- 評価値の符号 -->
         <div class="form-item">
           <div class="form-item-label-wide">
@@ -817,10 +830,13 @@ import { useBusyState } from "@/renderer/store/busy";
 import { BoardLayoutType } from "@/common/settings/layout";
 import { SearchCommentFormat } from "@/common/settings/comment";
 import DialogFrame from "./DialogFrame.vue";
+import { USIEngines, getPredefinedUSIEngineTag } from "@/common/settings/usi";
+import PlayerSelector from "./PlayerSelector.vue";
 
 const store = useStore();
 const busyState = useBusyState();
 const org = useAppSettings();
+const engines = ref(new USIEngines());
 const update = ref({
   // この画面で扱う要素だけをコピー
   uiMode: org.uiMode,
@@ -864,6 +880,7 @@ const update = ref({
   translateEngineOptionName: org.translateEngineOptionName,
   engineTimeoutSeconds: org.engineTimeoutSeconds,
   nodeCountFormat: org.nodeCountFormat,
+  defaultResearchEngineURI: org.defaultResearchEngineURI,
   evaluationViewFrom: org.evaluationViewFrom,
   maxArrowsPerEngine: org.maxArrowsPerEngine,
   researchMultiPV: org.researchMultiPV,
@@ -896,6 +913,9 @@ function reverseFormat(source: AppSettingsUpdate): AppSettingsUpdate {
 }
 
 onMounted(() => {
+  api.loadUSIEngines().then((e) => {
+    engines.value = e;
+  });
   api.getVersionStatus().then((status) => {
     versionStatus.value = status;
   });

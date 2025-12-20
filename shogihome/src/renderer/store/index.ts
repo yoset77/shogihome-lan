@@ -983,7 +983,11 @@ class Store {
   }
 
   startResearch(researchSettings: ResearchSettings): void {
-    if (this._researchState !== ResearchState.STARTUP_DIALOG || useBusyState().isBusy) {
+    if (
+      (this._researchState !== ResearchState.STARTUP_DIALOG &&
+        this._researchState !== ResearchState.IDLE) ||
+      useBusyState().isBusy
+    ) {
       return;
     }
     useBusyState().retain();
