@@ -59,7 +59,7 @@
   "dependencies": {
     "@github/hotkey": "^3.1.0",
     "async-lock": "^1.4.0",
-    "chart.js": "^4.0.1",
+    "chart.js": "^4.5.1",
     "dayjs": "^1.11.12",
     "dotenv": "^17.2.2",
     "electron-context-menu": "^4.0.5",
