@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 import subprocess
+import json
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -50,10 +51,23 @@ logging.debug(f"Resolved script_dir: {script_dir}")
 
 load_dotenv(dotenv_path=script_dir / '.env')
 
-RESEARCH_ENGINE_PATH = os.getenv('RESEARCH_ENGINE_PATH')
-GAME_ENGINE_PATH = os.getenv('GAME_ENGINE_PATH')
 HOST = os.getenv('BIND_ADDRESS', '127.0.0.1')
 PORT = int(os.getenv('LISTEN_PORT', '4082'))
+
+def get_engine_list():
+    engines_json_path = script_dir / 'engines.json'
+    engines = []
+    
+    if engines_json_path.exists():
+        try:
+            with open(engines_json_path, 'r', encoding='utf-8') as f:
+                engines = json.load(f)
+        except Exception as e:
+            logging.error(f"Failed to parse engines.json: {e}")
+    else:
+        logging.error(f"engines.json not found at {engines_json_path}. No engines available.")
+        
+    return engines
 
 async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, log_prefix: str):
     try:
@@ -78,33 +92,50 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
     try:
         first_line = await client_reader.readline()
         if not first_line:
-            logging.warning("Client disconnected before sending engine type.")
+            logging.warning("Client disconnected before sending command.")
             return
 
-        engine_type = first_line.decode().strip()
-        logging.info(f"Received engine type request: '{engine_type}'")
+        command_line = first_line.decode().strip()
+        logging.info(f"Received command: '{command_line}'")
 
-        engine_path_str = None
-        if engine_type == 'research':
-            engine_path_str = RESEARCH_ENGINE_PATH
-        elif engine_type == 'game':
-            engine_path_str = GAME_ENGINE_PATH
+        engines = get_engine_list()
+
+        if command_line == 'list':
+            list_response = json.dumps(engines)
+            client_writer.write(list_response.encode() + b'\n')
+            await client_writer.drain()
+            client_writer.close()
+            await client_writer.wait_closed()
+            return
+
+        engine_id = ''
+        if command_line.startswith('run '):
+            engine_id = command_line[4:].strip()
+        elif command_line == 'research' or command_line == 'game':
+            # Backward compatibility
+            engine_id = command_line
         else:
-            logging.error(f"Invalid engine type received: {engine_type}")
-            error_message = "WRAPPER_ERROR: Invalid engine type."
-            client_writer.write(error_message.encode() + b'\n')
+            logging.error(f"Invalid command received: {command_line}")
+            client_writer.write(b"WRAPPER_ERROR: Invalid command. Use 'list' or 'run <id>'.\n")
             await client_writer.drain()
             return
 
+        engine_def = next((e for e in engines if e['id'] == engine_id), None)
+        if not engine_def:
+            logging.error(f"Engine ID '{engine_id}' not found.")
+            client_writer.write(f"WRAPPER_ERROR: Engine ID '{engine_id}' not found.\n".encode())
+            await client_writer.drain()
+            return
+
+        engine_path_str = engine_def.get('path')
         if not engine_path_str:
-            logging.error(f"Engine path for type '{engine_type}' is not set in .env file.")
-            error_message = "WRAPPER_ERROR: Engine path configuration error."
-            client_writer.write(error_message.encode() + b'\n')
+            logging.error(f"Engine path for ID '{engine_id}' is not set.")
+            client_writer.write(b"WRAPPER_ERROR: Engine path configuration error.\n")
             await client_writer.drain()
             return
         
         engine_path = Path(engine_path_str)
-        # Resolve relative paths relative to the script directory to ensure 'cwd' is absolute and correct
+        # Resolve relative paths relative to the script directory
         if not engine_path.is_absolute():
             engine_path = (script_dir / engine_path).resolve()
 
@@ -125,7 +156,7 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                 creationflags=creationflags
             )
         except FileNotFoundError:
-            logging.error(f"Engine executable not found at '{engine_path_str}'")
+            logging.error(f"Engine executable not found at '{engine_path}'")
             error_message = "WRAPPER_ERROR: Engine executable not found."
             client_writer.write(error_message.encode() + b'\n')
             await client_writer.drain()
@@ -209,7 +240,21 @@ async def main():
     server = await asyncio.start_server(handle_client, HOST, PORT)
     addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
     logging.info(f"Single-port engine wrapper server listening on {addrs}")
-    logging.info(f"Engine paths will be loaded from {script_dir / '.env'}")
+    
+    engines_json_path = script_dir / 'engines.json'
+    if engines_json_path.exists():
+        logging.info(f"engines.json found at {engines_json_path}")
+        try:
+            with open(engines_json_path, 'r', encoding='utf-8') as f:
+                engines = json.load(f)
+            logging.info(f"Loaded {len(engines)} engines from engines.json:")
+            for e in engines:
+                logging.info(f"  - {e.get('id')}: {e.get('name')} ({e.get('path')})")
+        except Exception as e:
+            logging.error(f"Failed to parse engines.json: {e}")
+    else:
+        logging.error(f"engines.json not found. Please create one based on engines.json.example.")
+
     async with server:
         await server.serve_forever()
 

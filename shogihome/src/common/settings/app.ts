@@ -230,6 +230,7 @@ export type AppSettings = {
   nodeCountFormat: NodeCountFormat;
   researchMultiPV: number;
   researchChangeMultiPVFromPV: boolean;
+  defaultResearchEngineURI: string; // Added
 
   // Evaluation
   evaluationViewFrom: EvaluationViewFrom;
@@ -381,6 +382,7 @@ export function defaultAppSettings(opt?: {
     nodeCountFormat: NodeCountFormat.COMMA_SEPARATED,
     researchMultiPV: 1,
     researchChangeMultiPVFromPV: true,
+    defaultResearchEngineURI: "", // Added
     evaluationViewFrom: EvaluationViewFrom.BLACK,
     maxArrowsPerEngine: 3,
     coefficientInSigmoid: 600,

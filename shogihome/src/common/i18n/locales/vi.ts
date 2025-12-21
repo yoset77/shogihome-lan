@@ -177,6 +177,7 @@ export const vi: Texts = {
   research: "Tính toán",
   startResearch: "Bắt đầu tính toán",
   endResearch: "Dừng tính toán",
+  researchSettings: "Cài đặt tính toán",
   recordAnalysis: "Phân tích kỳ phổ",
   analysis: "Phân tích",
   analyze: "Phân tích",
@@ -775,7 +776,8 @@ export const vi: Texts = {
   directoryNotFound(path: string) {
     return `Không tìm thấy tập tin. [${path}]`;
   },
-  researchEngineMultiPV: "MultiPV cho Công cụ Nghiên cứu",
+  researchEngineMultiPV: "MultiPV của động cơ tính toán",
+  defaultResearchEngine: "Động cơ tính toán mặc định", // Added
   changeMultiPVFromPVTab: "Thay đổi MultiPV từ tab PV",
-  multiPVMustBe1To10: "MultiPV phải trong khoảng từ 1 đến 10.",
+  multiPVMustBe1To10: "MultiPV phải nằm trong khoảng từ 1 đến 10.",
 };

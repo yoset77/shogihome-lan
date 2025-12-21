@@ -3,6 +3,7 @@ import net from 'net';
 import readline from 'readline';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 // Find .env file in the same directory as this script
@@ -10,11 +11,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const RESEARCH_ENGINE_PATH = process.env.RESEARCH_ENGINE_PATH;
-const GAME_ENGINE_PATH = process.env.GAME_ENGINE_PATH;
-
 const HOST = process.env.BIND_ADDRESS || '127.0.0.1';
 const PORT = parseInt(process.env.LISTEN_PORT || '4082', 10);
+
+/**
+ * Load engine list from engines.json.
+ */
+function getEngineList() {
+  const enginesJsonPath = path.join(__dirname, 'engines.json');
+  let engines = [];
+
+  if (fs.existsSync(enginesJsonPath)) {
+    try {
+      const content = fs.readFileSync(enginesJsonPath, 'utf-8');
+      engines = JSON.parse(content);
+    } catch (e) {
+      console.error(`[${new Date().toISOString()}] Failed to parse engines.json: ${e.message}`);
+    }
+  } else {
+    console.error(`[${new Date().toISOString()}] engines.json not found at ${enginesJsonPath}. No engines available.`);
+  }
+
+  return engines;
+}
 
 const server = net.createServer((socket) => {
   console.log(`[${new Date().toISOString()}] Client connected.`);
@@ -73,26 +92,43 @@ const server = net.createServer((socket) => {
   const rl = readline.createInterface({ input: socket });
 
   rl.once('line', (line) => {
-    const type = line.trim();
-    console.log(`[${new Date().toISOString()}] Received engine type request: '${type}'`);
+    const input = line.trim();
+    console.log(`[${new Date().toISOString()}] Received command: '${input}'`);
 
-    let enginePath;
-    if (type === 'research') {
-      enginePath = RESEARCH_ENGINE_PATH;
-    } else if (type === 'game') {
-      enginePath = GAME_ENGINE_PATH;
+    const engines = getEngineList();
+
+    if (input === 'list') {
+      const listResponse = JSON.stringify(engines);
+      socket.write(listResponse + '\n');
+      socket.end();
+      return;
+    }
+
+    let engineId = '';
+    if (input.startsWith('run ')) {
+      engineId = input.substring(4).trim();
+    } else if (input === 'research' || input === 'game') {
+      // Backward compatibility
+      engineId = input;
     } else {
-      console.error(`[${new Date().toISOString()}] Invalid engine type received: ${type}`);
-      const errorMessage = `WRAPPER_ERROR: Invalid engine type.`;
-      socket.write(errorMessage + '\n');
+      console.error(`[${new Date().toISOString()}] Invalid command received: ${input}`);
+      socket.write(`WRAPPER_ERROR: Invalid command. Use 'list' or 'run <id>'.\n`);
       cleanup();
       return;
     }
 
+    const engineDef = engines.find(e => e.id === engineId);
+    if (!engineDef) {
+      console.error(`[${new Date().toISOString()}] Engine ID '${engineId}' not found.`);
+      socket.write(`WRAPPER_ERROR: Engine ID '${engineId}' not found.\n`);
+      cleanup();
+      return;
+    }
+
+    let enginePath = engineDef.path;
     if (!enginePath) {
-      console.error(`[${new Date().toISOString()}] Engine path for type '${type}' is not set in .env file.`);
-      const errorMessage = `WRAPPER_ERROR: Engine path configuration error.`;
-      socket.write(errorMessage + '\n');
+      console.error(`[${new Date().toISOString()}] Engine path for ID '${engineId}' is not set.`);
+      socket.write(`WRAPPER_ERROR: Engine path configuration error.\n`);
       cleanup();
       return;
     }
@@ -168,7 +204,21 @@ const server = net.createServer((socket) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`[${new Date().toISOString()}] Single-port engine wrapper server listening on ${HOST}:${PORT}`);
-  console.log(`[${new Date().toISOString()}] Engine paths will be loaded from ${path.join(__dirname, '.env')}`);
+  
+  const enginesJsonPath = path.join(__dirname, 'engines.json');
+  if (fs.existsSync(enginesJsonPath)) {
+    console.log(`[${new Date().toISOString()}] engines.json found at ${enginesJsonPath}`);
+    try {
+      const content = fs.readFileSync(enginesJsonPath, 'utf-8');
+      const engines = JSON.parse(content);
+      console.log(`[${new Date().toISOString()}] Loaded ${engines.length} engines from engines.json:`);
+      engines.forEach(e => console.log(`  - ${e.id}: ${e.name} (${e.path})`));
+    } catch (e) {
+      console.error(`[${new Date().toISOString()}] Failed to parse engines.json: ${e.message}`);
+    }
+  } else {
+    console.error(`[${new Date().toISOString()}] engines.json not found. Please create one based on engines.json.example.`);
+  }
 });
 
 // Graceful shutdown

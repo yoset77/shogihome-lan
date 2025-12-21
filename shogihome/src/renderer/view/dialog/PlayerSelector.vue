@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { t } from "@/common/i18n";
-import { computed, PropType, ref } from "vue";
+import { computed, PropType, ref, onMounted } from "vue";
 import * as uri from "@/common/uri.js";
 import Icon from "@/renderer/view/primitive/Icon.vue";
 import USIEngineOptionsDialog from "@/renderer/view/dialog/USIEngineOptionsDialog.vue";
@@ -57,6 +57,7 @@ import api from "@/renderer/ipc/api";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DropdownList from "@/renderer/view/primitive/DropdownList.vue";
+import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
 
 const selectedPlayerURI = defineModel<string>("playerUri", { required: true });
 const defaultTags = computed(() => (props.defaultTag ? [props.defaultTag] : []));
@@ -67,6 +68,10 @@ const props = defineProps({
     default: false,
   },
   containsBasicEngines: {
+    type: Boolean,
+    default: false,
+  },
+  containsLan: {
     type: Boolean,
     default: false,
   },
@@ -94,6 +99,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  showNone: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits<{
@@ -103,17 +112,57 @@ const emit = defineEmits<{
 
 const busyState = useBusyState();
 const engineOptionsDialog = ref(null as USIEngine | null);
+const lanEngineList = ref<LanEngineInfo[]>([]);
+
+onMounted(async () => {
+  // Fetch LAN engines if containsHuman or containsLan is true
+  if (props.containsHuman || props.containsLan) {
+    try {
+      lanEngineList.value = await lanEngine.getEngineList();
+    } catch (e) {
+      console.warn("Failed to load LAN engines:", e);
+    }
+  }
+});
 
 const listItems = computed(() => {
   const items = [];
-  if (props.containsHuman) {
-    items.push({ label: t.human, value: uri.ES_HUMAN, tags: [getPredefinedUSIEngineTag("game")] });
-    items.push({
-      label: "LAN Engine",
-      value: "lan-engine",
-      tags: [getPredefinedUSIEngineTag("game")],
-    });
+  const tag = props.defaultTag || getPredefinedUSIEngineTag("game");
+
+  if (props.showNone) {
+    items.push({ label: t.none, value: "", tags: [tag] });
   }
+
+  if (props.containsHuman) {
+    items.push({ label: t.human, value: uri.ES_HUMAN, tags: [tag] });
+  }
+
+  if (props.containsHuman || props.containsLan) {
+    if (lanEngineList.value.length > 0) {
+      for (const info of lanEngineList.value) {
+        // Filter by type if context is known
+        if (props.defaultTag === getPredefinedUSIEngineTag("game")) {
+          if (info.type && info.type !== "game" && info.type !== "both") continue;
+        } else if (props.defaultTag === getPredefinedUSIEngineTag("research")) {
+          if (info.type && info.type !== "research" && info.type !== "both") continue;
+        }
+
+        items.push({
+          label: `LAN: ${info.name}`,
+          value: `lan-engine:${info.id}`,
+          tags: [tag],
+        });
+      }
+    } else {
+      // Fallback
+      items.push({
+        label: "LAN Engine",
+        value: "lan-engine",
+        tags: [tag],
+      });
+    }
+  }
+
   for (const engine of props.engines.engineList) {
     items.push({ label: engine.name, value: engine.uri, tags: engine.tags });
   }
@@ -122,7 +171,7 @@ const listItems = computed(() => {
       items.push({
         label: uri.basicEngineName(playerURI),
         value: playerURI,
-        tags: [getPredefinedUSIEngineTag("game")],
+        tags: [tag],
       });
     }
   }

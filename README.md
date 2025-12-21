@@ -38,8 +38,8 @@ PC上のUSI将棋エンジンをLAN内のスマートフォンやタブレット
 
 本リポジトリは、以下の2つの主要なモジュールで構成されています。
 
-- **`shogihome/`**: Webサーバーおよびフロントエンド（TypeScript/Vue.js）
-- **`engine-wrapper/`**: 将棋エンジンを制御するエンジンラッパー（Node.js/Python）
+- **`shogihome/`**: Webサーバーおよびフロントエンド（TypeScript/Vue.js）。
+- **`engine-wrapper/`**: 将棋エンジンを制御するエンジンラッパー（Node.js/Python）。`engines.json` で複数のエンジンを管理します。
 
 ---
 
@@ -82,7 +82,9 @@ cd engine-wrapper
 # Node.js版を使う場合
 npm install 
 cp .env.example .env
-# .env を編集してエンジンのパスを設定
+# engines.json の作成
+cp engines.json.example engines.json
+# エンジンパス等を設定
 ```
 
 #### 4. サーバーの起動

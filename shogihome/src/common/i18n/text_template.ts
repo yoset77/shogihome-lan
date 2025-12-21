@@ -172,7 +172,9 @@ export type Texts = {
   research: string;
   startResearch: string;
   endResearch: string;
+  researchSettings: string; // Added
   researchEngineMultiPV: string;
+  defaultResearchEngine: string; // Added
   changeMultiPVFromPVTab: string;
   multiPVMustBe1To10: string;
   recordAnalysis: string;

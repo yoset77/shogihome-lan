@@ -172,6 +172,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   let isThinking = false;
   let isWaitingForBestmove = false;
   let currentEngineSfen: string | null = null;
+  let pendingGoSfen: string | null = null;
   let isStopping = false;
 
   console.log("Client connected");
@@ -214,10 +215,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         } else if (parts[1] === "sfen") {
           const movesIndex = parts.indexOf("moves");
           if (movesIndex === -1) {
-            return new RegExp("^position sfen [a-zA-Z0-9+/\\s-]+$").test(cmd);
+            return new RegExp("^position sfen [a-zA-Z0-9+/ -]+$").test(cmd);
           } else {
             const sfenPart = parts.slice(0, movesIndex).join(" ");
-            if (!new RegExp("^position sfen [a-zA-Z0-9+/\\s-]+$").test(sfenPart)) return false;
+            if (!new RegExp("^position sfen [a-zA-Z0-9+/ -]+$").test(sfenPart)) return false;
             return parts.slice(movesIndex + 1).every((m) => /^[a-zA-Z0-9+*]+$/.test(m));
           }
         }
@@ -254,6 +255,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       updateCurrentSfen(command);
       if (command.startsWith("go")) {
         isThinking = true;
+        pendingGoSfen = currentEngineSfen;
       }
       console.log(`Sending to engine: ${command}`);
       engineHandle.write(command + "\n");
@@ -289,7 +291,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     }
   };
 
-  const startEngine = (engineType: "research" | "game") => {
+  const startEngine = (engineId: string) => {
     if (engineHandle) {
       sendError("engine already running");
       return;
@@ -307,6 +309,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       isThinking = false;
       isWaitingForBestmove = false;
       currentEngineSfen = null;
+      pendingGoSfen = null;
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ info: "info: engine stopped" }));
       }
@@ -324,11 +327,12 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
           return;
         }
 
-        const response = { sfen: currentEngineSfen, info: line };
+        const response = { sfen: pendingGoSfen, info: line };
         ws.send(JSON.stringify(response));
 
         if (line.startsWith("bestmove")) {
           isThinking = false;
+          pendingGoSfen = null;
           if (isWaitingForBestmove) {
             isWaitingForBestmove = false;
 
@@ -386,13 +390,21 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     const socket = new net.Socket();
 
     const connectionTimeout = setTimeout(() => {
-      socket.destroy(new Error("Connection timed out after 5 seconds"));
+      console.error("Connection timed out after 5 seconds");
+      sendError("connection timed out");
+      socket.destroy();
+      engineState = EngineState.UNINITIALIZED;
+      commandQueue.length = 0;
+      postStopCommandQueue.length = 0;
+      isThinking = false;
+      isWaitingForBestmove = false;
+      currentEngineSfen = null;
     }, 5000); // 5-second timeout
 
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
-      console.log("Connected to remote engine. Specifying engine type...");
-      socket.write(engineType + "\n");
+      console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
+      socket.write(`run ${engineId}\n`);
 
       engineState = EngineState.WAITING_USIOK;
       engineHandle = {
@@ -409,6 +421,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         sendError("remote engine connection failed");
         onEngineClose();
       });
+      // Initiate USI handshake automatically
       sendToEngine("usi");
     });
 
@@ -429,9 +442,51 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
   };
 
+  const getEngineList = () => {
+    console.log(`Fetching engine list from ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
+    const socket = new net.Socket();
+    let data = "";
+
+    const connectionTimeout = setTimeout(() => {
+      socket.destroy(new Error("Connection timed out"));
+    }, 5000);
+
+    socket.on("connect", () => {
+      clearTimeout(connectionTimeout);
+      socket.write("list\n");
+    });
+
+    socket.on("data", (chunk) => {
+      data += chunk.toString();
+    });
+
+    socket.on("end", () => {
+      try {
+        const engines = JSON.parse(data.trim());
+        ws.send(JSON.stringify({ engineList: engines }));
+      } catch (e) {
+        console.error("Failed to parse engine list from wrapper:", e);
+        sendError("failed to parse engine list");
+      }
+    });
+
+    socket.on("error", (err) => {
+      clearTimeout(connectionTimeout);
+      console.error("Failed to get engine list:", err);
+      sendError(`failed to connect to engine wrapper (${err.message})`);
+    });
+
+    socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
+  };
+
   ws.on("message", (message) => {
     const command = message.toString();
     console.log(`Received command: ${command}`);
+
+    if (command === "get_engine_list") {
+      getEngineList();
+      return;
+    }
 
     if (command === "stop") {
       if (engineState === EngineState.READY && isThinking && !isWaitingForBestmove) {
@@ -447,13 +502,9 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       return;
     }
 
-    if (command === "start_research_engine") {
-      startEngine("research");
-      return;
-    }
-
-    if (command === "start_game_engine") {
-      startEngine("game");
+    if (command.startsWith("start_engine ")) {
+      const engineId = command.substring("start_engine ".length).trim();
+      startEngine(engineId);
       return;
     }
 
@@ -466,6 +517,21 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         isWaitingForBestmove = false;
         currentEngineSfen = null;
         engineHandle.close();
+      }
+      return;
+    }
+
+    if (command === "usi" || command === "isready") {
+      // Handshake is managed by the server automatically.
+      return;
+    }
+
+    if (command.startsWith("setoption ")) {
+      if (engineState >= EngineState.WAITING_USIOK) {
+        sendToEngine(command);
+      } else {
+        console.log(`Engine connection in progress, queueing: ${command}`);
+        commandQueue.push(command);
       }
       return;
     }

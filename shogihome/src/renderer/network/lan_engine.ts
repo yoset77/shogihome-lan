@@ -1,9 +1,19 @@
 type MessageHandler = (data: string) => void;
+type MessageListener = (data: string) => boolean; // Return true to remove listener
+
+export interface LanEngineInfo {
+  id: string;
+  name: string;
+  type?: "game" | "research" | "both";
+  path: string;
+}
 
 class LanEngine {
   private ws: WebSocket | null = null;
   private static instance: LanEngine;
   private onMessageHandler: MessageHandler | null = null;
+  private messageListeners: MessageListener[] = [];
+  private engineListCache: LanEngineInfo[] | null = null;
 
   private constructor() {}
 
@@ -18,6 +28,8 @@ class LanEngine {
     return new Promise((resolve, reject) => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         console.log("WebSocket is already connected.");
+        // Update handler even if already connected
+        this.onMessageHandler = onMessage;
         resolve();
         return;
       }
@@ -34,8 +46,13 @@ class LanEngine {
       };
 
       this.ws.onmessage = (event) => {
+        const data = event.data;
+
+        // Process temporary listeners
+        this.messageListeners = this.messageListeners.filter((listener) => !listener(data));
+
         if (this.onMessageHandler) {
-          this.onMessageHandler(event.data);
+          this.onMessageHandler(data);
         }
       };
 
@@ -69,12 +86,42 @@ class LanEngine {
     return !!this.ws && this.ws.readyState === WebSocket.OPEN;
   }
 
-  startResearchEngine() {
-    this.sendCommand("start_research_engine");
+  async getEngineList(): Promise<LanEngineInfo[]> {
+    if (this.engineListCache) {
+      return this.engineListCache;
+    }
+
+    if (!this.isConnected()) {
+      // Auto connect if not connected, using a dummy handler for now
+      await this.connect(() => {});
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("Timeout waiting for engine list"));
+      }, 5000);
+
+      this.messageListeners.push((data: string) => {
+        try {
+          const json = JSON.parse(data);
+          if (json.engineList) {
+            clearTimeout(timeout);
+            this.engineListCache = json.engineList;
+            resolve(json.engineList);
+            return true; // Remove listener
+          }
+        } catch (e) {
+          // ignore
+        }
+        return false; // Keep listener
+      });
+
+      this.sendCommand("get_engine_list");
+    });
   }
 
-  startGameEngine() {
-    this.sendCommand("start_game_engine");
+  startEngine(engineId: string) {
+    this.sendCommand(`start_engine ${engineId}`);
   }
 
   stopEngine() {

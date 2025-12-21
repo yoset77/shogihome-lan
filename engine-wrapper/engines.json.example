@@ -1,0 +1,20 @@
+[
+  {
+    "id": "yaneuraou",
+    "name": "YaneuraOu",
+    "type": "both",
+    "path": "/path/to/yaneuraou-executable"
+  },
+  {
+    "id": "fukauraou",
+    "name": "FukauraOu",
+    "type": "game",
+    "path": "engines/fukauraou/yaneuraou-deep.exe"
+  },
+  {
+    "id": "suisho",
+    "name": "Suisho",
+    "type": "research",
+    "path": "engines/suisho/yaneuraou.exe"
+  }
+]

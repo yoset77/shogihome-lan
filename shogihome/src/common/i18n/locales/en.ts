@@ -177,6 +177,7 @@ export const en: Texts = {
   research: "Research",
   startResearch: "Start Research",
   endResearch: "End Research",
+  researchSettings: "Research Settings",
   recordAnalysis: "Record Analysis",
   analysis: "Analyze",
   analyze: "Analyze",
@@ -780,7 +781,8 @@ export const en: Texts = {
   directoryNotFound(path: string) {
     return `Directory not found. [${path}]`;
   },
-  researchEngineMultiPV: "MultiPV for Research Engine",
-  changeMultiPVFromPVTab: "Change MultiPV from PV tab",
+  researchEngineMultiPV: "MultiPV for Research",
+  defaultResearchEngine: "Default Research Engine", // Added
+  changeMultiPVFromPVTab: "Change MultiPV from PV Tab",
   multiPVMustBe1To10: "MultiPV must be between 1 and 10.",
 };

@@ -34,6 +34,16 @@ export function setOnUpdateUSIInfoHandler(handler: onUpdateUSIInfoHandler) {
   onUpdateUSIInfo = handler;
 }
 
+export function dispatchUSIInfoUpdate(
+  sessionID: number,
+  position: ImmutablePosition,
+  name: string,
+  info: USIInfoCommand,
+  ponderMove?: Move,
+) {
+  onUpdateUSIInfo(sessionID, position, name, info, ponderMove);
+}
+
 export class USIPlayer implements Player {
   private _sessionID = 0;
   private usi?: string;
