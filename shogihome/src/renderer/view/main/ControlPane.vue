@@ -7,11 +7,7 @@
       >
         <!-- 検討 -->
         <button
-          v-show="
-            store.researchState !== ResearchState.RUNNING &&
-            store.lanEngineState !== ResearchState.RUNNING &&
-            store.lanEngineState !== ResearchState.PAUSED
-          "
+          v-show="store.researchState !== ResearchState.RUNNING"
           class="control-item"
           data-hotkey="Mod+r"
           @click="onResearch"
@@ -23,8 +19,7 @@
         <button
           v-show="
             store.researchState === ResearchState.RUNNING ||
-            store.lanEngineState === ResearchState.RUNNING ||
-            store.lanEngineState === ResearchState.PAUSED
+            store.researchState === ResearchState.PAUSED
           "
           class="control-item close"
           @click="onEndResearch"
@@ -375,8 +370,7 @@ const onResearch = async () => {
 };
 
 const onEndResearch = () => {
-  store.stopResearch(); // Stop local research if it's running
-  store.stopLanResearch(); // Stop LAN research if it's running
+  store.stopResearch();
 };
 
 const onAnalysis = () => {

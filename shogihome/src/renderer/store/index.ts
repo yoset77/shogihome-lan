@@ -51,7 +51,7 @@ import { CSAGameManager, CSAGameState } from "./csa.js";
 import { Clock } from "./clock.js";
 import { CSAGameSettings, appendCSAGameSettingsHistory } from "@/common/settings/csa.js";
 import { defaultPlayerBuilder } from "@/renderer/players/builder.js";
-import { SCORE_MATE_INFINITE, type USIInfoCommand } from "@/common/game/usi.js";
+import { type USIInfoCommand } from "@/common/game/usi.js";
 import { ResearchManager } from "./research.js";
 import { SearchInfo } from "@/renderer/players/player.js";
 import { useAppSettings } from "./settings.js";
@@ -177,9 +177,7 @@ class Store {
   private mateSearchManager = new MateSearchManager();
   private _researchState = ResearchState.IDLE;
   private researchManager = new ResearchManager();
-  private _lanEngineState = ResearchState.IDLE;
   private isForceStopping = false;
-  private _volatileResearchMultiPV: number | null = null;
   private _puzzle: Puzzle | null = null;
   private _reactive: UnwrapNestedRefs<Store>;
   private garbledNotified = false;
@@ -1035,207 +1033,12 @@ class Store {
       this.researchManager.pause();
       this._researchState = ResearchState.PAUSED;
     }
-    if (this._lanEngineState === ResearchState.RUNNING) {
-      this.pauseLanResearch();
-    }
   }
 
   resumeResearch(): void {
     if (this._researchState === ResearchState.PAUSED) {
       this.researchManager.unpause();
       this._researchState = ResearchState.RUNNING;
-    }
-    if (this._lanEngineState === ResearchState.PAUSED) {
-      this.resumeLanResearch();
-    }
-  }
-
-  get lanEngineState(): ResearchState {
-    return this._lanEngineState;
-  }
-
-  get volatileResearchMultiPV(): number | null {
-    return this._volatileResearchMultiPV;
-  }
-
-  private parseUSIInfoString(infoStr: string): USIInfoCommand {
-    const info: USIInfoCommand = {};
-    const parts = infoStr.split(" ");
-    let i = 0;
-    while (i < parts.length) {
-      const part = parts[i];
-      switch (part) {
-        case "info": // Skip 'info' token
-          i++;
-          continue;
-        case "depth":
-          info.depth = parseInt(parts[++i], 10);
-          break;
-        case "seldepth":
-          info.seldepth = parseInt(parts[++i], 10);
-          break;
-        case "nodes":
-          info.nodes = parseInt(parts[++i], 10);
-          break;
-        case "score":
-          // eslint-disable-next-line no-case-declarations
-          const scoreType = parts[++i];
-          if (scoreType === "cp") {
-            info.scoreCP = parseInt(parts[++i], 10);
-          } else if (scoreType === "mate") {
-            const mate = parts[++i];
-            if (mate === "+") {
-              info.scoreMate = SCORE_MATE_INFINITE;
-            } else if (mate === "-") {
-              info.scoreMate = -SCORE_MATE_INFINITE;
-            } else {
-              info.scoreMate = parseInt(mate, 10);
-            }
-          }
-          break;
-        case "pv":
-          info.pv = parts.slice(i + 1);
-          i = parts.length; // End loop
-          break;
-        case "multipv":
-          info.multipv = parseInt(parts[++i], 10);
-          break;
-        case "currmove":
-          info.currmove = parts[++i];
-          break;
-        case "time":
-          info.timeMs = parseInt(parts[++i], 10);
-          break;
-        case "hashfull":
-          info.hashfullPerMill = parseInt(parts[++i], 10);
-          break;
-        case "nps":
-          info.nps = parseInt(parts[++i], 10);
-          break;
-      }
-      i++;
-    }
-    return info;
-  }
-  startLanResearch(): void {
-    if (this._lanEngineState !== ResearchState.IDLE || useBusyState().isBusy) {
-      return;
-    }
-    this.clearUSISession(-1);
-    useBusyState().retain();
-    this._lanEngineState = ResearchState.RUNNING;
-    const appSettings = useAppSettings();
-    this._volatileResearchMultiPV = appSettings.researchMultiPV;
-    lanEngine
-      .connect((message: string) => {
-        try {
-          const data = JSON.parse(message);
-          if (data.error) {
-            useErrorStore().add(data.error);
-            this._lanEngineState = ResearchState.IDLE;
-            lanEngine.disconnect();
-            return;
-          }
-
-          const info = data.info;
-          if (info && info.startsWith("info")) {
-            // Ignore info if SFEN does not match
-            if (data.sfen !== this.record.sfen) {
-              return;
-            }
-            const command = this.parseUSIInfoString(info);
-
-            // Update arrows and thought text regardless of MultiPV
-            const dummySessionID = -1;
-            this.updateUSIInfo(dummySessionID, this.record.position, "LAN Engine", command);
-
-            // Update evaluation graph using PV1 score
-            if (command.multipv && command.multipv !== 1) {
-              return;
-            }
-
-            // Convert USI score to black's perspective
-            const sign = this.record.position.color === Color.BLACK ? 1 : -1;
-            const pv: Move[] = [];
-            if (command.pv) {
-              const pos = this.record.position.clone();
-              for (const usi of command.pv) {
-                const move = pos.createMoveByUSI(usi);
-                if (!move || !pos.doMove(move)) {
-                  break;
-                }
-                pv.push(move);
-              }
-            }
-            const searchInfo: SearchInfo = {
-              usi: data.sfen,
-              score: command.scoreCP !== undefined ? command.scoreCP * sign : undefined,
-              mate: command.scoreMate !== undefined ? command.scoreMate * sign : undefined,
-              pv: pv,
-            };
-            this.onUpdateSearchInfo(SearchInfoSenderType.RESEARCHER, searchInfo);
-          }
-        } catch (e) {
-          // Non-JSON messages can be ignored (or logged for debugging)
-        }
-      })
-      .then(() => {
-        lanEngine.startEngine("research");
-        lanEngine.setOption("MultiPV", this.volatileResearchMultiPV!);
-        this.updateResearchPosition();
-      })
-      .catch((e) => {
-        useErrorStore().add("LAN Engine connection failed: " + e);
-        this._lanEngineState = ResearchState.IDLE;
-      })
-      .finally(() => {
-        useBusyState().release();
-      });
-  }
-
-  pauseLanResearch(): void {
-    if (this._lanEngineState === ResearchState.RUNNING) {
-      lanEngine.sendCommand("stop");
-      this._lanEngineState = ResearchState.PAUSED;
-    }
-  }
-
-  resumeLanResearch(): void {
-    if (this._lanEngineState === ResearchState.PAUSED) {
-      this._lanEngineState = ResearchState.RUNNING;
-      const usi = "position sfen " + this.recordManager.record.sfen;
-      lanEngine.sendCommand(usi);
-      lanEngine.sendCommand("go infinite");
-    }
-  }
-
-  stopLanResearch(): void {
-    if (
-      this._lanEngineState === ResearchState.RUNNING ||
-      this._lanEngineState === ResearchState.PAUSED
-    ) {
-      lanEngine.stopEngine();
-      lanEngine.disconnect();
-      this._lanEngineState = ResearchState.IDLE;
-    }
-  }
-
-  changeVolatileResearchMultiPV(multiPV: number): void {
-    if (
-      this._lanEngineState !== ResearchState.RUNNING &&
-      this._lanEngineState !== ResearchState.PAUSED
-    ) {
-      return;
-    }
-    this._volatileResearchMultiPV = multiPV;
-    if (this._lanEngineState === ResearchState.RUNNING) {
-      lanEngine.sendCommand("stop");
-      lanEngine.setOption("MultiPV", multiPV);
-      const usi = "position sfen " + this.recordManager.record.sfen;
-      lanEngine.sendCommand(usi);
-      lanEngine.sendCommand("go infinite");
-    } else {
-      lanEngine.setOption("MultiPV", multiPV);
     }
   }
 
@@ -1353,12 +1156,6 @@ class Store {
 
   private updateResearchPosition(): void {
     this.researchManager?.updatePosition(this.recordManager.record);
-    if (this._lanEngineState === ResearchState.RUNNING) {
-      lanEngine.sendCommand("stop");
-      const usi = "position sfen " + this.recordManager.record.sfen;
-      lanEngine.sendCommand(usi);
-      lanEngine.sendCommand("go infinite");
-    }
   }
 
   resetRecord(): void {
@@ -1872,16 +1669,6 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
   const store = useStore();
-
-  const researchState = store.lanEngineState;
-  if (
-    (researchState === ResearchState.RUNNING || researchState === ResearchState.PAUSED) &&
-    !lanEngine.isConnected()
-  ) {
-    console.log("LAN Engine connection lost on resume, resetting research state.");
-    store.stopLanResearch();
-    return; // Do not proceed to game check if we handled it here
-  }
 
   if (store.appState === AppState.GAME) {
     const settings = store.gameSettings;

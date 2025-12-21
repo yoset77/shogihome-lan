@@ -780,7 +780,7 @@ export const ja: Texts = {
     return `フォルダが見つかりません。 [${path}]`;
   },
   researchEngineMultiPV: "検討エンジンのMultiPV",
-  defaultResearchEngine: "デフォルトの検討エンジン", // Added
+  defaultResearchEngine: "既定の検討エンジン", // Added
   changeMultiPVFromPVTab: "読み筋タブからMultiPVを変更",
   multiPVMustBe1To10: "MultiPVは1から10の間で設定してください。",
 };

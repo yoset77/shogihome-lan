@@ -279,7 +279,6 @@ const onResearchSettings = () => {
 };
 const onStopResearch = () => {
   store.stopResearch();
-  store.stopLanResearch();
   emit("close");
 };
 const onPauseResearch = () => {
@@ -384,20 +383,11 @@ const states = computed(() => {
     stopGame: store.appState === AppState.GAME,
     resign: store.appState === AppState.GAME && store.isMovableByUser,
     puzzle: store.appState === AppState.NORMAL,
-    research:
-      store.appState === AppState.NORMAL &&
-      store.researchState === ResearchState.IDLE &&
-      store.lanEngineState === ResearchState.IDLE,
+    research: store.appState === AppState.NORMAL && store.researchState === ResearchState.IDLE,
     stopResearch:
-      store.researchState === ResearchState.RUNNING ||
-      store.researchState === ResearchState.PAUSED ||
-      store.lanEngineState === ResearchState.RUNNING ||
-      store.lanEngineState === ResearchState.PAUSED,
-    pauseResearch:
-      store.researchState === ResearchState.RUNNING ||
-      store.lanEngineState === ResearchState.RUNNING,
-    resumeResearch:
-      store.researchState === ResearchState.PAUSED || store.lanEngineState === ResearchState.PAUSED,
+      store.researchState === ResearchState.RUNNING || store.researchState === ResearchState.PAUSED,
+    pauseResearch: store.researchState === ResearchState.RUNNING,
+    resumeResearch: store.researchState === ResearchState.PAUSED,
     positionEditing: store.appState === AppState.NORMAL,
     newFile: store.appState === AppState.NORMAL,
     open: store.appState === AppState.NORMAL,

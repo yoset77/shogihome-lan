@@ -272,25 +272,15 @@ onBeforeUpdate(() => {
 });
 
 const isResearchSession = computed(() => {
-  return (
-    store.isResearchEngineSessionID(props.monitor.sessionID) ||
-    store.lanEngineState === ResearchState.RUNNING ||
-    store.lanEngineState === ResearchState.PAUSED
-  );
+  return store.isResearchEngineSessionID(props.monitor.sessionID);
 });
 
 const paused = computed(() => {
   if (props.mobileLayout) {
-    if (props.monitor.sessionID === -1) {
-      return store.lanEngineState !== ResearchState.RUNNING;
-    }
     return (
       store.researchState !== ResearchState.RUNNING ||
       store.isPausedResearchEngine(props.monitor.sessionID)
     );
-  }
-  if (props.monitor.sessionID === -1) {
-    return store.lanEngineState === ResearchState.PAUSED;
   }
   return store.isPausedResearchEngine(props.monitor.sessionID);
 });
@@ -309,9 +299,6 @@ const formatNodeCount = computed(() => {
 });
 
 const multiPV = computed(() => {
-  if (props.monitor.sessionID < 0) {
-    return store.volatileResearchMultiPV;
-  }
   return store.getResearchMultiPV(props.monitor.sessionID);
 });
 
@@ -369,19 +356,11 @@ const showPreview = (ite: USIInfo) => {
 };
 
 const onPause = () => {
-  if (props.monitor.sessionID === -1) {
-    store.pauseLanResearch();
-  } else {
-    store.pauseResearchEngine(props.monitor.sessionID);
-  }
+  store.pauseResearchEngine(props.monitor.sessionID);
 };
 
 const onResume = () => {
-  if (props.monitor.sessionID === -1) {
-    store.resumeLanResearch();
-  } else {
-    store.unpauseResearchEngine(props.monitor.sessionID);
-  }
+  store.unpauseResearchEngine(props.monitor.sessionID);
 };
 
 const updateMultiPV = (add: number) => {
@@ -390,12 +369,6 @@ const updateMultiPV = (add: number) => {
     return;
   }
   const newValue = value + add;
-
-  // Legacy LAN engine
-  if (props.monitor.sessionID < 0) {
-    store.changeVolatileResearchMultiPV(newValue);
-    return;
-  }
 
   // Standard engines (including new LAN engine)
   // Confirm if the suggestions count is too large

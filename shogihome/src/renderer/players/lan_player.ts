@@ -134,7 +134,6 @@ export class LanPlayer implements Player {
       await this.stopAndWait();
     }
     lanEngine.stopEngine();
-    lanEngine.disconnect();
   }
 
   get multiPV(): number | undefined {
