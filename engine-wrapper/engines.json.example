@@ -6,15 +6,15 @@
     "path": "/path/to/yaneuraou-executable"
   },
   {
-    "id": "koma-sen",
-    "name": "Koma-sen",
+    "id": "fukauraou",
+    "name": "FukauraOu",
     "type": "game",
-    "path": "engines/koma-sen/koma-sen.exe"
+    "path": "engines/fukauraou/yaneuraou-deep.exe"
   },
   {
-    "id": "suisho10",
-    "name": "Suisho10",
+    "id": "suisho",
+    "name": "Suisho",
     "type": "research",
-    "path": "engines/suisho10/yaneuraou.exe"
+    "path": "engines/suisho/yaneuraou.exe"
   }
 ]

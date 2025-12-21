@@ -74,8 +74,8 @@ graph LR
 - **テスト実行**: `npm run test` (Vitest)
 
 ### Engine Server (`engine-wrapper/`)
-- **依存関係インストール**: `npm install dotenv`
-- **起動 (Node.js)**: `node engine-wrapper.mjs`
+- **依存関係インストール**: `npm install`
+- **起動 (Node.js)**: `npm run start`
 
 ## 7. 主要ディレクトリ構成
 
@@ -104,9 +104,13 @@ graph LR
 ### LANエンジン通信フロー
 1.  **リスト取得**: フロントエンドが `get_engine_list` を送信。サーバーは Wrapper から `list` コマンドで取得したJSONを返却。
 2.  **起動**: フロントエンドが `start_engine <id>` を送信。
-3.  **中継**: `server.ts` が `engine-wrapper` へTCP接続し `run <id>` を送信。以降はパイプ。
+3.  **ハンドシェイク**: `server.ts` が Wrapper 接続時に `usi` を自動送信し、`usiok` 受信時に `isready` を自動送信する。クライアントからの `usi`/`isready` は無視される。
 4.  **同期**: 局面移動時、`LanPlayer.ts` は `stop` コマンドを送り、エンジンから `bestmove` を受信するまで次の `position` コマンドの送信を待機する。
 5.  **リアルタイム更新**: サーバーはエンジン出力に SFEN を付与して返却。フロントエンドは `dispatchUSIInfoUpdate` を通じて `usiMonitor` を更新し、読み筋タブへ反映。
+
+### エンジン設定 (`engines.json`)
+- **Type**: `game` / `research` / `both` を指定可能。フロントエンドはこれに基づき、対局・検討ダイアログで表示するエンジンをフィルタリングする。
+- **デフォルトエンジン**: アプリ設定で「デフォルトの検討エンジン」を指定でき、設定時は検討ボタン押下時のエンジン選択ダイアログをスキップして即座に開始する。
 
 ### 次の一手問題（Puzzles）
 - **データ構造**: 静的なJSONファイルとして `/public/puzzles` に配置。
