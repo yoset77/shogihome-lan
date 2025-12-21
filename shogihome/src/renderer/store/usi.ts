@@ -27,14 +27,14 @@ function formatPV(position: ImmutablePosition, pv: string[], maxLength: number):
   for (; i < pv.length && i < maxLength; i++) {
     const move = p.createMoveByUSI(pv[i]);
     if (!move) {
-      break;
+      if (i > 0) {
+        result += " ...";
+      }
+      return result;
     }
     result += formatMove(p, move, { lastMove });
     p.doMove(move, { ignoreValidation: true });
     lastMove = move;
-  }
-  for (; i < pv.length && i < maxLength; i++) {
-    result += " " + pv[i];
   }
   if (i < pv.length) {
     result += " ...";

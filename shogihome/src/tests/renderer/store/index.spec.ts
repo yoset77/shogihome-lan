@@ -175,7 +175,7 @@ describe("store/index", () => {
     expect(store.usiMonitors[0].infoList[0].depth).toBe(8);
     expect(store.usiMonitors[0].infoList[0].score).toBe(138);
     expect(store.usiMonitors[0].infoList[0].pv).toEqual(["8c8d", "2g2f", "foo", "bar"]);
-    expect(store.usiMonitors[0].infoList[0].text).toBe("☖８四歩☗２六歩 foo bar");
+    expect(store.usiMonitors[0].infoList[0].text).toBe("☖８四歩☗２六歩 ...");
     store.updateUSIInfo(101, position, "Engine A", {
       depth: 10,
       scoreCP: 213,

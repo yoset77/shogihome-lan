@@ -172,6 +172,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   let isThinking = false;
   let isWaitingForBestmove = false;
   let currentEngineSfen: string | null = null;
+  let pendingGoSfen: string | null = null;
   let isStopping = false;
 
   console.log("Client connected");
@@ -254,6 +255,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       updateCurrentSfen(command);
       if (command.startsWith("go")) {
         isThinking = true;
+        pendingGoSfen = currentEngineSfen;
       }
       console.log(`Sending to engine: ${command}`);
       engineHandle.write(command + "\n");
@@ -307,6 +309,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       isThinking = false;
       isWaitingForBestmove = false;
       currentEngineSfen = null;
+      pendingGoSfen = null;
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ info: "info: engine stopped" }));
       }
@@ -324,11 +327,12 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
           return;
         }
 
-        const response = { sfen: currentEngineSfen, info: line };
+        const response = { sfen: pendingGoSfen, info: line };
         ws.send(JSON.stringify(response));
 
         if (line.startsWith("bestmove")) {
           isThinking = false;
+          pendingGoSfen = null;
           if (isWaitingForBestmove) {
             isWaitingForBestmove = false;
 

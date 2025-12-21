@@ -243,6 +243,20 @@ export class LanPlayer implements Player {
   private updateInfo(infoCommand: USIInfoCommand, sfen?: string) {
     if (!this.position || !this.onSearchInfo) return;
 
+    // Check if the received SFEN matches the current position
+    if (sfen && sfen !== this.position.sfen) {
+      return;
+    }
+
+    // Validate if the PV is applicable to the current position.
+    // This prevents processing "chimera packets" where the server attributes a new SFEN to an old engine output.
+    if (infoCommand.pv && infoCommand.pv.length > 0) {
+      const move = this.position.createMoveByUSI(infoCommand.pv[0]);
+      if (!move) {
+        return;
+      }
+    }
+
     dispatchUSIInfoUpdate(this.sessionID, this.position, this.name, infoCommand);
 
     const sign = this.position.color === Color.BLACK ? 1 : -1;
