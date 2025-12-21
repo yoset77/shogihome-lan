@@ -8,7 +8,7 @@ export default defineConfig({
     alias: [{ find: "@", replacement: "/src" }],
   },
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __APP_VERSION__: JSON.stringify("1.24.0"),
   },
   plugins: [vue()],
   base: "./",
