@@ -177,6 +177,7 @@ export const en: Texts = {
   research: "Research",
   startResearch: "Start Research",
   endResearch: "End Research",
+  researchSettings: "Research Settings",
   recordAnalysis: "Record Analysis",
   analysis: "Analyze",
   analyze: "Analyze",

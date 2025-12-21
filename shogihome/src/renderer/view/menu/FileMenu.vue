@@ -34,6 +34,10 @@
           <Icon :icon="IconType.RESEARCH" />
           <div class="label">{{ t.research }}</div>
         </button>
+        <button v-if="states.research" @click="onResearchSettings">
+          <Icon :icon="IconType.SETTINGS" />
+          <div class="label">{{ t.researchSettings }}</div>
+        </button>
         <button v-if="states.stopResearch" @click="onStopResearch">
           <Icon :icon="IconType.END" />
           <div class="label">{{ t.endResearch }}</div>
@@ -266,6 +270,10 @@ const onResearch = async () => {
       return;
     }
   }
+  store.showResearchDialog();
+  emit("close");
+};
+const onResearchSettings = () => {
   store.showResearchDialog();
   emit("close");
 };
