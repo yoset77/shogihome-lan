@@ -178,8 +178,8 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   console.log("Client connected");
 
   const updateCurrentSfen = (command: string) => {
-    if (command.startsWith("position sfen ")) {
-      currentEngineSfen = command.substring("position sfen ".length);
+    if (command.startsWith("position ")) {
+      currentEngineSfen = command;
     }
   };
 

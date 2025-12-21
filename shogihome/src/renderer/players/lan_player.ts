@@ -243,8 +243,8 @@ export class LanPlayer implements Player {
   private updateInfo(infoCommand: USIInfoCommand, sfen?: string) {
     if (!this.position || !this.onSearchInfo) return;
 
-    // Check if the received SFEN matches the current position
-    if (sfen && sfen !== this.position.sfen) {
+    // Check if the received USI command matches the current command
+    if (sfen && sfen !== this.currentSfen) {
       return;
     }
 
