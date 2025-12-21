@@ -223,6 +223,7 @@ export class LanPlayer implements Player {
     for (let i = 1; i < parts.length; i++) {
       const key = parts[i];
       if (key === "depth") result.depth = parseInt(parts[++i]);
+      else if (key === "seldepth") result.seldepth = parseInt(parts[++i]);
       else if (key === "nodes") result.nodes = parseInt(parts[++i]);
       else if (key === "score") {
         const type = parts[++i];

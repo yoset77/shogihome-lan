@@ -214,10 +214,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         } else if (parts[1] === "sfen") {
           const movesIndex = parts.indexOf("moves");
           if (movesIndex === -1) {
-            return new RegExp("^position sfen [a-zA-Z0-9+/\\s-]+$").test(cmd);
+            return new RegExp("^position sfen [a-zA-Z0-9+/ -]+$").test(cmd);
           } else {
             const sfenPart = parts.slice(0, movesIndex).join(" ");
-            if (!new RegExp("^position sfen [a-zA-Z0-9+/\\s-]+$").test(sfenPart)) return false;
+            if (!new RegExp("^position sfen [a-zA-Z0-9+/ -]+$").test(sfenPart)) return false;
             return parts.slice(movesIndex + 1).every((m) => /^[a-zA-Z0-9+*]+$/.test(m));
           }
         }

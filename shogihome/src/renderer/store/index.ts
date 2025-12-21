@@ -179,7 +179,6 @@ class Store {
   private researchManager = new ResearchManager();
   private _lanEngineState = ResearchState.IDLE;
   private isForceStopping = false;
-  private lanEngineInfo: string[] = [];
   private _volatileResearchMultiPV: number | null = null;
   private _puzzle: Puzzle | null = null;
   private _reactive: UnwrapNestedRefs<Store>;
