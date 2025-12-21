@@ -17,6 +17,7 @@ export class LanPlayer implements Player {
   private currentSfen: string = "";
   private isThinking: boolean = false;
   private stopPromiseResolver: (() => void) | null = null;
+  private stopPromise: Promise<void> | null = null;
   private _multiPV: number = 1;
 
   constructor(engineId: string, engineName: string, onSearchInfo?: (info: SearchInfo) => void) {
@@ -148,7 +149,11 @@ export class LanPlayer implements Player {
   }
 
   private async stopAndWait(): Promise<void> {
-    return new Promise((resolve) => {
+    if (this.stopPromise) {
+      return this.stopPromise;
+    }
+
+    this.stopPromise = new Promise((resolve) => {
       this.stopPromiseResolver = resolve;
       lanEngine.sendCommand("stop");
 
@@ -158,10 +163,13 @@ export class LanPlayer implements Player {
           console.warn("LanPlayer: stopAndWait timed out, forcing resume.");
           this.isThinking = false;
           this.stopPromiseResolver = null;
+          this.stopPromise = null;
           resolve();
         }
       }, 5000);
     });
+
+    return this.stopPromise;
   }
 
   private onMessage(message: string): void {
@@ -184,6 +192,7 @@ export class LanPlayer implements Player {
           if (this.stopPromiseResolver) {
             this.stopPromiseResolver();
             this.stopPromiseResolver = null;
+            this.stopPromise = null;
           }
 
           if (this.handler && this.position) {

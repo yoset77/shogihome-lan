@@ -386,7 +386,15 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     const socket = new net.Socket();
 
     const connectionTimeout = setTimeout(() => {
-      socket.destroy(new Error("Connection timed out after 5 seconds"));
+      console.error("Connection timed out after 5 seconds");
+      sendError("connection timed out");
+      socket.destroy();
+      engineState = EngineState.UNINITIALIZED;
+      commandQueue.length = 0;
+      postStopCommandQueue.length = 0;
+      isThinking = false;
+      isWaitingForBestmove = false;
+      currentEngineSfen = null;
     }, 5000); // 5-second timeout
 
     socket.on("connect", () => {

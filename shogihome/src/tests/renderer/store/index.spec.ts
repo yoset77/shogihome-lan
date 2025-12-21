@@ -9,7 +9,6 @@ import { GameManager } from "@/renderer/store/game.js";
 import { AppState, ResearchState } from "@/common/control/state.js";
 import { AnalysisManager } from "@/renderer/store/analysis.js";
 import { analysisSettings } from "@/tests/mock/analysis.js";
-import { USIPlayer } from "@/renderer/players/usi.js";
 import { researchSettings } from "@/tests/mock/research.js";
 import {
   csaGameSettings,
@@ -28,22 +27,39 @@ import { useConfirmationStore } from "@/renderer/store/confirm.js";
 import { RecordFileFormat } from "@/common/file/record.js";
 import { mateSearchSettings } from "@/tests/mock/mate.js";
 import { MateSearchManager } from "@/renderer/store/mate.js";
+import { ResearchManager } from "@/renderer/store/research.js";
 
 vi.mock("@/renderer/devices/audio.js");
 vi.mock("@/renderer/ipc/api.js");
 vi.mock("@/renderer/store/game.js");
 vi.mock("@/renderer/store/csa.js");
-vi.mock("@/renderer/players/usi.js");
 vi.mock("@/renderer/store/analysis.js");
 vi.mock("@/renderer/store/mate.js");
+vi.mock("@/renderer/store/research.js", () => {
+  const mock = {
+    on: vi.fn().mockReturnThis(),
+    launch: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn().mockResolvedValue(undefined),
+    updatePosition: vi.fn(),
+    isPaused: vi.fn().mockReturnValue(false),
+    pause: vi.fn(),
+    unpause: vi.fn(),
+    getMultiPV: vi.fn(),
+    setMultiPV: vi.fn(),
+    isSessionExists: vi.fn().mockReturnValue(false),
+  };
+  return {
+    ResearchManager: vi.fn().mockImplementation(() => mock),
+  };
+});
 
 const mockAudio = audio as Mocked<typeof audio>;
 const mockAPI = api as Mocked<API>;
 const mockGameManager = GameManager as MockedClass<typeof GameManager>;
 const mockCSAGameManager = CSAGameManager as MockedClass<typeof CSAGameManager>;
-const mockUSIPlayer = USIPlayer as MockedClass<typeof USIPlayer>;
 const mockAnalysisManager = AnalysisManager as MockedClass<typeof AnalysisManager>;
 const mockMateSearchManager = MateSearchManager as MockedClass<typeof MateSearchManager>;
+const mockResearchManager = new ResearchManager() as Mocked<ResearchManager>;
 
 const sampleKIF = `
 手合割：平手
@@ -446,8 +462,6 @@ describe("store/index", () => {
 
   it("startResearch/success", async () => {
     mockAPI.saveResearchSettings.mockResolvedValue();
-    mockUSIPlayer.prototype.launch.mockResolvedValue();
-    mockUSIPlayer.prototype.startResearch.mockResolvedValue();
     const store = createStore();
     store.showResearchDialog();
     store.startResearch(researchSettings);
@@ -455,23 +469,20 @@ describe("store/index", () => {
     expect(useBusyState().isBusy).toBeFalsy();
     expect(store.researchState).toBe(ResearchState.RUNNING);
     expect(mockAPI.saveResearchSettings).toBeCalledTimes(1);
-    expect(mockUSIPlayer).toBeCalledTimes(1);
-    expect(mockUSIPlayer.mock.calls[0][0]).toStrictEqual(researchSettings.usi);
-    expect(mockUSIPlayer.prototype.launch).toBeCalledTimes(1);
-    // FIXME: 遅延実行の導入によってすぐに呼ばれなくなった。
-    //expect(mockUSIPlayer.prototype.startResearch).toBeCalledTimes(1);
-    mockUSIPlayer.prototype.close.mockResolvedValue();
-    store.stopResearch();
-    expect(useBusyState().isBusy).toBeFalsy();
-    expect(store.appState).toBe(AppState.NORMAL);
-    expect(mockUSIPlayer.prototype.close).toBeCalledTimes(1);
+    expect(mockResearchManager.launch).toBeCalledTimes(1);
+    expect(mockResearchManager.launch.mock.calls[0][0]).toStrictEqual(researchSettings);
   });
 
-  it("startResearch/invalidState", () => {
+  it("startResearch/withoutDialog", async () => {
+    mockAPI.saveResearchSettings.mockResolvedValue();
     const store = createStore();
     store.startResearch(researchSettings);
+    await new Promise((resolve) => setTimeout(resolve));
     expect(useBusyState().isBusy).toBeFalsy();
-    expect(store.appState).toBe(AppState.NORMAL);
+    expect(store.researchState).toBe(ResearchState.RUNNING);
+    expect(mockAPI.saveResearchSettings).toBeCalledTimes(1);
+    expect(mockResearchManager.launch).toBeCalledTimes(1);
+    expect(mockResearchManager.launch.mock.calls[0][0]).toStrictEqual(researchSettings);
   });
 
   it("startAnalysis/success", async () => {
