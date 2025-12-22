@@ -292,8 +292,8 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   };
 
   const startEngine = (engineId: string) => {
-    if (engineHandle) {
-      sendError("engine already running");
+    if (engineHandle || engineState === EngineState.STARTING) {
+      sendError("engine already running or starting");
       return;
     }
     engineState = EngineState.STARTING;
@@ -341,7 +341,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
             let latestGo: string | null = null;
 
             for (const command of postStopCommandQueue) {
-              if (command.startsWith("position sfen")) {
+              if (command.startsWith("position")) {
                 latestPosition = command;
               } else if (command.startsWith("setoption name MultiPV")) {
                 latestSetoptionMultiPV = command;
@@ -493,6 +493,11 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         postStopCommandQueue.length = 0;
         sendToEngine(command);
       }
+      return;
+    }
+
+    if (command === "quit") {
+      sendToEngine(command);
       return;
     }
 
