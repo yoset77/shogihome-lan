@@ -11,6 +11,7 @@ export class LanPlayer implements Player {
   private position?: ImmutablePosition;
   private onSearchInfo?: (info: SearchInfo) => void;
   private info?: SearchInfo;
+  private infoTimeout?: number;
   private _sessionID: number;
   private engineId: string;
   private engineName: string;
@@ -69,12 +70,16 @@ export class LanPlayer implements Player {
     timeStates: TimeStates,
     handler: SearchHandler,
   ): Promise<void> {
-    if (this.isThinking) {
-      await this.stopAndWait();
-    }
+    const isNewSfen = this.currentSfen !== usi;
     this.handler = handler;
     this.position = position;
     this.currentSfen = usi;
+    if (isNewSfen) {
+      this.clearPendingInfo();
+    }
+    if (this.isThinking) {
+      await this.stopAndWait();
+    }
     lanEngine.sendCommand(usi); // "position ..."
     const btime = timeStates.black.timeMs;
     const wtime = timeStates.white.timeMs;
@@ -88,11 +93,15 @@ export class LanPlayer implements Player {
   }
 
   async startResearch(position: ImmutablePosition, usi: string): Promise<void> {
+    const isNewSfen = this.currentSfen !== usi;
+    this.position = position;
+    this.currentSfen = usi;
+    if (isNewSfen) {
+      this.clearPendingInfo();
+    }
     if (this.isThinking) {
       await this.stopAndWait();
     }
-    this.position = position;
-    this.currentSfen = usi;
     lanEngine.sendCommand(usi);
     lanEngine.sendCommand("go infinite");
     this.isThinking = true;
@@ -130,6 +139,7 @@ export class LanPlayer implements Player {
   }
 
   async close(): Promise<void> {
+    this.clearPendingInfo();
     if (this.isThinking) {
       await this.stopAndWait();
     }
@@ -194,7 +204,13 @@ export class LanPlayer implements Player {
             this.stopPromise = null;
           }
 
-          if (this.handler && this.position) {
+          if (data.sfen === this.currentSfen) {
+            this.flushInfo();
+          } else {
+            this.clearPendingInfo();
+          }
+
+          if (this.handler && this.position && data.sfen === this.currentSfen) {
             const parts = infoStr.split(" ");
             if (parts[1] === "resign") {
               this.handler.onResign();
@@ -202,7 +218,15 @@ export class LanPlayer implements Player {
             }
             const move = this.position.createMoveByUSI(parts[1]);
             if (move) {
-              this.handler.onMove(move);
+              if (this.info?.pv && this.info.pv.length >= 1 && this.info.pv[0].equals(move)) {
+                const info = {
+                  ...this.info,
+                  pv: this.info.pv.slice(1),
+                };
+                this.handler.onMove(move, info);
+              } else {
+                this.handler.onMove(move);
+              }
             }
           }
         } else if (infoStr.startsWith("info") && this.position) {
@@ -243,8 +267,9 @@ export class LanPlayer implements Player {
   private updateInfo(infoCommand: USIInfoCommand, sfen?: string) {
     if (!this.position || !this.onSearchInfo) return;
 
-    // Check if the received USI command matches the current command
-    if (sfen && sfen !== this.currentSfen) {
+    // Check if the received USI command matches the current command.
+    // We must strictly check if the SFEN is provided and matches.
+    if (sfen !== this.currentSfen) {
       return;
     }
 
@@ -258,6 +283,10 @@ export class LanPlayer implements Player {
     }
 
     dispatchUSIInfoUpdate(this.sessionID, this.position, this.name, infoCommand);
+
+    if (infoCommand.multipv && infoCommand.multipv !== 1) {
+      return;
+    }
 
     const sign = this.position.color === Color.BLACK ? 1 : -1;
     const pv = infoCommand.pv;
@@ -273,8 +302,8 @@ export class LanPlayer implements Player {
       return;
     }
 
-    // Use sfen from server if available, otherwise use saved currentSfen
-    const usi = sfen || this.currentSfen;
+    // Use currentSfen as the USI position command
+    const usi = this.currentSfen;
 
     this.info = {
       usi: usi || this.info?.usi || "",
@@ -289,6 +318,29 @@ export class LanPlayer implements Player {
       pv: (pv && parseUSIPV(this.position, pv)) ?? this.info?.pv,
     };
 
-    this.onSearchInfo(this.info);
+    if (this.infoTimeout) {
+      return;
+    }
+    this.infoTimeout = window.setTimeout(() => {
+      this.flushInfo();
+    }, 500);
+  }
+
+  private clearPendingInfo() {
+    if (this.infoTimeout) {
+      clearTimeout(this.infoTimeout);
+      this.infoTimeout = undefined;
+    }
+    this.info = undefined;
+  }
+
+  private flushInfo() {
+    if (this.infoTimeout) {
+      clearTimeout(this.infoTimeout);
+      this.infoTimeout = undefined;
+    }
+    if (this.info && this.info.usi === this.currentSfen) {
+      this.onSearchInfo?.(this.info);
+    }
   }
 }

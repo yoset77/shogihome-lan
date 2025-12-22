@@ -332,7 +332,6 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
         if (line.startsWith("bestmove")) {
           isThinking = false;
-          pendingGoSfen = null;
           if (isWaitingForBestmove) {
             isWaitingForBestmove = false;
 
