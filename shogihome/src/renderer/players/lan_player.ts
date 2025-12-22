@@ -81,12 +81,26 @@ export class LanPlayer implements Player {
       await this.stopAndWait();
     }
     lanEngine.sendCommand(usi); // "position ..."
-    const btime = timeStates.black.timeMs;
-    const wtime = timeStates.white.timeMs;
-    const byoyomi = timeStates.black.byoyomi;
+    
+    // ShogiHome keeps the time after adding the increment.
+    // However, USI requires the time before adding the increment (btime + binc).
+    // So we subtract the increment from the current time.
+    const binc = timeStates.black.increment || 0;
+    const winc = timeStates.white.increment || 0;
+    const byoyomi = timeStates[position.color === Color.BLACK ? "black" : "white"].byoyomi || 0;
+
+    let btime = timeStates.black.timeMs;
+    let wtime = timeStates.white.timeMs;
+    if (byoyomi === 0) {
+      btime -= binc * 1000;
+      wtime -= winc * 1000;
+    }
+
     let goCommand = `go btime ${btime} wtime ${wtime}`;
-    if (byoyomi) {
+    if (byoyomi > 0) {
       goCommand += ` byoyomi ${byoyomi * 1000}`;
+    } else if (binc > 0 || winc > 0) {
+      goCommand += ` binc ${binc * 1000} winc ${winc * 1000}`;
     }
     lanEngine.sendCommand(goCommand);
     this.isThinking = true;
