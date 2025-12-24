@@ -20,12 +20,12 @@ describe("LanPlayer Time Control", () => {
     vi.useFakeTimers();
 
     player = new LanPlayer("test-engine", "Test Engine");
-    
+
     mockLanEngine.connect.mockImplementation((handler) => {
       messageHandler = handler;
       return Promise.resolve();
     });
-    
+
     await player.launch();
   });
 
@@ -44,7 +44,7 @@ describe("LanPlayer Time Control", () => {
     const usi = "position startpos";
     const record = Record.newByUSI(usi) as Record;
     // Black turn
-    
+
     const timeStates: TimeStates = {
       black: { timeMs: 60000, byoyomi: 0, increment: 5 }, // 5s increment
       white: { timeMs: 60000, byoyomi: 0, increment: 5 },
@@ -75,13 +75,13 @@ describe("LanPlayer Time Control", () => {
     expect(mockLanEngine.sendCommand).toHaveBeenCalledWith(expectedGo);
   });
 
-   it("should send correct go command for Fischer rule (White)", async () => {
+  it("should send correct go command for Fischer rule (White)", async () => {
     const usi = "position startpos moves 7g7f";
     const record = Record.newByUSI(usi) as Record;
     // White turn
-    
+
     const timeStates: TimeStates = {
-      black: { timeMs: 55000, byoyomi: 0, increment: 5 }, 
+      black: { timeMs: 55000, byoyomi: 0, increment: 5 },
       white: { timeMs: 60000, byoyomi: 0, increment: 5 }, // 5s increment
     };
 
@@ -97,11 +97,11 @@ describe("LanPlayer Time Control", () => {
   it("should prioritize Byoyomi over Increment if Byoyomi > 0", async () => {
     const usi = "position startpos";
     const record = Record.newByUSI(usi) as Record;
-    
+
     // Invalid config technically, but strictly following logic:
     // If byoyomi > 0, treat as byoyomi mode.
     const timeStates: TimeStates = {
-      black: { timeMs: 60000, byoyomi: 10, increment: 5 }, 
+      black: { timeMs: 60000, byoyomi: 10, increment: 5 },
       white: { timeMs: 60000, byoyomi: 10, increment: 5 },
     };
 

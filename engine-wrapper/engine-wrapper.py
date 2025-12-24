@@ -203,35 +203,46 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
             if not task.done():
                 task.cancel()
 
-        if engine_process and engine_process.returncode is None:
-            logging.info(f"Cleaning up engine process (PID: {engine_process.pid}).")
-            try:
-                # Send 'quit' command
-                if engine_process.stdin and not engine_process.stdin.is_closing():
-                    logging.info("Sending 'quit' command to engine.")
-                    engine_process.stdin.write(b'quit\n')
-                    await engine_process.stdin.drain()
-                
-                # Wait for engine to exit
-                await asyncio.wait_for(engine_process.wait(), timeout=8.0)
-                logging.info(f"Engine process (PID: {engine_process.pid}) exited gracefully.")
-
-            except (BrokenPipeError, ConnectionResetError):
-                logging.warning("Engine stdin pipe already closed, could not send 'quit'.")
-            except asyncio.TimeoutError:
-                logging.warning(f"Engine did not exit after 'quit' command. Terminating.")
+        if engine_process:
+            if engine_process.returncode is not None:
+                logging.info(f"Engine process (PID: {engine_process.pid}) already exited with code {engine_process.returncode}.")
+            else:
+                logging.info(f"Cleaning up engine process (PID: {engine_process.pid}).")
                 try:
-                    engine_process.terminate()
-                    await asyncio.wait_for(engine_process.wait(), timeout=2.0)
-                except asyncio.TimeoutError:
-                    logging.warning(f"Engine process (PID: {engine_process.pid}) did not terminate gracefully, killing.")
-                    engine_process.kill()
-            except ProcessLookupError:
-                pass
+                    # Send 'quit' command
+                    if engine_process.stdin and not engine_process.stdin.is_closing():
+                        logging.info("Sending 'quit' command to engine.")
+                        engine_process.stdin.write(b'quit\n')
+                        await engine_process.stdin.drain()
+                        engine_process.stdin.close()
+                    
+                    # Wait for engine to exit
+                    try:
+                        await asyncio.wait_for(engine_process.wait(), timeout=5.0)
+                        logging.info(f"Engine process (PID: {engine_process.pid}) exited gracefully.")
+                    except asyncio.TimeoutError:
+                        logging.warning(f"Engine did not exit after 'quit' command. Terminating.")
+                        if engine_process.returncode is None:
+                            engine_process.terminate()
+                            try:
+                                await asyncio.wait_for(engine_process.wait(), timeout=3.0)
+                            except asyncio.TimeoutError:
+                                logging.warning(f"Engine process (PID: {engine_process.pid}) did not terminate gracefully, killing.")
+                                if engine_process.returncode is None:
+                                    engine_process.kill()
+                                    await engine_process.wait()
+                except (BrokenPipeError, ConnectionResetError):
+                    logging.warning("Engine stdin pipe already closed, could not send 'quit'.")
+                except ProcessLookupError:
+                    pass
+            engine_process = None
 
         if client_writer and not client_writer.is_closing():
             client_writer.close()
-            await client_writer.wait_closed()
+            try:
+                await client_writer.wait_closed()
+            except Exception:
+                pass
         
         logging.info(f"Client disconnected from {peername}.")
 

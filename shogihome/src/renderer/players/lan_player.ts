@@ -18,6 +18,7 @@ export class LanPlayer implements Player {
   private currentSfen: string = "";
   private isThinking: boolean = false;
   private stopPromiseResolver: (() => void) | null = null;
+  private stopPromiseRejector: ((err: Error) => void) | null = null;
   private stopPromise: Promise<void> | null = null;
   private _multiPV: number = 1;
 
@@ -81,7 +82,7 @@ export class LanPlayer implements Player {
       await this.stopAndWait();
     }
     lanEngine.sendCommand(usi); // "position ..."
-    
+
     // ShogiHome keeps the time after adding the increment.
     // However, USI requires the time before adding the increment (btime + binc).
     // So we subtract the increment from the current time.
@@ -176,18 +177,22 @@ export class LanPlayer implements Player {
       return this.stopPromise;
     }
 
-    this.stopPromise = new Promise((resolve) => {
+    this.stopPromise = new Promise((resolve, reject) => {
       this.stopPromiseResolver = resolve;
+      this.stopPromiseRejector = reject;
       lanEngine.sendCommand("stop");
 
       // Fallback timeout in case engine doesn't respond or message is lost
       setTimeout(() => {
         if (this.stopPromiseResolver === resolve) {
-          console.warn("LanPlayer: stopAndWait timed out, forcing resume.");
-          this.isThinking = false;
+          const msg = "LanPlayer: stopAndWait timed out.";
+          console.error(msg);
+          if (this.stopPromiseRejector) {
+            this.stopPromiseRejector(new Error(msg));
+          }
           this.stopPromiseResolver = null;
+          this.stopPromiseRejector = null;
           this.stopPromise = null;
-          resolve();
         }
       }, 5000);
     });
@@ -215,6 +220,7 @@ export class LanPlayer implements Player {
           if (this.stopPromiseResolver) {
             this.stopPromiseResolver();
             this.stopPromiseResolver = null;
+            this.stopPromiseRejector = null;
             this.stopPromise = null;
           }
 

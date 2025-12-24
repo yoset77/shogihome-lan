@@ -252,6 +252,8 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         return;
       }
 
+      // NOTE: updateCurrentSfen must be called before setting pendingGoSfen for 'go' command.
+      // pendingGoSfen captures the sfen set by the IMMEDIATELY PRECEDING 'position' command (stored in currentEngineSfen).
       updateCurrentSfen(command);
       if (command.startsWith("go")) {
         isThinking = true;
@@ -424,6 +426,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       sendToEngine("usi");
     });
 
+    socket.on("close", () => {
+      clearTimeout(connectionTimeout);
+    });
+
     socket.on("error", (err) => {
       clearTimeout(connectionTimeout);
       if (engineState === EngineState.STARTING) {
@@ -488,7 +494,13 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     }
 
     if (command === "stop") {
-      if (engineState === EngineState.READY && isThinking && !isWaitingForBestmove) {
+      // Prevent duplicate stop commands if we are already waiting for bestmove
+      if (isWaitingForBestmove) {
+        console.log("Ignored stop command: already waiting for bestmove.");
+        return;
+      }
+
+      if (engineState === EngineState.READY && isThinking) {
         isWaitingForBestmove = true;
         postStopCommandQueue.length = 0;
         sendToEngine(command);
@@ -502,11 +514,19 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     }
 
     if (isWaitingForBestmove) {
+      // Prevent queuing duplicate stop commands or irrelevant commands
+      if (command === "stop") return;
+
       postStopCommandQueue.push(command);
       return;
     }
 
     if (command.startsWith("start_engine ")) {
+      // FIX: Check isStopping to prevent race conditions during engine shutdown
+      if (engineHandle || engineState === EngineState.STARTING || isStopping) {
+        sendError("engine already running, starting, or stopping");
+        return;
+      }
       const engineId = command.substring("start_engine ".length).trim();
       startEngine(engineId);
       return;

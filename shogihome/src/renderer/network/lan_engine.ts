@@ -86,8 +86,8 @@ class LanEngine {
     return !!this.ws && this.ws.readyState === WebSocket.OPEN;
   }
 
-  async getEngineList(): Promise<LanEngineInfo[]> {
-    if (this.engineListCache) {
+  async getEngineList(force = false): Promise<LanEngineInfo[]> {
+    if (this.engineListCache && !force) {
       return this.engineListCache;
     }
 
