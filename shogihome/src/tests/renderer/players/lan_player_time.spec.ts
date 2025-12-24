@@ -22,7 +22,9 @@ describe("LanPlayer Time Control", () => {
     player = new LanPlayer("test-engine", "Test Engine");
 
     mockLanEngine.connect.mockImplementation((handler) => {
-      messageHandler = handler;
+      if (handler) {
+        messageHandler = handler;
+      }
       return Promise.resolve();
     });
 

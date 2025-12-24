@@ -146,6 +146,8 @@ export const ja: Texts = {
   logout: "ログアウト",
   calculateJishogiPoints: "持将棋の点数を計算",
   jishogiPoints: "持将棋の点数",
+  gameStoppedBecauseLanDisconnected: "LAN接続が切断されたため、対局を中断しました。",
+  researchStoppedBecauseLanDisconnected: "LAN接続が切断されたため、検討を終了しました。",
   displayGameResults: "戦績確認",
   interrupt: "中断",
   stopGame: "対局中断",

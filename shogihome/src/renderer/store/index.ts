@@ -1046,6 +1046,10 @@ class Store {
     return this.researchManager.isSessionExists(sessionID);
   }
 
+  get hasLanEngineInResearch(): boolean {
+    return this.researchManager.hasLanEngine();
+  }
+
   private onUpdateSearchInfo(type: SearchInfoSenderType, info: SearchInfo): void {
     this.recordManager.updateSearchInfo(type, info);
   }
@@ -1676,9 +1680,19 @@ document.addEventListener("visibilitychange", () => {
     if (isLanGame && !lanEngine.isConnected()) {
       console.log("LAN Engine connection lost on resume, stopping game.");
       useMessageStore().enqueue({
-        text: "LAN接続が切断されたため、対局を中断しました。",
+        text: t.gameStoppedBecauseLanDisconnected,
       });
       store.stopGame({ force: true });
     }
+  } else if (
+    store.researchState !== ResearchState.IDLE &&
+    store.hasLanEngineInResearch &&
+    !lanEngine.isConnected()
+  ) {
+    console.log("LAN Engine connection lost on resume, stopping research.");
+    useMessageStore().enqueue({
+      text: t.researchStoppedBecauseLanDisconnected,
+    });
+    store.stopResearch();
   }
 });

@@ -141,6 +141,8 @@ export type Texts = {
   logout: string;
   calculateJishogiPoints: string;
   jishogiPoints: string;
+  gameStoppedBecauseLanDisconnected: string;
+  researchStoppedBecauseLanDisconnected: string;
   displayGameResults: string;
   interrupt: string;
   stopGame: string;

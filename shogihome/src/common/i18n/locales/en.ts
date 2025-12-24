@@ -146,6 +146,9 @@ export const en: Texts = {
   logout: "Logout",
   calculateJishogiPoints: "Calculate Jishogi Points",
   jishogiPoints: "Jishogi Points",
+  gameStoppedBecauseLanDisconnected: "Game stopped because LAN connection was disconnected.",
+  researchStoppedBecauseLanDisconnected:
+    "Research stopped because LAN connection was disconnected.",
   displayGameResults: "Display Game Results",
   interrupt: "Interrupt",
   stopGame: "Stop Game",

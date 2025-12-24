@@ -257,6 +257,10 @@ export class ResearchManager {
     return this.engines.some((engine) => engine.usi.sessionID === sessionID);
   }
 
+  hasLanEngine(): boolean {
+    return this.engines.some((engine) => engine.usi instanceof LanPlayer);
+  }
+
   private setupTimer(engine: Engine) {
     clearTimeout(engine.timer);
     if (this.settings.enableMaxSeconds && this.settings.maxSeconds > 0) {

@@ -27,7 +27,9 @@ describe("LanPlayer", () => {
     // Launch the player
     let messageHandler: (message: string) => void = () => {};
     mockLanEngine.connect.mockImplementation((handler) => {
-      messageHandler = handler;
+      if (handler) {
+        messageHandler = handler;
+      }
       return Promise.resolve();
     });
     await player.launch();
@@ -86,7 +88,9 @@ describe("LanPlayer", () => {
 
     let messageHandler: (message: string) => void = () => {};
     mockLanEngine.connect.mockImplementation((handler) => {
-      messageHandler = handler;
+      if (handler) {
+        messageHandler = handler;
+      }
       return Promise.resolve();
     });
     await player.launch();
@@ -150,7 +154,9 @@ describe("LanPlayer", () => {
 
     let messageHandler: (message: string) => void = () => {};
     mockLanEngine.connect.mockImplementation((handler) => {
-      messageHandler = handler;
+      if (handler) {
+        messageHandler = handler;
+      }
       return Promise.resolve();
     });
     await player.launch();
@@ -201,7 +207,9 @@ describe("LanPlayer", () => {
 
     let messageHandler: (message: string) => void = () => {};
     mockLanEngine.connect.mockImplementation((handler) => {
-      messageHandler = handler;
+      if (handler) {
+        messageHandler = handler;
+      }
       return Promise.resolve();
     });
     await player.launch();
