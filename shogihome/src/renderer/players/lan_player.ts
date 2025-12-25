@@ -155,10 +155,13 @@ export class LanPlayer implements Player {
 
   async close(): Promise<void> {
     this.clearPendingInfo();
-    if (this.isThinking) {
-      await this.stopAndWait();
+    try {
+      if (this.isThinking) {
+        await this.stopAndWait();
+      }
+    } finally {
+      lanEngine.stopEngine();
     }
-    lanEngine.stopEngine();
   }
 
   get multiPV(): number | undefined {

@@ -173,7 +173,11 @@ const server = net.createServer((socket) => {
 
     // Pipe all output from engine back to client
     engineProcess.stdout.on('data', (data) => {
-      console.log(`[Engine -> Client] ${data.toString().trim()}`);
+      const output = data.toString().trim();
+      // Reduce logging noise: Skip 'info' commands
+      if (!output.startsWith("info")) {
+        console.log(`[Engine -> Client] ${output}`);
+      }
       socket.write(data);
     });
     engineProcess.stderr.on('data', (data) => {

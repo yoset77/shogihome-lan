@@ -75,7 +75,14 @@ async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
             data = await reader.read(1024)
             if not data:
                 break
-            logging.info(f"{log_prefix} {data.decode(errors='ignore').strip()}")
+            
+            text = data.decode(errors='ignore').strip()
+            # Reduce logging noise: Skip 'info' commands unless debugging
+            if text.startswith("info"):
+                logging.debug(f"{log_prefix} {text}")
+            else:
+                logging.info(f"{log_prefix} {text}")
+
             writer.write(data)
             await writer.drain()
     except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):

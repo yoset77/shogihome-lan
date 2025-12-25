@@ -172,6 +172,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   const postStopCommandQueue: string[] = [];
   let isThinking = false;
   let isWaitingForBestmove = false;
+  let stopTimeout: NodeJS.Timeout | null = null;
   let currentEngineSfen: string | null = null;
   let pendingGoSfen: string | null = null;
   let isStopping = false;
@@ -181,6 +182,13 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   const updateCurrentSfen = (command: string) => {
     if (command.startsWith("position ")) {
       currentEngineSfen = command;
+    }
+  };
+
+  const clearStopTimeout = () => {
+    if (stopTimeout) {
+      clearTimeout(stopTimeout);
+      stopTimeout = null;
     }
   };
 
@@ -311,6 +319,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       postStopCommandQueue.length = 0;
       isThinking = false;
       isWaitingForBestmove = false;
+      clearStopTimeout();
       currentEngineSfen = null;
       pendingGoSfen = null;
       if (ws.readyState === WebSocket.OPEN) {
@@ -337,6 +346,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
           isThinking = false;
           if (isWaitingForBestmove) {
             isWaitingForBestmove = false;
+            clearStopTimeout();
 
             // --- Debounce commands (handling setoption and position) ---
             let latestSetoptionMultiPV: string | null = null;
@@ -410,6 +420,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       postStopCommandQueue.length = 0;
       isThinking = false;
       isWaitingForBestmove = false;
+      clearStopTimeout();
       currentEngineSfen = null;
     }, 5000); // 5-second timeout
 
@@ -454,6 +465,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         postStopCommandQueue.length = 0;
         isThinking = false;
         isWaitingForBestmove = false;
+        clearStopTimeout();
         currentEngineSfen = null;
       }
     });
@@ -518,6 +530,20 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         isWaitingForBestmove = true;
         postStopCommandQueue.length = 0;
         sendToEngine(command);
+
+        // Set timeout to resend stop command if no bestmove received
+        stopTimeout = setTimeout(() => {
+          if (isWaitingForBestmove) {
+            console.warn(
+              "Engine did not respond to stop command within 5 seconds. Resending stop.",
+            );
+            sendToEngine("stop");
+            // Note: We don't set another timeout here, just a one-time retry for now.
+            // If the engine is truly stuck, multiple stops might not help, but one retry covers dropped packets.
+            // Consider recursively setting timeout for repeated retries if needed.
+            stopTimeout = null;
+          }
+        }, 5000);
       }
       return;
     }
@@ -553,6 +579,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         postStopCommandQueue.length = 0;
         isThinking = false;
         isWaitingForBestmove = false;
+        clearStopTimeout();
         currentEngineSfen = null;
         engineHandle.close();
       }
@@ -590,6 +617,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     postStopCommandQueue.length = 0;
     isThinking = false;
     isWaitingForBestmove = false;
+    clearStopTimeout();
     currentEngineSfen = null;
     pendingGoSfen = null;
 
