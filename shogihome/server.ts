@@ -338,17 +338,15 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
             isWaitingForBestmove = false;
 
             // --- Debounce commands (handling setoption and position) ---
-            let latestPosition: string | null = null;
             let latestSetoptionMultiPV: string | null = null;
-            let latestGo: string | null = null;
+            let latestGoIndex = -1;
 
-            for (const command of postStopCommandQueue) {
-              if (command.startsWith("position")) {
-                latestPosition = command;
-              } else if (command.startsWith("setoption name MultiPV")) {
+            for (let i = 0; i < postStopCommandQueue.length; i++) {
+              const command = postStopCommandQueue[i];
+              if (command.startsWith("setoption name MultiPV")) {
                 latestSetoptionMultiPV = command;
               } else if (command.startsWith("go")) {
-                latestGo = command;
+                latestGoIndex = i;
               }
             }
 
@@ -357,11 +355,21 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
             if (latestSetoptionMultiPV) {
               commandsToRun.push(latestSetoptionMultiPV);
             }
-            if (latestPosition) {
-              commandsToRun.push(latestPosition);
-            }
-            if (latestGo) {
-              commandsToRun.push(latestGo);
+
+            if (latestGoIndex !== -1) {
+              // Find the position command corresponding to the latest go
+              let correspondingPosition: string | null = null;
+              for (let i = latestGoIndex - 1; i >= 0; i--) {
+                if (postStopCommandQueue[i].startsWith("position")) {
+                  correspondingPosition = postStopCommandQueue[i];
+                  break;
+                }
+              }
+
+              if (correspondingPosition) {
+                commandsToRun.push(correspondingPosition);
+              }
+              commandsToRun.push(postStopCommandQueue[latestGoIndex]);
             }
 
             postStopCommandQueue.length = 0;
