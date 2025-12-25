@@ -185,10 +185,10 @@ export class LanPlayer implements Player {
       // Fallback timeout in case engine doesn't respond or message is lost
       setTimeout(() => {
         if (this.stopPromiseResolver === resolve) {
-          const msg = "LanPlayer: stopAndWait timed out.";
-          console.error(msg);
-          if (this.stopPromiseRejector) {
-            this.stopPromiseRejector(new Error(msg));
+          console.error("LanPlayer: stopAndWait timed out, forcing resume.");
+          this.isThinking = false;
+          if (this.stopPromiseResolver) {
+            this.stopPromiseResolver();
           }
           this.stopPromiseResolver = null;
           this.stopPromiseRejector = null;
