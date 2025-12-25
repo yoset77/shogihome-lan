@@ -166,6 +166,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     ws.isAlive = true;
   });
   let engineHandle: EngineHandle | null = null;
+  let connectingSocket: net.Socket | null = null;
   let engineState = EngineState.UNINITIALIZED;
   const commandQueue: string[] = [];
   const postStopCommandQueue: string[] = [];
@@ -397,11 +398,13 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     console.log(`Connecting to remote engine at ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
 
     const socket = new net.Socket();
+    connectingSocket = socket;
 
     const connectionTimeout = setTimeout(() => {
       console.error("Connection timed out after 5 seconds");
       sendError("connection timed out");
       socket.destroy();
+      connectingSocket = null;
       engineState = EngineState.UNINITIALIZED;
       commandQueue.length = 0;
       postStopCommandQueue.length = 0;
@@ -412,6 +415,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
+      connectingSocket = null; // Connection established, no longer pending
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
       socket.write(`run ${engineId}\n`);
 
@@ -436,10 +440,12 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     socket.on("close", () => {
       clearTimeout(connectionTimeout);
+      if (connectingSocket === socket) connectingSocket = null;
     });
 
     socket.on("error", (err) => {
       clearTimeout(connectionTimeout);
+      if (connectingSocket === socket) connectingSocket = null;
       if (engineState === EngineState.STARTING) {
         console.error("Failed to connect to remote engine:", err);
         sendError(`failed to connect to remote engine (${err.message})`);
@@ -583,9 +589,22 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     commandQueue.length = 0;
     postStopCommandQueue.length = 0;
     isThinking = false;
+    isWaitingForBestmove = false;
     currentEngineSfen = null;
+    pendingGoSfen = null;
+
+    if (connectingSocket) {
+      console.log("Terminating pending connection...");
+      connectingSocket.destroy();
+      connectingSocket = null;
+    }
+
     if (engineHandle && !isStopping) {
+      isStopping = true;
       engineHandle.close();
+    } else {
+      engineState = EngineState.UNINITIALIZED;
+      isStopping = false;
     }
   });
 });
