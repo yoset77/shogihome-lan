@@ -519,7 +519,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       return;
     }
 
-    if (command === "stop") {
+    const handleStop = () => {
       // Prevent duplicate stop commands if we are already waiting for bestmove
       if (isWaitingForBestmove) {
         console.log("Ignored stop command: already waiting for bestmove.");
@@ -529,7 +529,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       if (engineState === EngineState.READY && isThinking) {
         isWaitingForBestmove = true;
         postStopCommandQueue.length = 0;
-        sendToEngine(command);
+        sendToEngine("stop");
 
         // Set timeout to resend stop command if no bestmove received
         stopTimeout = setTimeout(() => {
@@ -545,12 +545,33 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
           }
         }, 5000);
       }
+    };
+
+    if (command === "stop") {
+      handleStop();
       return;
     }
 
     if (command === "quit") {
       sendToEngine(command);
       return;
+    }
+
+    // Resilience: If we receive a command that changes state while thinking, assume we missed a stop or client timed out.
+    // We implicitly trigger stop and let the flow fall through to the queueing logic.
+    if (
+      isThinking &&
+      !isWaitingForBestmove &&
+      (command.startsWith("position") ||
+        command.startsWith("go") ||
+        command.startsWith("setoption"))
+    ) {
+      console.warn(
+        `Received ${
+          command.split(" ")[0]
+        } while thinking. Implicitly stopping engine to ensure consistency.`,
+      );
+      handleStop();
     }
 
     if (isWaitingForBestmove) {
