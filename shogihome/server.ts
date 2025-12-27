@@ -589,6 +589,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         return;
       }
       const engineId = command.substring("start_engine ".length).trim();
+      if (!/^[a-zA-Z0-9_\-.]+$/.test(engineId)) {
+        sendError("invalid engine id");
+        return;
+      }
       startEngine(engineId);
       return;
     }
