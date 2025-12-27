@@ -41,7 +41,10 @@ const server = net.createServer((socket) => {
   let isCleaningUp = false;
 
   const cleanup = () => {
-    if (isCleaningUp) return;
+    if (isCleaningUp) {
+      console.log(`[${new Date().toISOString()}] Cleanup already in progress.`);
+      return;
+    }
 
     if (!engineProcess || engineProcess.exitCode !== null) {
       if (engineProcess) {
@@ -59,11 +62,11 @@ const server = net.createServer((socket) => {
     let termTimeout;
     const quitTimeout = setTimeout(() => {
       console.warn(`[${new Date().toISOString()}] Engine did not exit after 'quit'. Terminating.`);
-      engineProcess.kill('SIGTERM');
+      if (engineProcess) engineProcess.kill('SIGTERM');
 
       termTimeout = setTimeout(() => {
         console.warn(`[${new Date().toISOString()}] Engine did not respond to SIGTERM. Killing.`);
-        engineProcess.kill('SIGKILL');
+        if (engineProcess) engineProcess.kill('SIGKILL');
       }, 3000);
     }, 5000);
 
@@ -72,7 +75,7 @@ const server = net.createServer((socket) => {
       clearTimeout(termTimeout);
       console.log(`[${new Date().toISOString()}] Engine process exited with code ${code}.`);
       engineProcess = null;
-      isCleaningUp = false;
+      // Do not reset isCleaningUp to false, as this connection scope is done.
       if (!socket.destroyed) {
         socket.end();
       }
@@ -170,7 +173,11 @@ const server = net.createServer((socket) => {
 
     // Pipe all output from engine back to client
     engineProcess.stdout.on('data', (data) => {
-      console.log(`[Engine -> Client] ${data.toString().trim()}`);
+      const output = data.toString().trim();
+      // Reduce logging noise: Skip 'info' commands
+      if (!output.startsWith("info")) {
+        console.log(`[Engine -> Client] ${output}`);
+      }
       socket.write(data);
     });
     engineProcess.stderr.on('data', (data) => {

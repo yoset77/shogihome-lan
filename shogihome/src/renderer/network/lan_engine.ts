@@ -24,12 +24,14 @@ class LanEngine {
     return LanEngine.instance;
   }
 
-  connect(onMessage: MessageHandler): Promise<void> {
+  connect(onMessage?: MessageHandler): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         console.log("WebSocket is already connected.");
         // Update handler even if already connected
-        this.onMessageHandler = onMessage;
+        if (onMessage) {
+          this.onMessageHandler = onMessage;
+        }
         resolve();
         return;
       }
@@ -38,7 +40,9 @@ class LanEngine {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const url = `${protocol}//${window.location.host}`;
       this.ws = new WebSocket(url);
-      this.onMessageHandler = onMessage;
+      if (onMessage) {
+        this.onMessageHandler = onMessage;
+      }
 
       this.ws.onopen = () => {
         console.log("WebSocket connection established");
@@ -86,8 +90,8 @@ class LanEngine {
     return !!this.ws && this.ws.readyState === WebSocket.OPEN;
   }
 
-  async getEngineList(): Promise<LanEngineInfo[]> {
-    if (this.engineListCache) {
+  async getEngineList(force = false): Promise<LanEngineInfo[]> {
+    if (this.engineListCache && !force) {
       return this.engineListCache;
     }
 

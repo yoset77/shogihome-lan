@@ -11,12 +11,14 @@ export class LanPlayer implements Player {
   private position?: ImmutablePosition;
   private onSearchInfo?: (info: SearchInfo) => void;
   private info?: SearchInfo;
+  private infoTimeout?: number;
   private _sessionID: number;
   private engineId: string;
   private engineName: string;
   private currentSfen: string = "";
   private isThinking: boolean = false;
   private stopPromiseResolver: (() => void) | null = null;
+  private stopPromiseRejector: ((err: Error) => void) | null = null;
   private stopPromise: Promise<void> | null = null;
   private _multiPV: number = 1;
 
@@ -69,30 +71,52 @@ export class LanPlayer implements Player {
     timeStates: TimeStates,
     handler: SearchHandler,
   ): Promise<void> {
-    if (this.isThinking) {
-      await this.stopAndWait();
-    }
+    const isNewSfen = this.currentSfen !== usi;
     this.handler = handler;
     this.position = position;
     this.currentSfen = usi;
+    if (isNewSfen) {
+      this.clearPendingInfo();
+    }
+    if (this.isThinking) {
+      await this.stopAndWait();
+    }
     lanEngine.sendCommand(usi); // "position ..."
-    const btime = timeStates.black.timeMs;
-    const wtime = timeStates.white.timeMs;
-    const byoyomi = timeStates.black.byoyomi;
+
+    // ShogiHome keeps the time after adding the increment.
+    // However, USI requires the time before adding the increment (btime + binc).
+    // So we subtract the increment from the current time.
+    const binc = timeStates.black.increment || 0;
+    const winc = timeStates.white.increment || 0;
+    const byoyomi = timeStates[position.color === Color.BLACK ? "black" : "white"].byoyomi || 0;
+
+    let btime = timeStates.black.timeMs;
+    let wtime = timeStates.white.timeMs;
+    if (byoyomi === 0) {
+      btime -= binc * 1000;
+      wtime -= winc * 1000;
+    }
+
     let goCommand = `go btime ${btime} wtime ${wtime}`;
-    if (byoyomi) {
+    if (byoyomi > 0) {
       goCommand += ` byoyomi ${byoyomi * 1000}`;
+    } else if (binc > 0 || winc > 0) {
+      goCommand += ` binc ${binc * 1000} winc ${winc * 1000}`;
     }
     lanEngine.sendCommand(goCommand);
     this.isThinking = true;
   }
 
   async startResearch(position: ImmutablePosition, usi: string): Promise<void> {
+    const isNewSfen = this.currentSfen !== usi;
+    this.position = position;
+    this.currentSfen = usi;
+    if (isNewSfen) {
+      this.clearPendingInfo();
+    }
     if (this.isThinking) {
       await this.stopAndWait();
     }
-    this.position = position;
-    this.currentSfen = usi;
     lanEngine.sendCommand(usi);
     lanEngine.sendCommand("go infinite");
     this.isThinking = true;
@@ -130,10 +154,14 @@ export class LanPlayer implements Player {
   }
 
   async close(): Promise<void> {
-    if (this.isThinking) {
-      await this.stopAndWait();
+    this.clearPendingInfo();
+    try {
+      if (this.isThinking) {
+        await this.stopAndWait();
+      }
+    } finally {
+      lanEngine.stopEngine();
     }
-    lanEngine.stopEngine();
   }
 
   get multiPV(): number | undefined {
@@ -152,18 +180,22 @@ export class LanPlayer implements Player {
       return this.stopPromise;
     }
 
-    this.stopPromise = new Promise((resolve) => {
+    this.stopPromise = new Promise((resolve, reject) => {
       this.stopPromiseResolver = resolve;
+      this.stopPromiseRejector = reject;
       lanEngine.sendCommand("stop");
 
       // Fallback timeout in case engine doesn't respond or message is lost
       setTimeout(() => {
         if (this.stopPromiseResolver === resolve) {
-          console.warn("LanPlayer: stopAndWait timed out, forcing resume.");
+          console.error("LanPlayer: stopAndWait timed out, forcing resume.");
           this.isThinking = false;
+          if (this.stopPromiseResolver) {
+            this.stopPromiseResolver();
+          }
           this.stopPromiseResolver = null;
+          this.stopPromiseRejector = null;
           this.stopPromise = null;
-          resolve();
         }
       }, 5000);
     });
@@ -191,10 +223,17 @@ export class LanPlayer implements Player {
           if (this.stopPromiseResolver) {
             this.stopPromiseResolver();
             this.stopPromiseResolver = null;
+            this.stopPromiseRejector = null;
             this.stopPromise = null;
           }
 
-          if (this.handler && this.position) {
+          if (data.sfen === this.currentSfen) {
+            this.flushInfo();
+          } else {
+            this.clearPendingInfo();
+          }
+
+          if (this.handler && this.position && data.sfen === this.currentSfen) {
             const parts = infoStr.split(" ");
             if (parts[1] === "resign") {
               this.handler.onResign();
@@ -202,7 +241,15 @@ export class LanPlayer implements Player {
             }
             const move = this.position.createMoveByUSI(parts[1]);
             if (move) {
-              this.handler.onMove(move);
+              if (this.info?.pv && this.info.pv.length >= 1 && this.info.pv[0].equals(move)) {
+                const info = {
+                  ...this.info,
+                  pv: this.info.pv.slice(1),
+                };
+                this.handler.onMove(move, info);
+              } else {
+                this.handler.onMove(move);
+              }
             }
           }
         } else if (infoStr.startsWith("info") && this.position) {
@@ -243,8 +290,9 @@ export class LanPlayer implements Player {
   private updateInfo(infoCommand: USIInfoCommand, sfen?: string) {
     if (!this.position || !this.onSearchInfo) return;
 
-    // Check if the received USI command matches the current command
-    if (sfen && sfen !== this.currentSfen) {
+    // Check if the received USI command matches the current command.
+    // We must strictly check if the SFEN is provided and matches.
+    if (sfen !== this.currentSfen) {
       return;
     }
 
@@ -258,6 +306,10 @@ export class LanPlayer implements Player {
     }
 
     dispatchUSIInfoUpdate(this.sessionID, this.position, this.name, infoCommand);
+
+    if (infoCommand.multipv && infoCommand.multipv !== 1) {
+      return;
+    }
 
     const sign = this.position.color === Color.BLACK ? 1 : -1;
     const pv = infoCommand.pv;
@@ -273,8 +325,8 @@ export class LanPlayer implements Player {
       return;
     }
 
-    // Use sfen from server if available, otherwise use saved currentSfen
-    const usi = sfen || this.currentSfen;
+    // Use currentSfen as the USI position command
+    const usi = this.currentSfen;
 
     this.info = {
       usi: usi || this.info?.usi || "",
@@ -289,6 +341,29 @@ export class LanPlayer implements Player {
       pv: (pv && parseUSIPV(this.position, pv)) ?? this.info?.pv,
     };
 
-    this.onSearchInfo(this.info);
+    if (this.infoTimeout) {
+      return;
+    }
+    this.infoTimeout = window.setTimeout(() => {
+      this.flushInfo();
+    }, 500);
+  }
+
+  private clearPendingInfo() {
+    if (this.infoTimeout) {
+      clearTimeout(this.infoTimeout);
+      this.infoTimeout = undefined;
+    }
+    this.info = undefined;
+  }
+
+  private flushInfo() {
+    if (this.infoTimeout) {
+      clearTimeout(this.infoTimeout);
+      this.infoTimeout = undefined;
+    }
+    if (this.info && this.info.usi === this.currentSfen) {
+      this.onSearchInfo?.(this.info);
+    }
   }
 }

@@ -146,6 +146,8 @@ export const vi: Texts = {
   logout: "Đăng xuất",
   calculateJishogiPoints: "Tính điểm bế tắc",
   jishogiPoints: "Điểm bế tắc",
+  gameStoppedBecauseLanDisconnected: "Ván đấu đã bị dừng do mất kết nối LAN.",
+  researchStoppedBecauseLanDisconnected: "Tính toán đã bị dừng do mất kết nối LAN.",
   displayGameResults: "Hiển thị kết quả",
   interrupt: "Dừng",
   stopGame: "Dừng ván đấu",

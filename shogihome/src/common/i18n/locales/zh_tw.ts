@@ -143,6 +143,8 @@ export const zh_tw: Texts = {
   logout: "登出",
   calculateJishogiPoints: "計算持將棋點數",
   jishogiPoints: "持將棋點數",
+  gameStoppedBecauseLanDisconnected: "由於 LAN 連線中斷，對局已中止。",
+  researchStoppedBecauseLanDisconnected: "由於 LAN 連線中斷，檢討已結束。",
   displayGameResults: "確認戰績",
   interrupt: "中斷",
   stopGame: "對局中斷",

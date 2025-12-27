@@ -166,11 +166,13 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     ws.isAlive = true;
   });
   let engineHandle: EngineHandle | null = null;
+  let connectingSocket: net.Socket | null = null;
   let engineState = EngineState.UNINITIALIZED;
   const commandQueue: string[] = [];
   const postStopCommandQueue: string[] = [];
   let isThinking = false;
   let isWaitingForBestmove = false;
+  let stopTimeout: NodeJS.Timeout | null = null;
   let currentEngineSfen: string | null = null;
   let pendingGoSfen: string | null = null;
   let isStopping = false;
@@ -180,6 +182,13 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   const updateCurrentSfen = (command: string) => {
     if (command.startsWith("position ")) {
       currentEngineSfen = command;
+    }
+  };
+
+  const clearStopTimeout = () => {
+    if (stopTimeout) {
+      clearTimeout(stopTimeout);
+      stopTimeout = null;
     }
   };
 
@@ -252,6 +261,8 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         return;
       }
 
+      // NOTE: updateCurrentSfen must be called before setting pendingGoSfen for 'go' command.
+      // pendingGoSfen captures the sfen set by the IMMEDIATELY PRECEDING 'position' command (stored in currentEngineSfen).
       updateCurrentSfen(command);
       if (command.startsWith("go")) {
         isThinking = true;
@@ -292,22 +303,25 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
   };
 
   const startEngine = (engineId: string) => {
-    if (engineHandle) {
-      sendError("engine already running");
+    if (engineHandle || engineState === EngineState.STARTING) {
+      sendError("engine already running or starting");
       return;
     }
     engineState = EngineState.STARTING;
 
     const onEngineClose = () => {
       console.log("Engine process exited.");
-      engineHandle?.removeAllListeners();
-      engineHandle = null;
+      if (engineHandle) {
+        engineHandle.removeAllListeners();
+        engineHandle = null;
+      }
       engineState = EngineState.STOPPED;
       isStopping = false;
       commandQueue.length = 0;
       postStopCommandQueue.length = 0;
       isThinking = false;
       isWaitingForBestmove = false;
+      clearStopTimeout();
       currentEngineSfen = null;
       pendingGoSfen = null;
       if (ws.readyState === WebSocket.OPEN) {
@@ -332,22 +346,20 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
         if (line.startsWith("bestmove")) {
           isThinking = false;
-          pendingGoSfen = null;
           if (isWaitingForBestmove) {
             isWaitingForBestmove = false;
+            clearStopTimeout();
 
             // --- Debounce commands (handling setoption and position) ---
-            let latestPosition: string | null = null;
             let latestSetoptionMultiPV: string | null = null;
-            let latestGo: string | null = null;
+            let latestGoIndex = -1;
 
-            for (const command of postStopCommandQueue) {
-              if (command.startsWith("position sfen")) {
-                latestPosition = command;
-              } else if (command.startsWith("setoption name MultiPV")) {
+            for (let i = 0; i < postStopCommandQueue.length; i++) {
+              const command = postStopCommandQueue[i];
+              if (command.startsWith("setoption name MultiPV")) {
                 latestSetoptionMultiPV = command;
               } else if (command.startsWith("go")) {
-                latestGo = command;
+                latestGoIndex = i;
               }
             }
 
@@ -356,11 +368,21 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
             if (latestSetoptionMultiPV) {
               commandsToRun.push(latestSetoptionMultiPV);
             }
-            if (latestPosition) {
-              commandsToRun.push(latestPosition);
-            }
-            if (latestGo) {
-              commandsToRun.push(latestGo);
+
+            if (latestGoIndex !== -1) {
+              // Find the position command corresponding to the latest go
+              let correspondingPosition: string | null = null;
+              for (let i = latestGoIndex - 1; i >= 0; i--) {
+                if (postStopCommandQueue[i].startsWith("position")) {
+                  correspondingPosition = postStopCommandQueue[i];
+                  break;
+                }
+              }
+
+              if (correspondingPosition) {
+                commandsToRun.push(correspondingPosition);
+              }
+              commandsToRun.push(postStopCommandQueue[latestGoIndex]);
             }
 
             postStopCommandQueue.length = 0;
@@ -388,21 +410,19 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     console.log(`Connecting to remote engine at ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
 
     const socket = new net.Socket();
+    connectingSocket = socket;
 
     const connectionTimeout = setTimeout(() => {
       console.error("Connection timed out after 5 seconds");
       sendError("connection timed out");
       socket.destroy();
-      engineState = EngineState.UNINITIALIZED;
-      commandQueue.length = 0;
-      postStopCommandQueue.length = 0;
-      isThinking = false;
-      isWaitingForBestmove = false;
-      currentEngineSfen = null;
+      connectingSocket = null;
+      onEngineClose();
     }, 5000); // 5-second timeout
 
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
+      connectingSocket = null; // Connection established, no longer pending
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
       socket.write(`run ${engineId}\n`);
 
@@ -425,17 +445,18 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       sendToEngine("usi");
     });
 
+    socket.on("close", () => {
+      clearTimeout(connectionTimeout);
+      if (connectingSocket === socket) connectingSocket = null;
+    });
+
     socket.on("error", (err) => {
       clearTimeout(connectionTimeout);
+      if (connectingSocket === socket) connectingSocket = null;
       if (engineState === EngineState.STARTING) {
         console.error("Failed to connect to remote engine:", err);
         sendError(`failed to connect to remote engine (${err.message})`);
-        engineState = EngineState.UNINITIALIZED;
-        commandQueue.length = 0;
-        postStopCommandQueue.length = 0;
-        isThinking = false;
-        isWaitingForBestmove = false;
-        currentEngineSfen = null;
+        onEngineClose();
       }
     });
 
@@ -488,22 +509,80 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       return;
     }
 
-    if (command === "stop") {
-      if (engineState === EngineState.READY && isThinking && !isWaitingForBestmove) {
+    const handleStop = () => {
+      // Prevent duplicate stop commands if we are already waiting for bestmove
+      if (isWaitingForBestmove) {
+        console.log("Ignored stop command: already waiting for bestmove.");
+        return;
+      }
+
+      if (engineState === EngineState.READY && isThinking) {
         isWaitingForBestmove = true;
         postStopCommandQueue.length = 0;
-        sendToEngine(command);
+        sendToEngine("stop");
+
+        // Set timeout to resend stop command if no bestmove received
+        stopTimeout = setTimeout(() => {
+          if (isWaitingForBestmove) {
+            console.warn(
+              "Engine did not respond to stop command within 5 seconds. Resending stop.",
+            );
+            sendToEngine("stop");
+            // Note: We don't set another timeout here, just a one-time retry for now.
+            // If the engine is truly stuck, multiple stops might not help, but one retry covers dropped packets.
+            // Consider recursively setting timeout for repeated retries if needed.
+            stopTimeout = null;
+          }
+        }, 5000);
       }
+    };
+
+    if (command === "stop") {
+      handleStop();
       return;
     }
 
+    if (command === "quit") {
+      sendToEngine(command);
+      return;
+    }
+
+    // Resilience: If we receive a command that changes state while thinking, assume we missed a stop or client timed out.
+    // We implicitly trigger stop and let the flow fall through to the queueing logic.
+    if (
+      isThinking &&
+      !isWaitingForBestmove &&
+      (command.startsWith("position") ||
+        command.startsWith("go") ||
+        command.startsWith("setoption"))
+    ) {
+      console.warn(
+        `Received ${
+          command.split(" ")[0]
+        } while thinking. Implicitly stopping engine to ensure consistency.`,
+      );
+      handleStop();
+    }
+
     if (isWaitingForBestmove) {
+      // Prevent queuing duplicate stop commands or irrelevant commands
+      if (command === "stop") return;
+
       postStopCommandQueue.push(command);
       return;
     }
 
     if (command.startsWith("start_engine ")) {
+      // FIX: Check isStopping to prevent race conditions during engine shutdown
+      if (engineHandle || engineState === EngineState.STARTING || isStopping) {
+        sendError("engine already running, starting, or stopping");
+        return;
+      }
       const engineId = command.substring("start_engine ".length).trim();
+      if (!/^[a-zA-Z0-9_\-.]+$/.test(engineId)) {
+        sendError("invalid engine id");
+        return;
+      }
       startEngine(engineId);
       return;
     }
@@ -515,6 +594,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
         postStopCommandQueue.length = 0;
         isThinking = false;
         isWaitingForBestmove = false;
+        clearStopTimeout();
         currentEngineSfen = null;
         engineHandle.close();
       }
@@ -551,9 +631,23 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     commandQueue.length = 0;
     postStopCommandQueue.length = 0;
     isThinking = false;
+    isWaitingForBestmove = false;
+    clearStopTimeout();
     currentEngineSfen = null;
+    pendingGoSfen = null;
+
+    if (connectingSocket) {
+      console.log("Terminating pending connection...");
+      connectingSocket.destroy();
+      connectingSocket = null;
+    }
+
     if (engineHandle && !isStopping) {
+      isStopping = true;
       engineHandle.close();
+    } else {
+      engineState = EngineState.UNINITIALIZED;
+      isStopping = false;
     }
   });
 });

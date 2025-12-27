@@ -153,13 +153,6 @@ const listItems = computed(() => {
           tags: [tag],
         });
       }
-    } else {
-      // Fallback
-      items.push({
-        label: "LAN Engine",
-        value: "lan-engine",
-        tags: [tag],
-      });
     }
   }
 
