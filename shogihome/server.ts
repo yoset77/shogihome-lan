@@ -311,8 +311,10 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 
     const onEngineClose = () => {
       console.log("Engine process exited.");
-      engineHandle?.removeAllListeners();
-      engineHandle = null;
+      if (engineHandle) {
+        engineHandle.removeAllListeners();
+        engineHandle = null;
+      }
       engineState = EngineState.STOPPED;
       isStopping = false;
       commandQueue.length = 0;
@@ -415,13 +417,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       sendError("connection timed out");
       socket.destroy();
       connectingSocket = null;
-      engineState = EngineState.UNINITIALIZED;
-      commandQueue.length = 0;
-      postStopCommandQueue.length = 0;
-      isThinking = false;
-      isWaitingForBestmove = false;
-      clearStopTimeout();
-      currentEngineSfen = null;
+      onEngineClose();
     }, 5000); // 5-second timeout
 
     socket.on("connect", () => {
@@ -460,13 +456,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       if (engineState === EngineState.STARTING) {
         console.error("Failed to connect to remote engine:", err);
         sendError(`failed to connect to remote engine (${err.message})`);
-        engineState = EngineState.UNINITIALIZED;
-        commandQueue.length = 0;
-        postStopCommandQueue.length = 0;
-        isThinking = false;
-        isWaitingForBestmove = false;
-        clearStopTimeout();
-        currentEngineSfen = null;
+        onEngineClose();
       }
     });
 
