@@ -9,10 +9,6 @@ updates:
       time: "17:00"
       timezone: "Asia/Tokyo"
     open-pull-requests-limit: 10
-    groups:
-      shogihome-dependencies:
-        patterns:
-          - "*"
 
   # engine-wrapper (Engine Control) dependencies
   - package-ecosystem: "npm"
