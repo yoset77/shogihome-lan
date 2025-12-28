@@ -49,11 +49,20 @@
           :show-nodes-column="false"
           :show-score-column="false"
         />
+        <EvaluationChart
+          v-if="showRecordViewOnBottom"
+          v-show="bottomUIType === BottomUIType.CHART"
+          :size="bottomViewSize"
+          :type="EvaluationChartType.RAW"
+          :thema="appSettings.thema"
+          :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
+        />
         <HorizontalSelector
           v-if="showRecordViewOnBottom"
           v-model:value="bottomUIType"
           :items="[
             { label: t.pv, value: BottomUIType.PV },
+            { label: t.chart, value: BottomUIType.CHART },
             { label: t.record, value: BottomUIType.RECORD },
             { label: t.comments, value: BottomUIType.COMMENT },
             { label: t.recordProperties, value: BottomUIType.INFO },
@@ -95,10 +104,18 @@
           :show-nodes-column="false"
           :show-score-column="false"
         />
+        <EvaluationChart
+          v-show="sideUIType === SideUIType.CHART"
+          :size="sideViewSize"
+          :type="EvaluationChartType.RAW"
+          :thema="appSettings.thema"
+          :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
+        />
         <HorizontalSelector
           v-model:value="sideUIType"
           :items="[
             { label: t.pv, value: SideUIType.PV },
+            { label: t.chart, value: SideUIType.CHART },
             { label: t.record, value: SideUIType.RECORD },
             { label: t.recordProperties, value: SideUIType.INFO },
           ]"
@@ -115,17 +132,19 @@ enum BottomUIType {
   COMMENT = "comment",
   INFO = "info",
   PV = "pv",
+  CHART = "chart",
 }
 enum SideUIType {
   RECORD = "record",
   INFO = "info",
   PV = "pv",
+  CHART = "chart",
 }
 </script>
 
 <script setup lang="ts">
 import { RectSize } from "@/common/assets/geometry";
-import { BoardLayoutType } from "@/common/settings/layout";
+import { BoardLayoutType, EvaluationChartType } from "@/common/settings/layout";
 import { Lazy } from "@/renderer/helpers/lazy";
 import BoardPane from "@/renderer/view/main/BoardPane.vue";
 import RecordPane from "@/renderer/view/main/RecordPane.vue";
@@ -136,6 +155,8 @@ import HorizontalSelector from "@/renderer/view/primitive/HorizontalSelector.vue
 import { t } from "@/common/i18n";
 import RecordInfo from "@/renderer/view/tab/RecordInfo.vue";
 import EngineAnalytics from "@/renderer/view/tab/EngineAnalytics.vue";
+import EvaluationChart from "@/renderer/view/tab/EvaluationChart.vue";
+import { useAppSettings } from "@/renderer/store/settings";
 
 const lazyUpdateDelay = 80;
 const selectorHeight = 30;
@@ -145,6 +166,7 @@ const minRecordViewHeight = 130;
 const windowSize = reactive(new RectSize(window.innerWidth, window.innerHeight));
 const bottomUIType = ref(BottomUIType.RECORD);
 const sideUIType = ref(SideUIType.RECORD);
+const appSettings = useAppSettings();
 
 const windowLazyUpdate = new Lazy();
 const updateSize = () => {
