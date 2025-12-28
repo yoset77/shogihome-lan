@@ -332,7 +332,9 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     const setupEngineHandlers = (stream: NodeJS.ReadableStream) => {
       const rl = readline.createInterface({ input: stream });
       rl.on("line", (line) => {
-        console.log(`Engine output: ${line}`);
+        if (!line.startsWith("info")) {
+          console.log(`Engine output: ${line}`);
+        }
 
         if (line.trim().startsWith("WRAPPER_ERROR:")) {
           console.error(`Engine wrapper error: ${line}`);
