@@ -1,6 +1,6 @@
 <template>
-  <div style="display: inline-block">
-    <div ref="container" class="row wrap container">
+  <div class="root">
+    <div ref="container" class="row container">
       <div v-for="item of items" :key="item.value" class="item">
         <input
           type="radio"
@@ -78,13 +78,25 @@ defineExpose({ setValue, getValue });
 </script>
 
 <style scoped>
+.root {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.root::-webkit-scrollbar {
+  display: none;
+}
 div.container {
   align-items: center;
+  flex-wrap: nowrap;
+  width: max-content;
 }
 div.item {
   position: relative;
   margin-top: 1px;
   margin-bottom: 1px;
+  flex: 0 0 auto;
 }
 div.item:not(:last-child) {
   margin-right: 2px;
@@ -122,5 +134,6 @@ input:focus ~ .button {
   pointer-events: none;
   text-align: center;
   width: 100%;
+  white-space: nowrap;
 }
 </style>
