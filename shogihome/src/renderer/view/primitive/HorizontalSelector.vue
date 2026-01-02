@@ -1,5 +1,5 @@
 <template>
-  <div class="root">
+  <div class="root" :class="{ scroll }">
     <div ref="container" class="row container">
       <div v-for="item of items" :key="item.value" class="item">
         <input
@@ -38,6 +38,10 @@ const props = defineProps({
   height: {
     type: Number,
     default: 28,
+  },
+  scroll: {
+    type: Boolean,
+    default: false,
   },
 });
 const emit = defineEmits<{
@@ -79,16 +83,26 @@ defineExpose({ setValue, getValue });
 
 <style scoped>
 .root {
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+}
+.root.scroll {
   display: block;
   width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
 }
-.root::-webkit-scrollbar {
+.root.scroll::-webkit-scrollbar {
   display: none;
 }
 div.container {
+  display: flex;
+  flex-direction: row;
   align-items: center;
+  flex-wrap: wrap;
+}
+.root.scroll div.container {
   flex-wrap: nowrap;
   width: max-content;
 }

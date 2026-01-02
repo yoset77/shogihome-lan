@@ -72,6 +72,7 @@
             { label: t.recordProperties, value: BottomUIType.INFO },
           ]"
           :height="selectorHeight"
+          :scroll="true"
         />
       </div>
       <div
@@ -134,6 +135,7 @@
             { label: t.recordProperties, value: SideUIType.INFO },
           ]"
           :height="selectorHeight"
+          :scroll="true"
         />
       </div>
     </div>
