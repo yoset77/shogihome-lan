@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="full column" :style="{ width: `${size.width}px` }">
-      <div class="row tabs">
+      <div v-if="!isEvaluationPuzzle" class="row tabs">
         <div
           v-for="tab in visibleTabs"
           :key="tab"
@@ -18,26 +18,27 @@
         </div>
       </div>
       <div class="auto tab-contents">
+        <PuzzlePane v-if="isEvaluationPuzzle" class="full tab-content" />
         <RecordInfo
-          v-if="activeTab === Tab.RECORD_INFO"
+          v-else-if="activeTab === Tab.RECORD_INFO"
           class="full tab-content"
           :size="contentSize"
         />
-        <RecordComment v-if="activeTab === Tab.COMMENT" class="full tab-content" />
+        <RecordComment v-else-if="activeTab === Tab.COMMENT" class="full tab-content" />
         <EngineAnalytics
-          v-if="activeTab === Tab.SEARCH"
+          v-else-if="activeTab === Tab.SEARCH"
           class="full tab-content"
           :size="contentSize"
           :history-mode="true"
         />
         <EngineAnalytics
-          v-if="activeTab === Tab.PV"
+          v-else-if="activeTab === Tab.PV"
           class="full tab-content"
           :size="contentSize"
           :history-mode="false"
         />
         <EvaluationChart
-          v-if="activeTab === Tab.CHART"
+          v-else-if="activeTab === Tab.CHART"
           class="full tab-content"
           :size="contentSize"
           :type="EvaluationChartType.RAW"
@@ -45,7 +46,7 @@
           :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
         />
         <EvaluationChart
-          v-if="activeTab === Tab.PERCENTAGE_CHART"
+          v-else-if="activeTab === Tab.PERCENTAGE_CHART"
           class="full tab-content"
           :size="contentSize"
           :type="EvaluationChartType.WIN_RATE"
@@ -53,7 +54,7 @@
           :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
         />
         <MonitorView
-          v-if="activeTab === Tab.MONITOR"
+          v-else-if="activeTab === Tab.MONITOR"
           class="full tab-content"
           :size="contentSize"
         />
@@ -73,6 +74,7 @@ import EngineAnalytics from "@/renderer/view/tab/EngineAnalytics.vue";
 import EvaluationChart from "@/renderer/view/tab/EvaluationChart.vue";
 import RecordInfo from "@/renderer/view/tab/RecordInfo.vue";
 import MonitorView from "@/renderer/view/monitor/MonitorView.vue";
+import PuzzlePane from "@/renderer/view/tab/PuzzlePane.vue";
 import { RectSize } from "@/common/assets/geometry.js";
 import Icon from "@/renderer/view/primitive/Icon.vue";
 import { Tab } from "@/common/settings/app";
@@ -80,6 +82,8 @@ import { EvaluationChartType } from "@/common/settings/layout";
 import { IconType } from "@/renderer/assets/icons";
 import { t } from "@/common/i18n";
 import { useAppSettings } from "@/renderer/store/settings";
+import { useStore } from "@/renderer/store";
+import { AppState } from "@/common/control/state";
 
 const props = defineProps({
   size: {
@@ -98,6 +102,11 @@ const props = defineProps({
     type: Boolean,
     required: false,
   },
+  allowPuzzle: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
 const emit = defineEmits<{
@@ -105,10 +114,22 @@ const emit = defineEmits<{
   onMinimize: [];
 }>();
 
+const store = useStore();
 const appSettings = useAppSettings();
 const changeSelect = (tab: Tab) => emit("onChangeTab", tab);
 const minimize = () => emit("onMinimize");
-const contentSize = computed(() => props.size.reduce(new RectSize(0, headerHeight)));
+const contentSize = computed(() => {
+  if (isEvaluationPuzzle.value) {
+    return props.size;
+  }
+  return props.size.reduce(new RectSize(0, headerHeight));
+});
+
+const isEvaluationPuzzle = computed(() => {
+  return (
+    props.allowPuzzle && store.appState === AppState.PUZZLE && store.puzzle?.type === "evaluation"
+  );
+});
 
 const tabs = {
   [Tab.RECORD_INFO]: {
@@ -170,6 +191,13 @@ const tabs = {
 }
 .tab.end {
   margin-left: auto;
+}
+.tab-contents {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 .tab-contents .tab-content {
   color: var(--text-color);

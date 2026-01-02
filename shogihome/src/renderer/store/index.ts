@@ -21,6 +21,7 @@ import {
   Position,
   InitialPositionType,
   exportBOD,
+  formatKIFMove,
 } from "tsshogi";
 import { reactive, UnwrapNestedRefs } from "vue";
 import { GameSettings } from "@/common/settings/game.js";
@@ -96,11 +97,14 @@ function savePuzzleHistory(history: PuzzleHistory) {
 }
 
 export type Puzzle = {
+  type?: "next_move" | "evaluation";
   sfen: string;
   correct_move: string;
   info?: string;
   win_rate_best?: number;
   win_rate_second?: number;
+  engine_eval?: number; // 0.0 - 1.0
+  eval_diff?: number;
 };
 
 export type PVPreview = {
@@ -115,6 +119,14 @@ export type PVPreview = {
   upperBound?: boolean;
   pv: Move[];
 };
+
+export enum EvaluationArea {
+  ADVANTAGE_BIG = 0, // > 0.70
+  ADVANTAGE = 1, // 0.57 - 0.70
+  EVEN = 2, // 0.43 - 0.57
+  DISADVANTAGE = 3, // 0.30 - 0.43
+  DISADVANTAGE_BIG = 4, // < 0.30
+}
 
 function getMessageAttachmentsByGameResults(results: GameResults): Attachment[] {
   const statistics = calculateGameStatistics(results);
@@ -340,6 +352,10 @@ class Store {
 
   get appState(): AppState {
     return this._appState;
+  }
+
+  get puzzle(): Puzzle | null {
+    return this._puzzle;
   }
 
   get researchState(): ResearchState {
@@ -895,7 +911,11 @@ class Store {
       // Determine turn from SFEN
       const turn = puzzle.sfen.split(" ")[1] === "b" ? Color.BLACK : Color.WHITE;
       const turnText = turn === Color.BLACK ? t.sente : t.gote;
-      useMessageStore().enqueue({ text: t.findBestMoveFor(turnText) });
+      if (puzzle.type === "evaluation") {
+        useMessageStore().enqueue({ text: t.evaluationPuzzle });
+      } else {
+        useMessageStore().enqueue({ text: t.findBestMoveFor(turnText) });
+      }
 
       // Flip board if necessary
       const appSettings = useAppSettings();
@@ -945,8 +965,67 @@ class Store {
     }
   }
 
+  answerEvaluation(userIndex: number): void {
+    if (this.appState !== AppState.PUZZLE || !this._puzzle || this._puzzle.type !== "evaluation") {
+      return;
+    }
+
+    const engineEval = this._puzzle.engine_eval || 0;
+    const turn = this.record.position.color;
+    // engine_eval represents the win rate for the turn player.
+    const myEval = engineEval;
+
+    let correctIndex = EvaluationArea.DISADVANTAGE_BIG;
+    if (myEval >= 0.7) {
+      correctIndex = EvaluationArea.ADVANTAGE_BIG;
+    } else if (myEval >= 0.55) {
+      correctIndex = EvaluationArea.ADVANTAGE;
+    } else if (myEval > 0.45) {
+      correctIndex = EvaluationArea.EVEN;
+    } else if (myEval > 0.3) {
+      correctIndex = EvaluationArea.DISADVANTAGE;
+    }
+
+    const diff = Math.abs(userIndex - correctIndex);
+    let message = "";
+    if (diff === 0) {
+      message = t.correct;
+    } else if (diff === 1) {
+      message = t.almostCorrect;
+    } else {
+      message = t.incorrect;
+    }
+
+    message += `\n${t.winRate(Math.round(myEval * 100))}`;
+
+    // Show the correct move without playing it
+    const correctMove = this.record.position.createMoveByUSI(this._puzzle.correct_move);
+    if (correctMove) {
+      const moveText = (turn === Color.BLACK ? "▲" : "△") + formatKIFMove(correctMove);
+      message += `\n${t.referenceBestMove}: ${moveText}`;
+    }
+
+    if (this._puzzle.info) {
+      message += `\n${this._puzzle.info}`;
+    }
+    useMessageStore().enqueue({ text: message });
+
+    // Save to history if correct
+    if (diff === 0) {
+      const history = loadPuzzleHistory();
+      history[this._puzzle.sfen] = Date.now();
+      savePuzzleHistory(history);
+    }
+
+    this._appState = AppState.NORMAL;
+    this._puzzle = null;
+  }
+
   doMove(move: Move): void {
     if (this.appState === AppState.PUZZLE) {
+      if (this._puzzle?.type === "evaluation") {
+        return;
+      }
       this.answerPuzzle(move);
       return;
     }

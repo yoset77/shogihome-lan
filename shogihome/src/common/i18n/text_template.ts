@@ -714,8 +714,13 @@ export type Texts = {
   areYouSureWantToDeleteFollowingMove: (n: number) => string;
   puzzles: string;
   findBestMoveFor: (player: string) => string;
+  evaluationPuzzle: string;
   correct: string;
+  almostCorrect: string;
+  incorrect: string;
+  referenceBestMove: string;
   incorrectMovePleaseTryAgain: string;
+  evaluationThemes: [string, string, string, string, string];
   winRate: (rate: number) => string;
   puzzlesAvailable: (available: number, total: number) => string;
   failedToLoadPuzzleManifest: string;

@@ -8,11 +8,15 @@
           @resize="onBoardPaneResize"
         />
         <MobileControls
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           :style="{ height: `${controlPaneHeight}px` }"
         />
+        <PuzzlePane
+          v-if="showRecordViewOnBottom && isEvaluationPuzzle"
+          :style="{ height: `${bottomViewSize.height + controlPaneHeight + selectorHeight}px` }"
+        />
         <RecordPane
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.RECORD"
           :style="{
             width: `${windowSize.width}px`,
@@ -24,7 +28,7 @@
           :show-comment="true"
         />
         <RecordComment
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.COMMENT"
           :style="{
             width: `${windowSize.width}px`,
@@ -32,12 +36,12 @@
           }"
         />
         <RecordInfo
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.INFO"
           :size="bottomViewSize"
         />
         <EngineAnalytics
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.PV"
           :size="bottomViewSize"
           :history-mode="false"
@@ -50,7 +54,7 @@
           :show-score-column="false"
         />
         <EvaluationChart
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.CHART"
           :size="bottomViewSize"
           :type="EvaluationChartType.RAW"
@@ -58,7 +62,7 @@
           :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
         />
         <HorizontalSelector
-          v-if="showRecordViewOnBottom"
+          v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-model:value="bottomUIType"
           :items="[
             { label: t.pv, value: BottomUIType.PV },
@@ -75,8 +79,10 @@
         class="column"
         :style="{ width: `${windowSize.width - boardPaneSize.width}px`, overflow: 'hidden' }"
       >
-        <MobileControls :style="{ height: `${controlPaneHeight}px` }" />
+        <MobileControls v-if="!isEvaluationPuzzle" :style="{ height: `${controlPaneHeight}px` }" />
+        <PuzzlePane v-if="isEvaluationPuzzle" class="full" />
         <RecordPane
+          v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.RECORD"
           :style="{ height: `${sideViewSize.height * 0.6}px` }"
           :show-top-control="false"
@@ -85,14 +91,20 @@
           :show-comment="true"
         />
         <RecordComment
+          v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.RECORD"
           :style="{
             'margin-top': '5px',
             height: `${sideViewSize.height * 0.4 - 5}px`,
           }"
         />
-        <RecordInfo v-show="sideUIType === SideUIType.INFO" :size="sideViewSize" />
+        <RecordInfo
+          v-if="!isEvaluationPuzzle"
+          v-show="sideUIType === SideUIType.INFO"
+          :size="sideViewSize"
+        />
         <EngineAnalytics
+          v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.PV"
           :size="sideViewSize"
           :history-mode="false"
@@ -105,6 +117,7 @@
           :show-score-column="false"
         />
         <EvaluationChart
+          v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.CHART"
           :size="sideViewSize"
           :type="EvaluationChartType.RAW"
@@ -112,6 +125,7 @@
           :coefficient-in-sigmoid="appSettings.coefficientInSigmoid"
         />
         <HorizontalSelector
+          v-if="!isEvaluationPuzzle"
           v-model:value="sideUIType"
           :items="[
             { label: t.pv, value: SideUIType.PV },
@@ -156,7 +170,10 @@ import { t } from "@/common/i18n";
 import RecordInfo from "@/renderer/view/tab/RecordInfo.vue";
 import EngineAnalytics from "@/renderer/view/tab/EngineAnalytics.vue";
 import EvaluationChart from "@/renderer/view/tab/EvaluationChart.vue";
+import PuzzlePane from "@/renderer/view/tab/PuzzlePane.vue";
 import { useAppSettings } from "@/renderer/store/settings";
+import { useStore } from "@/renderer/store";
+import { AppState } from "@/common/control/state";
 
 const lazyUpdateDelay = 80;
 const selectorHeight = 30;
@@ -167,6 +184,7 @@ const windowSize = reactive(new RectSize(window.innerWidth, window.innerHeight))
 const bottomUIType = ref(BottomUIType.RECORD);
 const sideUIType = ref(SideUIType.RECORD);
 const appSettings = useAppSettings();
+const store = useStore();
 
 const windowLazyUpdate = new Lazy();
 const updateSize = () => {
@@ -175,6 +193,10 @@ const updateSize = () => {
     windowSize.height = window.innerHeight;
   }, lazyUpdateDelay);
 };
+
+const isEvaluationPuzzle = computed(() => {
+  return store.appState === AppState.PUZZLE && store.puzzle?.type === "evaluation";
+});
 
 const showRecordViewOnBottom = computed(() => windowSize.height >= windowSize.width);
 const controlPaneHeight = computed(() =>

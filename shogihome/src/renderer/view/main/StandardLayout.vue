@@ -56,6 +56,7 @@
           ]"
           :active-tab="appSettings.tab"
           :display-minimize-toggle="true"
+          :allow-puzzle="true"
           @on-change-tab="onChangeTab"
           @on-minimize="onMinimizeTab"
         />
@@ -74,6 +75,7 @@
               :size="tabPaneSize"
               :visible-tabs="[Tab.RECORD_INFO, Tab.SEARCH, Tab.PV, Tab.MONITOR]"
               :active-tab="appSettings.tab"
+              :allow-puzzle="true"
               @on-change-tab="onChangeTab"
             />
           </Pane>
