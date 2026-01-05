@@ -24,7 +24,7 @@ import { useStore } from "@/renderer/store";
 const store = useStore();
 
 const labels = computed(() => t.evaluationThemes);
-const ranges = ["70%~", "55~70%", "45~55%", "30~45%", "~30%"];
+const ranges = ["70%~", "56~69%", "45~55%", "31~44%", "~30%"];
 
 const answer = (index: number) => {
   store.answerEvaluation(index);

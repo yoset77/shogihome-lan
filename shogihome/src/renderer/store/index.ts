@@ -121,11 +121,11 @@ export type PVPreview = {
 };
 
 export enum EvaluationArea {
-  ADVANTAGE_BIG = 0, // > 0.70
-  ADVANTAGE = 1, // 0.57 - 0.70
-  EVEN = 2, // 0.43 - 0.57
-  DISADVANTAGE = 3, // 0.30 - 0.43
-  DISADVANTAGE_BIG = 4, // < 0.30
+  ADVANTAGE_BIG = 0, // >= 0.70
+  ADVANTAGE = 1, // 0.56 - 0.69
+  EVEN = 2, // 0.45 - 0.55
+  DISADVANTAGE = 3, // 0.31 - 0.44
+  DISADVANTAGE_BIG = 4, // <= 0.30
 }
 
 function getMessageAttachmentsByGameResults(results: GameResults): Attachment[] {
@@ -978,11 +978,11 @@ class Store {
     let correctIndex = EvaluationArea.DISADVANTAGE_BIG;
     if (myEval >= 0.7) {
       correctIndex = EvaluationArea.ADVANTAGE_BIG;
-    } else if (myEval >= 0.55) {
+    } else if (myEval >= 0.56) {
       correctIndex = EvaluationArea.ADVANTAGE;
-    } else if (myEval > 0.45) {
+    } else if (myEval >= 0.45) {
       correctIndex = EvaluationArea.EVEN;
-    } else if (myEval > 0.3) {
+    } else if (myEval >= 0.31) {
       correctIndex = EvaluationArea.DISADVANTAGE;
     }
 
