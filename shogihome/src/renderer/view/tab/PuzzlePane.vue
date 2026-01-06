@@ -23,11 +23,11 @@ import { useStore } from "@/renderer/store";
 
 const store = useStore();
 
-const labels = computed(() => t.evaluationThemes);
-const ranges = ["70%~", "56~69%", "45~55%", "31~44%", "~30%"];
+const labels = computed(() => [...t.evaluationThemes].reverse());
+const ranges = ["~30%", "31~44%", "45~55%", "56~69%", "70%~"];
 
 const answer = (index: number) => {
-  store.answerEvaluation(index);
+  store.answerEvaluation(4 - index);
 };
 </script>
 
