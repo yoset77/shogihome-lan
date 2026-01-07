@@ -107,6 +107,8 @@ export type Puzzle = {
   eval_diff?: number;
 };
 
+let cachedPuzzles: Puzzle[] | undefined;
+
 export type PVPreview = {
   position: ImmutablePosition;
   engineName?: string;
@@ -871,37 +873,39 @@ class Store {
     }
     useBusyState().retain();
     try {
-      // Load the manifest and then all puzzle files to create a single large array.
-      const manifestResponse = await fetch("/puzzles-manifest.json");
-      if (!manifestResponse.ok) {
-        throw new Error(t.failedToLoadPuzzleManifest);
-      }
-      const manifest: { file: string; count: number }[] = await manifestResponse.json();
-      if (!manifest.length) {
-        throw new Error(t.noPuzzlesFoundInManifest);
-      }
-
-      const allPuzzles: Puzzle[] = [];
-      for (const item of manifest) {
-        const response = await fetch(`/puzzles/${item.file}`);
-        if (!response.ok) {
-          console.error(t.failedToLoadPuzzleFile(item.file));
-          continue;
+      if (!cachedPuzzles) {
+        // Load the manifest and then all puzzle files to create a single large array.
+        const manifestResponse = await fetch("/puzzles-manifest.json");
+        if (!manifestResponse.ok) {
+          throw new Error(t.failedToLoadPuzzleManifest);
         }
-        const puzzles: Puzzle[] = await response.json();
-        allPuzzles.push(...puzzles);
+        const manifest: { file: string; count: number }[] = await manifestResponse.json();
+        if (!manifest.length) {
+          throw new Error(t.noPuzzlesFoundInManifest);
+        }
+
+        cachedPuzzles = [];
+        for (const item of manifest) {
+          const response = await fetch(`/puzzles/${item.file}`);
+          if (!response.ok) {
+            console.error(t.failedToLoadPuzzleFile(item.file));
+            continue;
+          }
+          const puzzles: Puzzle[] = await response.json();
+          cachedPuzzles.push(...puzzles);
+        }
       }
 
-      if (!allPuzzles.length) {
+      if (!cachedPuzzles.length) {
         throw new Error(t.noPuzzlesCouldBeLoaded);
       }
 
       // Filter out recently solved puzzles
       const history = loadPuzzleHistory();
-      const availablePuzzles = allPuzzles.filter((p) => !history[p.sfen]);
-      console.log(t.puzzlesAvailable(availablePuzzles.length, allPuzzles.length));
+      const availablePuzzles = cachedPuzzles.filter((p) => !history[p.sfen]);
+      console.log(t.puzzlesAvailable(availablePuzzles.length, cachedPuzzles.length));
 
-      const puzzleSource = availablePuzzles.length > 0 ? availablePuzzles : allPuzzles;
+      const puzzleSource = availablePuzzles.length > 0 ? availablePuzzles : cachedPuzzles;
       const puzzle = puzzleSource[Math.floor(Math.random() * puzzleSource.length)];
 
       this._puzzle = puzzle;
