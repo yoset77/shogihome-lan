@@ -108,6 +108,35 @@ export type Puzzle = {
 };
 
 let cachedPuzzles: Puzzle[] | undefined;
+let cachedManifest: { file: string; count: number }[] | undefined;
+let isUpdatingPuzzles = false;
+
+async function fetchPuzzles(
+  manifest?: { file: string; count: number }[],
+): Promise<{ manifest: { file: string; count: number }[]; puzzles: Puzzle[] }> {
+  if (!manifest) {
+    const manifestResponse = await fetch("/puzzles-manifest.json");
+    if (!manifestResponse.ok) {
+      throw new Error(t.failedToLoadPuzzleManifest);
+    }
+    manifest = await manifestResponse.json();
+  }
+  if (!manifest || !manifest.length) {
+    throw new Error(t.noPuzzlesFoundInManifest);
+  }
+
+  const puzzles: Puzzle[] = [];
+  for (const item of manifest) {
+    const response = await fetch(`/puzzles/${item.file}`);
+    if (!response.ok) {
+      console.error(t.failedToLoadPuzzleFile(item.file));
+      continue;
+    }
+    const data: Puzzle[] = await response.json();
+    puzzles.push(...data);
+  }
+  return { manifest, puzzles };
+}
 
 export type PVPreview = {
   position: ImmutablePosition;
@@ -871,29 +900,20 @@ class Store {
     if (useBusyState().isBusy) {
       return;
     }
+
+    // Background update (Stale-While-Revalidate)
+    if (cachedPuzzles) {
+      this.backgroundUpdatePuzzles().catch((e) => {
+        console.error("Failed to update puzzles in background:", e);
+      });
+    }
+
     useBusyState().retain();
     try {
       if (!cachedPuzzles) {
-        // Load the manifest and then all puzzle files to create a single large array.
-        const manifestResponse = await fetch("/puzzles-manifest.json");
-        if (!manifestResponse.ok) {
-          throw new Error(t.failedToLoadPuzzleManifest);
-        }
-        const manifest: { file: string; count: number }[] = await manifestResponse.json();
-        if (!manifest.length) {
-          throw new Error(t.noPuzzlesFoundInManifest);
-        }
-
-        cachedPuzzles = [];
-        for (const item of manifest) {
-          const response = await fetch(`/puzzles/${item.file}`);
-          if (!response.ok) {
-            console.error(t.failedToLoadPuzzleFile(item.file));
-            continue;
-          }
-          const puzzles: Puzzle[] = await response.json();
-          cachedPuzzles.push(...puzzles);
-        }
+        const data = await fetchPuzzles();
+        cachedManifest = data.manifest;
+        cachedPuzzles = data.puzzles;
       }
 
       if (!cachedPuzzles.length) {
@@ -934,6 +954,28 @@ class Store {
       useErrorStore().add(e);
     } finally {
       useBusyState().release();
+    }
+  }
+
+  private async backgroundUpdatePuzzles(): Promise<void> {
+    if (isUpdatingPuzzles) {
+      return;
+    }
+    isUpdatingPuzzles = true;
+    try {
+      const response = await fetch("/puzzles-manifest.json");
+      if (!response.ok) {
+        return;
+      }
+      const manifest: { file: string; count: number }[] = await response.json();
+      if (JSON.stringify(manifest) !== JSON.stringify(cachedManifest)) {
+        const data = await fetchPuzzles(manifest);
+        cachedManifest = data.manifest;
+        cachedPuzzles = data.puzzles;
+        console.log("Puzzles updated in background.");
+      }
+    } finally {
+      isUpdatingPuzzles = false;
     }
   }
 
