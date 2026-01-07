@@ -68,6 +68,11 @@ export class USIPlayerMonitor {
     const multiPVSet = new Set();
     const moveSet = new Set();
     for (const info of this.infoList) {
+      // FukauraOu sends info command with only NPS and nodes.
+      // These info commands should be ignored because they do not contain PV and score.
+      if (!info.pv && info.score === undefined && info.scoreMate === undefined) {
+        continue;
+      }
       const move = info.pv ? info.pv[0] : undefined;
       // Break if the same multiPV index is found twice.
       if (move && multiPVSet.has(info.multiPV)) {
