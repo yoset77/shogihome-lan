@@ -33,6 +33,12 @@ pnpm-debug.log*
 # build artifacts
 shogihome/docs/webapp/
 shogihome/docs/webapp-dev/
+shogihome/docs/third-party-licenses/
+engine-wrapper/licenses/
+engine-wrapper/*.exe
+engine-wrapper/*.dist/
+engine-wrapper/*.build/
+engine-wrapper/*.onefile-build/
 
 # puzzles
 shogihome/public/puzzles/*.json
