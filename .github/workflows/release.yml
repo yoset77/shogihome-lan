@@ -1,0 +1,103 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: shogihome/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # --- Frontend & Server Build ---
+      - name: Install Node dependencies
+        working-directory: shogihome
+        run: npm ci
+
+      - name: Build Webapp and Server
+        working-directory: shogihome
+        # npm run build now includes license generation and copying to webapp
+        run: |
+          npm run build
+          npm run server:exe
+
+      # --- Engine Wrapper Build ---
+      - name: Install Python dependencies
+        working-directory: engine-wrapper
+        run: uv sync
+
+      - name: Generate Python Licenses
+        working-directory: engine-wrapper
+        run: uv run python scripts/generate_licenses.py
+
+      - name: Build Python Wrapper (Nuitka)
+        working-directory: engine-wrapper
+        # Build standalone executable in current directory
+        run: uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 --assume-yes-for-downloads engine-wrapper.py
+
+      - name: Debug List Files
+        run: |
+          ls -R engine-wrapper
+          ls -R shogihome/dist
+
+      # --- Packaging ---
+      - name: Create Release Package
+        shell: pwsh
+        run: |
+          $tagName = "${{ github.ref_name }}"
+          $pkgName = "shogihome-lan-$tagName"
+          New-Item -ItemType Directory -Path $pkgName -Force
+
+          # 1. Server & Webapp
+          New-Item -ItemType Directory -Path "$pkgName/shogihome" -Force
+          Copy-Item "shogihome/dist/bin/shogihome-server.exe" -Destination "$pkgName/shogihome/"
+          Copy-Item -Path "shogihome/docs/webapp" -Destination "$pkgName/shogihome/docs/webapp" -Recurse
+          Copy-Item "shogihome/.env.example" -Destination "$pkgName/shogihome/.env"
+
+          # 2. Engine Wrapper
+          New-Item -ItemType Directory -Path "$pkgName/engine-wrapper" -Force
+          Copy-Item "engine-wrapper/engine-wrapper.exe" -Destination "$pkgName/engine-wrapper/"
+          Copy-Item "engine-wrapper/engines.json.example" -Destination "$pkgName/engine-wrapper/engines.json"
+          Copy-Item "engine-wrapper/.env.example" -Destination "$pkgName/engine-wrapper/.env"
+          
+          # Wrapper Licenses
+          New-Item -ItemType Directory -Path "$pkgName/engine-wrapper/licenses" -Force
+          Copy-Item "engine-wrapper/licenses/*" -Destination "$pkgName/engine-wrapper/licenses/"
+
+          # 3. Root Assets (README, start.bat)
+          Copy-Item "assets/release/README.txt" -Destination "$pkgName/"
+          Copy-Item "assets/release/start.bat" -Destination "$pkgName/"
+
+          # Zip it
+          Compress-Archive -Path "$pkgName" -DestinationPath "$pkgName.zip"
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: shogihome-lan-*.zip
+          draft: true
+          prerelease: false
+          generate_release_notes: true

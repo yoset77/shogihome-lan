@@ -21,6 +21,9 @@ export default defineConfig({
         lang: "ja",
         icons: [{ sizes: "512x512", src: "favicon.png", type: "image/png" }],
       },
+      workbox: {
+        navigateFallbackDenylist: [/^\/third-party-licenses/],
+      },
     }),
   ],
 });

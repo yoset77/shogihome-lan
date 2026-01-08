@@ -17,7 +17,7 @@ const disableHWASettingTitle =
   "HWA%E7%84%A1%E5%8A%B9%E5%8C%96%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3";
 
 export const websiteURL = `https://${ghioDomain}/${ghRepository}/`;
-export const thirdPartyLicenseURL = `https://${ghioDomain}/${ghRepository}/third-party-licenses.html`;
+export const thirdPartyLicenseURL = "./third-party-licenses.html";
 export const wikiPageBaseURL = `https://${ghDomain}/${ghAccount}/${ghRepository}/wiki/`;
 export const howToUseWikiPageURL = `${wikiPageBaseURL}${howToUseTitle}`;
 export const fileNameTemplateWikiPageURL = `${wikiPageBaseURL}${fileNameTemplateTitle}`;

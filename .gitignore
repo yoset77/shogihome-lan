@@ -34,6 +34,7 @@ pnpm-debug.log*
 shogihome/docs/webapp/
 shogihome/docs/webapp-dev/
 shogihome/docs/third-party-licenses/
+shogihome/docs/third-party-licenses.html
 engine-wrapper/licenses/
 engine-wrapper/*.exe
 engine-wrapper/*.dist/

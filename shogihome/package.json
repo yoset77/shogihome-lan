@@ -23,7 +23,7 @@
     "install:electron": "npm run audit:scripts && node node_modules/electron/install.js",
     "compile": "npm run install:esbuild && vite build",
     "serve": "npm run install:esbuild && vite -c vite.config-pwa.mts",
-    "build": "tsx scripts/build-puzzles.ts && npm run install:esbuild && vite build -c vite.config-pwa.mts --outDir docs/webapp",
+    "build": "tsx scripts/build-puzzles.ts && npm run install:esbuild && vite build -c vite.config-pwa.mts --outDir docs/webapp && npm run license && node scripts/copy-licenses.mjs",
     "build:dev": "npm run install:esbuild && vite build -c vite.config-pwa.mts --outDir docs/webapp-dev",
     "preview": "npm run install:esbuild && vite preview",
     "test": "npm run install:esbuild && npm run install:electron && vitest run",
@@ -52,7 +52,7 @@
     "usi-csa-bridge:install": "npm run usi-csa-bridge:build && npm install -g ./dist/command/usi-csa-bridge",
     "server:start": "tsx server.ts",
     "server:build": "webpack --config-name server",
-    "server:exe": "npm run server:build && npx pkg dist/server/server.js --target node18-win-x64 --output dist/bin/shogihome-server.exe"
+    "server:exe": "npm run server:build && pkg dist/server/server.js --target node18-win-x64 --output dist/bin/shogihome-server.exe"
   },
   "main": "dist/src/background/index.js",
   "module": "dist/src/background/index.js",
@@ -68,6 +68,7 @@
     "helmet": "^8.1.0",
     "jimp": "^1.6.0",
     "log4js": "^6.7.0",
+    "pkg": "^5.8.1",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.1",
     "splitpanes": "^4.0.3",

@@ -4,6 +4,7 @@ import { init } from "license-checker";
 
 const rootDir = "./docs";
 const licenseFileDir = "third-party-licenses";
+const nodeLicenseUrl = "https://raw.githubusercontent.com/nodejs/node/v22.x/LICENSE";
 
 function writeHeader(stream) {
   stream.write(`<html>`);
@@ -22,9 +23,15 @@ function writeRow(index, stream, fullName, props) {
   const name = m ? m[1] : fullName;
   stream.write(`<tr>`);
   stream.write(`<td>${name}</td>`);
-  if (props.licenseFile) {
-    const fileName = index + ".txt";
-    fs.copyFileSync(props.licenseFile, path.join(path.join(rootDir, licenseFileDir), fileName));
+
+  const fileName = index + ".txt";
+  const destPath = path.join(path.join(rootDir, licenseFileDir), fileName);
+
+  if (props.licenseText) {
+    fs.writeFileSync(destPath, props.licenseText);
+    stream.write(`<td><a href="${licenseFileDir}/${fileName}">${props.licenses}</a></td>`);
+  } else if (props.licenseFile) {
+    fs.copyFileSync(props.licenseFile, destPath);
     stream.write(`<td><a href="${licenseFileDir}/${fileName}">${props.licenses}</a></td>`);
   } else {
     stream.write(`<td>${props.licenses}</td>`);
@@ -53,10 +60,30 @@ init(
     relativeLicensePath: true,
     onlyAllow: "MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;BlueOak-1.0.0",
   },
-  function (err, packages) {
+  async function (err, packages) {
     if (err) {
       throw err;
     }
+
+    // Fetch Node.js License
+    try {
+      console.log("Fetching Node.js license...");
+      const res = await fetch(nodeLicenseUrl);
+      if (res.ok) {
+        const text = await res.text();
+        packages["Node.js"] = {
+          licenses: "Node.js License",
+          repository: "https://github.com/nodejs/node",
+          publisher: "OpenJS Foundation",
+          licenseText: text,
+        };
+      } else {
+        console.error(`Failed to fetch Node.js license: ${res.statusText}`);
+      }
+    } catch (e) {
+      console.error("Failed to fetch Node.js license:", e);
+    }
+
     if (fs.existsSync(path.join(rootDir, licenseFileDir))) {
       fs.rmSync(path.join(rootDir, licenseFileDir), { recursive: true });
     }
