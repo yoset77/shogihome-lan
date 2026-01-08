@@ -71,15 +71,24 @@ graph LR
 
 ### Web Server & Frontend (`shogihome/`)
 - **依存関係インストール**: `npm ci`
-- **アプリビルド**: `npm run build` (パズルデータの集計、およびPWA対応Web版の `docs/webapp` への出力)
+- **アプリビルド**: `npm run build` (ライセンスデータの生成と webapp へのコピーを含む)
 - **サーバー起動**: `npm run server:start` (`server.ts` を実行)
 - **配布用ビルド (Windows)**: `npm run server:exe` (サーバーを単一の実行ファイルとして `dist/bin` に出力)
 - **静的解析**: `npm run lint` (ESLint & Prettier)
 - **テスト実行**: `npm run test` (Vitest)
 
 ### Engine Server (`engine-wrapper/`)
-- **依存関係インストール**: `npm install`
-- **起動 (Node.js)**: `npm run start`
+- **Node.js版**:
+    - **依存関係インストール**: `npm install`
+    - **起動**: `npm run start`
+- **Python版 (Releases推奨)**:
+    - **依存関係インストール**: `uv sync`
+    - **起動**: `uv run engine-wrapper.py`
+    - **ライセンス生成**: `npm run py:license` (または `uv run python scripts/generate_licenses.py`)
+    - **配布用ビルド (Windows)**: `uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 engine-wrapper.py`
+
+### CI/CD (GitHub Actions)
+- **自動リリース**: `v*` タグをプッシュすると `.github/workflows/release.yml` が起動し、ビルド済みのZIPパッケージがドラフトとして作成されます。
 
 ## 7. 主要ディレクトリ構成
 
@@ -88,20 +97,33 @@ graph LR
 | パス | 説明 |
 | :--- | :--- |
 | `server.ts` | **中核サーバー**。Expressでのアプリ配信と、WebSocketによるエンジン中継ロジックが含まれます。 |
-| `src/renderer/store/index.ts` | **状態管理**。LANエンジン制御、パズル機能、局面管理のロジックが集約されています。 |
-| `src/renderer/players/lan_player.ts` | **LANプレイヤー**。USIプロトコルの同期制御（Stop待ち）を実装し、通信経由で指し手を操作。 |
+| `src/renderer/store/index.ts` | **状態管理**。アプリ全体のステートを保持し、対局・検討・編集などの各マネージャー（`GameManager`, `ResearchManager` 等）を統合します。 |
+| `src/renderer/players/lan_player.ts` | **LANプレイヤー**。USIプロトコルの同期制御（Stop待ち、コマンド送信）を実装し、通信経由でエンジンを操作する実体です。 |
 | `src/renderer/network/lan_engine.ts` | **LAN通信クライアント**。WebSocket接続とコマンド送信、エンジンリスト取得を管理。 |
+| `src/renderer/view/` | **Vueコンポーネント**: |
+| - `main/` | `BoardPane` (盤面), `RecordPane` (棋譜), `ControlPane` (操作パネル) など、メイン画面の構成要素。 |
+| - `dialog/` | `GameDialog` (対局設定), `ResearchDialog` (検討設定), `AppSettingsDialog` (設定) など、モーダルダイアログ群。 |
+| - `menu/` | `MobileGameMenu` (モバイル用メニュー) など、メニュー関連コンポーネント。 |
 | `public/puzzles/` | 次の一手問題データ（JSON）。 |
 | `scripts/build-puzzles.ts` | ビルド時にパズルデータを集計し、マニフェストファイルを生成するスクリプト。 |
+| `docs/webapp/` | ビルド成果物 (Git管理対象外)。ライセンスファイルもここに含まれます。 |
+| `.env` | 環境設定 (Git管理対象外)。ポート番号等を設定。原本として `.env.example` を参照。 |
 
 ### B. Engine Server (`engine-wrapper/`)
 
 | パス | 説明 |
 | :--- | :--- |
-| `engine-wrapper.mjs` | **推奨ラッパー**。Node.js製。TCPポートで待機し、`engines.json` に基づきエンジンを起動。 |
-| `engines.json` | **エンジン設定ファイル**。ID、表示名、実行パスのリストを定義。 |
-| `engine-wrapper.py` | **代替ラッパー**。Python製。機能はNode.js版と同等です。 |
-| `.env` | ポート番号やバインディングアドレスを設定します。 |
+| `engine-wrapper.py` | **推奨ラッパー (バイナリ配布用)**。Python製。Nuitkaで実行ファイル化されます。 |
+| `engine-wrapper.mjs` | **開発用ラッパー**。Node.js製。セットアップが容易。 |
+| `scripts/generate_licenses.py` | Python依存ライブラリのライセンスを生成。 |
+| `engines.json` | エンジン設定ファイル (Git管理対象外)。ID、表示名、実行パスのリストを定義。原本として `engines.json.example` を参照。 |
+| `.env` | 環境設定 (Git管理対象外)。ポート番号等を設定。原本として `.env.example` を参照。 |
+
+### C. Release Assets
+
+| パス | 説明 |
+| :--- | :--- |
+| `assets/release/` | 配布用パッケージに同梱される `README.txt` や `start.bat` の原本。 |
 
 ## 8. 機能実装の詳細仕様
 
@@ -121,9 +143,14 @@ graph LR
 - **デフォルトエンジン**: アプリ設定で「デフォルトの検討エンジン」を指定でき、設定時は検討ボタン押下時のエンジン選択ダイアログをスキップして即座に開始する。
 
 ### 次の一手問題（Puzzles）
-- **データ構造**: 静的なJSONファイルとして `/public/puzzles` に配置。
-- **読み込み**: 最初のパズル開始時に `puzzles-manifest.json` および問題データを読み込み、メモリ上にキャッシュします。2回目以降はキャッシュを使用するため、ネットワーク通信やパース処理なしで即座に表示されます。
-- **履歴管理**: `localStorage` を使用して正解済み問題を記録・除外します。
+- **データ構造**: 静的なJSONファイルとして `/public/puzzles` に配置。`puzzles-manifest.json` がエントリーポイントとなります。
+- **読み込み**: `src/renderer/store/index.ts` 内の `fetchPuzzles` で処理。
+    - **キャッシュ**: 初回読み込み時にメモリ上 (`cachedPuzzles`) にキャッシュします。2回目以降はキャッシュを使用しつつ、バックグラウンドで更新を確認する Stale-While-Revalidate パターンを採用しています。
+- **履歴管理**: `localStorage` (`shogihome-puzzle-history`) を使用して正解済み問題のSFENと解答日時を記録します。有効期限（28日）を過ぎた履歴は自動的に削除されます。
+- **出題ロジック**: 履歴に含まれる（最近解いた）問題を除外し、ランダムに出題します。
+- **問題タイプ**:
+    - **次の一手 (`next_move`)**: 指定された正解手と一致するか判定。
+    - **形勢判断 (`evaluation`)**: 5段階の評価値（勝率）を選択肢として提示し、エンジンの評価値と比較します。
 
 ### モバイル最適化
 - **レイアウト**: `src/renderer/view/primitive/board/h-portrait.ts` により、縦画面時に駒台を上下に配置する特殊レイアウト `H_PORTRAIT` を提供。
