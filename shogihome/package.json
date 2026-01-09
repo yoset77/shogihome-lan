@@ -52,7 +52,7 @@
     "usi-csa-bridge:install": "npm run usi-csa-bridge:build && npm install -g ./dist/command/usi-csa-bridge",
     "server:start": "tsx server.ts",
     "server:build": "webpack --config-name server",
-    "server:exe": "npm run server:build && pkg dist/server/server.js --target node18-win-x64 --output dist/bin/shogihome-server.exe"
+    "server:exe": "npm run server:build && node scripts/build-sea.mjs"
   },
   "main": "dist/src/background/index.js",
   "module": "dist/src/background/index.js",
@@ -68,7 +68,6 @@
     "helmet": "^8.1.0",
     "jimp": "^1.6.0",
     "log4js": "^6.7.0",
-    "pkg": "^5.8.1",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.1",
     "splitpanes": "^4.0.3",
@@ -109,6 +108,7 @@
     "eslint-plugin-vue": "^9.7.0",
     "jsdom": "^26.0.0",
     "license-checker": "^25.0.1",
+    "postject": "^1.0.0-alpha.6",
     "prettier": "^3.0.1",
     "terser-webpack-plugin": "^5.3.6",
     "ts-loader": "^9.5.2",

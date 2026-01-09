@@ -49,7 +49,6 @@ module.exports = [
     },
     module: moduleForCJS,
     resolve: resolveForCJS,
-    externals: /^[^.@].*$/,
     optimization,
   },
   {

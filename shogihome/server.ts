@@ -9,8 +9,8 @@ import readline from "readline";
 import dotenv from "dotenv";
 import helmet from "helmet";
 const getBasePath = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((process as any).pkg) {
+  // SEA (Single Executable Application) environment check
+  if (path.basename(process.execPath) === "shogihome-server.exe") {
     return path.dirname(process.execPath);
   }
   const __filename = fileURLToPath(import.meta.url);

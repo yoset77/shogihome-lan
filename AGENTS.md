@@ -73,7 +73,7 @@ graph LR
 - **依存関係インストール**: `npm ci`
 - **アプリビルド**: `npm run build` (ライセンスデータの生成と webapp へのコピーを含む)
 - **サーバー起動**: `npm run server:start` (`server.ts` を実行)
-- **配布用ビルド (Windows)**: `npm run server:exe` (サーバーを単一の実行ファイルとして `dist/bin` に出力)
+- **配布用ビルド (Windows)**: `npm run server:exe` (Node.js SEA機能を使用して単一の実行ファイルを `dist/bin` に出力)
 - **静的解析**: `npm run lint` (ESLint & Prettier)
 - **テスト実行**: `npm run test` (Vitest)
 
