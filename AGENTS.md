@@ -60,7 +60,7 @@ graph LR
 
 ## 5. 技術スタックと環境
 
-- **Runtime**: Node.js v18+
+- **Runtime**: Node.js v20+
 - **Frontend**: Vue.js 3 (Composition API & Options API mix), TypeScript, Vite
 - **Backend**: Express, WebSocket (`ws`), `net` (TCP)
 - **State Management**: Vuex pattern (Custom implementation in `store/index.ts`)
@@ -160,8 +160,3 @@ graph LR
 ### モバイル最適化
 - **レイアウト**: `src/renderer/view/primitive/board/h-portrait.ts` により、縦画面時に駒台を上下に配置するレイアウト `H_PORTRAIT` を提供。
 - **CSS**: ブラウザのツールバーによる表示崩れを防ぐため、`100vh` ではなく `100dvh` を使用しています。
-
-## 9. トラブルシューティング
-
-- **接続できない**: 両方の `.env` ファイルのポート番号（デフォルト4082）が一致しているか確認してください。また、ファイアウォール設定を確認してください。
-- **エンジンが動かない**: `engine-wrapper` 側のコンソールログを確認してください。エンジンのパスが間違っているケースが大半です。
