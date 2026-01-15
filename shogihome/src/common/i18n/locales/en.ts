@@ -412,6 +412,7 @@ export const en: Texts = {
   hashUsage: "Hash Usage",
   stop: "Stop",
   resume: "Resume",
+  connecting: "Connecting",
   noHandicap: "No Handicap",
   lanceHandicap: "Lance Handicap",
   rightLanceHandicap: "Right Lance Handicap",

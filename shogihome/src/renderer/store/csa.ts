@@ -176,8 +176,10 @@ export class CSAGameManager {
     this.repeat = 0;
     // プレイヤーを初期化する。
     try {
-      this.player = await this.playerBuilder.build(this._settings.player, (info) =>
-        this.recordManager.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+      this.player = await this.playerBuilder.build(
+        this._settings.player,
+        (info) => this.recordManager.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        "csa_game",
       );
     } catch (e) {
       this._state = CSAGameState.OFFLINE;
@@ -197,8 +199,10 @@ export class CSAGameManager {
         this.player = undefined;
       }
       try {
-        this.player = await this.playerBuilder.build(this._settings.player, (info) =>
-          this.recordManager.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        this.player = await this.playerBuilder.build(
+          this._settings.player,
+          (info) => this.recordManager.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+          "csa_game",
         );
       } catch (e) {
         this._state = CSAGameState.LOGIN_FAILED;

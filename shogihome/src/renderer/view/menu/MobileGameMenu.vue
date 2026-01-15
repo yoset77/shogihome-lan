@@ -1,67 +1,68 @@
 <template>
-  <div>
-    <dialog ref="dialog" class="menu">
-      <!-- Header -->
-      <div class="group">
-        <button data-hotkey="Escape" class="close" @click="onClose">
-          <Icon :icon="IconType.CLOSE" />
-          <div class="label">{{ t.back }}</div>
-        </button>
-      </div>
+  <div class="dialog-mask" @click.self="onClose">
+    <dialog ref="dialog" class="mobile-dialog">
+      <div class="title">{{ t.game }}</div>
 
-      <!-- Player Selection -->
-      <div v-if="currentView === 'selectPlayer'" class="group">
-        <button @click="selectPlayer(uri.ES_BASIC_ENGINE_STATIC_ROOK_V1)">
-          <Icon :icon="IconType.ROBOT" />
-          <div class="label">{{ `${t.beginner} (${t.staticRook})` }}</div>
-        </button>
-        <button @click="selectPlayer(uri.ES_BASIC_ENGINE_RANGING_ROOK_V1)">
-          <Icon :icon="IconType.ROBOT" />
-          <div class="label">{{ `${t.beginner} (${t.rangingRook})` }}</div>
-        </button>
-        <template v-if="lanEngineList.length > 0">
-          <button
-            v-for="info in lanEngineList.filter(
-              (e) => !e.type || e.type === 'game' || e.type === 'both',
-            )"
-            :key="info.id"
-            @click="selectPlayer(`lan-engine:${info.id}`, info.name)"
-          >
-            <Icon :icon="IconType.ROBOT" />
-            <div class="label">LAN: {{ info.name }}</div>
+      <div v-if="initialized" class="content">
+        <!-- Section: Start Position -->
+        <div class="section">
+          <div class="section-header">{{ t.startPosition }}</div>
+          <div class="section-body selector-container">
+            <HorizontalSelector
+              :value="settings.startPosition"
+              :items="[
+                { value: InitialPositionType.STANDARD, label: t.noHandicap },
+                { value: 'current', label: t.currentPosition },
+              ]"
+              :height="36"
+              @update:value="settings.startPosition = $event as InitialPositionType | 'current'"
+            />
+          </div>
+        </div>
+
+        <!-- Section: Sente (Black) -->
+        <div class="form-group section">
+          <div class="section-header">
+            <span class="role">{{ t.sente }}</span>
+          </div>
+          <div class="section-body">
+            <MobilePlayerSetting
+              v-model:player-uri="settings.black.uri"
+              v-model:player-name="settings.black.name"
+              v-model:time-limit="settings.blackTime"
+            />
+          </div>
+        </div>
+
+        <!-- Swap Button -->
+        <div class="swap-container">
+          <button class="swap-btn" @click="onSwapColor">
+            <Icon :icon="IconType.SWAP" />
+            <span>{{ t.swapSenteGote }}</span>
           </button>
-        </template>
-        <button v-else @click="selectPlayer('lan-engine')">
-          <Icon :icon="IconType.ROBOT" />
-          <div class="label">LAN Engine</div>
-        </button>
+        </div>
+
+        <!-- Section: Gote (White) -->
+        <div class="form-group section">
+          <div class="section-header">
+            <span class="role">{{ t.gote }}</span>
+          </div>
+          <div class="section-body">
+            <MobilePlayerSetting
+              v-model:player-uri="settings.white.uri"
+              v-model:player-name="settings.white.name"
+              v-model:time-limit="settings.whiteTime"
+            />
+          </div>
+        </div>
       </div>
 
-      <!-- Position Selection -->
-      <div v-if="currentView === 'selectPosition'" class="group">
-        <button @click="selectStartPosition(InitialPositionType.STANDARD)">
-          <Icon :icon="IconType.GAME" />
-          <div class="label">{{ t.noHandicap }}</div>
+      <div class="main-buttons">
+        <button class="start" :disabled="!isValid" @click="onStart">
+          {{ t.startGame }}
         </button>
-        <button @click="selectStartPosition('current')">
-          <Icon :icon="IconType.GAME" />
-          <div class="label">{{ t.beginFromThisPosition }}</div>
-        </button>
-      </div>
-
-      <!-- Turn Selection -->
-      <div v-if="currentView === 'selectTurn'" class="group">
-        <button @click="selectTurn(Color.BLACK)">
-          <Icon :icon="IconType.GAME" />
-          <div class="label">{{ t.sente }}</div>
-        </button>
-        <button @click="selectTurn(Color.WHITE)">
-          <Icon :icon="IconType.GAME" />
-          <div class="label">{{ t.gote }}</div>
-        </button>
-        <button @click="selectTurn(Math.random() * 2 >= 1 ? Color.BLACK : Color.WHITE)">
-          <Icon :icon="IconType.GAME" />
-          <div class="label">{{ t.pieceToss }}</div>
+        <button class="cancel" @click="onClose">
+          {{ t.cancel }}
         </button>
       </div>
     </dialog>
@@ -70,26 +71,32 @@
 
 <script setup lang="ts">
 import { t } from "@/common/i18n";
-import { JishogiRule } from "@/common/settings/game";
-import * as uri from "@/common/uri";
+import { TimeLimitSettings } from "@/common/settings/game";
 import Icon from "@/renderer/view/primitive/Icon.vue";
+import HorizontalSelector from "@/renderer/view/primitive/HorizontalSelector.vue";
 import { IconType } from "@/renderer/assets/icons";
 import { installHotKeyForDialog, uninstallHotKeyForDialog } from "@/renderer/devices/hotkey";
 import { showModalDialog } from "@/renderer/helpers/dialog";
 import { useStore } from "@/renderer/store";
-import { Color, InitialPositionType } from "tsshogi";
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
-
-type View = "selectPlayer" | "selectPosition" | "selectTurn";
+import { InitialPositionType } from "tsshogi";
+import { onBeforeUnmount, onMounted, ref, reactive, computed } from "vue";
+import { useLanStore } from "@/renderer/store/lan";
+import MobilePlayerSetting from "./MobilePlayerSetting.vue";
+import api from "@/renderer/ipc/api";
+import * as uri from "@/common/uri";
 
 const store = useStore();
 const dialog = ref();
-const currentView = ref<View>("selectPlayer");
-const playerURI = ref("");
-const playerName = ref("");
-const startPosition = ref<InitialPositionType | "current">(InitialPositionType.STANDARD);
-const lanEngineList = ref<LanEngineInfo[]>([]);
+const lanStore = useLanStore();
+const initialized = ref(false);
+
+const settings = reactive({
+  black: { uri: uri.ES_HUMAN, name: t.human },
+  white: { uri: uri.ES_BASIC_ENGINE_STATIC_ROOK_V1, name: `${t.beginner} (${t.staticRook})` },
+  blackTime: { timeSeconds: 600, byoyomi: 30, increment: 0 } as TimeLimitSettings,
+  whiteTime: { timeSeconds: 600, byoyomi: 30, increment: 0 } as TimeLimitSettings,
+  startPosition: InitialPositionType.STANDARD as InitialPositionType | "current",
+});
 
 const emit = defineEmits<{
   close: [];
@@ -102,10 +109,24 @@ const onClose = () => {
 onMounted(async () => {
   showModalDialog(dialog.value, onClose);
   installHotKeyForDialog(dialog.value);
+
   try {
-    lanEngineList.value = await lanEngine.getEngineList();
+    const saved = await api.loadGameSettings();
+    settings.black = { ...saved.black };
+    settings.white = { ...saved.white };
+    settings.blackTime = { ...saved.timeLimit };
+    settings.whiteTime = { ...(saved.whiteTimeLimit || saved.timeLimit) };
+    if (saved.startPosition !== "list") {
+      settings.startPosition = saved.startPosition;
+    }
+    initialized.value = true;
   } catch (e) {
-    console.error(e);
+    console.error("Failed to load game settings:", e);
+    initialized.value = true; // Still show with defaults if load fails
+  }
+
+  if (lanStore.status.value === "disconnected") {
+    lanStore.fetchEngineList().catch(console.error);
   }
 });
 
@@ -113,56 +134,152 @@ onBeforeUnmount(() => {
   uninstallHotKeyForDialog(dialog.value);
 });
 
-const selectPlayer = (uri: string, name?: string) => {
-  playerURI.value = uri;
-  playerName.value = name || "";
-  currentView.value = "selectPosition";
+const onSwapColor = () => {
+  const tmpBlack = { ...settings.black };
+  const tmpBlackTime = { ...settings.blackTime };
+  settings.black = { ...settings.white };
+  settings.blackTime = { ...settings.whiteTime };
+  settings.white = tmpBlack;
+  settings.whiteTime = tmpBlackTime;
 };
 
-const selectStartPosition = (position: InitialPositionType | "current") => {
-  startPosition.value = position;
-  currentView.value = "selectTurn";
-};
+const isValid = computed(() => {
+  return settings.black.uri && settings.white.uri;
+});
 
-const selectTurn = (turn: Color) => {
-  let black = { name: t.human, uri: uri.ES_HUMAN };
-  let name = playerName.value;
-  if (!name) {
-    if (playerURI.value === "lan-engine") {
-      name = "LAN Engine";
-    } else if (playerURI.value.startsWith("lan-engine:")) {
-      name = `LAN: ${playerURI.value.split(":")[1]}`;
-    } else {
-      name = uri.basicEngineName(playerURI.value);
-    }
-  }
-  let white = {
-    name: name,
-    uri: playerURI.value,
-  };
-  if (turn === Color.WHITE) {
-    [black, white] = [white, black];
-  }
-  store.startGame({
-    black,
-    white,
-    timeLimit: {
-      timeSeconds: 900,
-      byoyomi: 60,
-      increment: 0,
-    },
-    startPosition: startPosition.value,
-    startPositionListFile: "",
-    startPositionListOrder: "sequential",
-    enableEngineTimeout: false,
-    humanIsFront: true,
-    enableComment: false,
+const onStart = async () => {
+  const newSettings = {
+    ...store.gameSettings,
+    black: { ...settings.black },
+    white: { ...settings.white },
+    timeLimit: { ...settings.blackTime },
+    whiteTimeLimit: { ...settings.whiteTime },
+    startPosition: settings.startPosition,
     enableAutoSave: false,
+    jishogiRule: store.gameSettings.jishogiRule,
     repeat: 1,
-    swapPlayers: false,
-    maxMoves: 1000,
-    jishogiRule: JishogiRule.NONE,
-  });
-  emit("close");
+  };
+
+  try {
+    // Explicitly save settings before starting
+    await api.saveGameSettings(newSettings);
+    store.startGame(newSettings);
+    emit("close");
+  } catch (e) {
+    console.error("Failed to save game settings:", e);
+    // Even if saving fails, we try to start the game
+    store.startGame(newSettings);
+    emit("close");
+  }
 };
 </script>
+
+<style scoped>
+.dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.mobile-dialog {
+  width: 92vw;
+  max-height: 80dvh;
+  border: 1px solid var(--dialog-border-color);
+  border-radius: 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dialog-bg-color);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  color: var(--dialog-color);
+}
+.title {
+  font-size: 1.1em;
+  font-weight: bold;
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--text-separator-color);
+}
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+.section {
+  margin-bottom: 10px;
+}
+.section-header {
+  padding: 5px 10px;
+  font-weight: bold;
+  font-size: 0.95em;
+}
+.section-body {
+  padding: 0 5px;
+}
+.selector-container {
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+}
+.form-group {
+  border: 1px dashed var(--text-dashed-separator-color);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px 0;
+}
+.swap-container {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+  position: relative;
+  z-index: 1;
+}
+.swap-btn {
+  padding: 4px 15px;
+  font-size: 0.85em;
+  background-color: var(--button-bg-color);
+  border: 1px solid var(--dialog-border-color);
+  color: var(--main-color);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.swap-btn:active {
+  background-color: var(--active-bg-color);
+}
+.main-buttons {
+  display: flex;
+  padding: 10px;
+  gap: 10px;
+  border-top: 1px solid var(--text-separator-color);
+}
+.main-buttons button {
+  flex: 1;
+  padding: 12px;
+  font-size: 1em;
+  font-weight: bold;
+  border: 1px solid var(--dialog-border-color);
+  background-color: var(--control-button-bg-color);
+  color: var(--control-button-color);
+  border-radius: 0;
+  cursor: pointer;
+}
+.main-buttons button.start {
+  background-color: var(--pushed-selector-bg-color);
+  color: var(--pushed-selector-color);
+}
+.main-buttons button:active:not(:disabled) {
+  opacity: 0.8;
+}
+.main-buttons button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+</style>

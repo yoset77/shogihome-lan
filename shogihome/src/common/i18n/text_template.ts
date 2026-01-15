@@ -410,6 +410,7 @@ export type Texts = {
   hashUsage: string;
   stop: string;
   resume: string;
+  connecting: string;
   noHandicap: string;
   lanceHandicap: string;
   rightLanceHandicap: string;

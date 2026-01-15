@@ -115,6 +115,8 @@ const wss = new WebSocketServer({
 
 const REMOTE_ENGINE_HOST = process.env.REMOTE_ENGINE_HOST || "localhost";
 const REMOTE_ENGINE_PORT = parseInt(process.env.REMOTE_ENGINE_PORT || "4082", 10);
+const CONNECTION_PROTECTION_TIMEOUT =
+  parseInt(process.env.ENGINE_CONNECTION_PROTECTION_TIMEOUT || "60", 10) * 1000;
 
 app.use(express.static(shogiHomePath));
 
@@ -128,6 +130,9 @@ enum EngineState {
   WAITING_USIOK,
   WAITING_READYOK,
   READY,
+  THINKING,
+  STOPPING_SEARCH,
+  TERMINATING,
   STOPPED,
 }
 
@@ -144,55 +149,186 @@ interface ExtendedWebSocket extends WebSocket {
   isAlive?: boolean;
 }
 
-// Add a keep-alive mechanism
-const interval = setInterval(function ping() {
-  wss.clients.forEach(function each(ws: ExtendedWebSocket) {
-    if (ws.isAlive === false) {
-      console.log("Client connection timed out, terminating.");
-      return ws.terminate();
+class EngineSession {
+  private currentEngineId: string | null = null;
+  private engineHandle: EngineHandle | null = null;
+  private connectingSocket: net.Socket | null = null;
+  private engineState = EngineState.UNINITIALIZED;
+  private commandQueue: string[] = [];
+  private postStopCommandQueue: string[] = [];
+  private stopTimeout: NodeJS.Timeout | null = null;
+  private currentEngineSfen: string | null = null;
+  private pendingGoSfen: string | null = null;
+  private isExplicitlyTerminated = false;
+  private ws: ExtendedWebSocket | null = null;
+  private cleanupTimeout: NodeJS.Timeout | null = null;
+  private messageBuffer: { data: unknown; createdAt: number }[] = [];
+
+  constructor(public readonly sessionId: string) {}
+
+  attach(ws: ExtendedWebSocket) {
+    console.log(`Attaching session ${this.sessionId} to new WebSocket`);
+    this.clearCleanupTimeout();
+
+    if (this.ws) {
+      try {
+        console.log(`Terminating replaced socket for session ${this.sessionId}`);
+        this.ws.terminate();
+      } catch (e) {
+        // ignore
+      }
     }
-    ws.isAlive = false;
-    ws.ping();
-  });
-}, 20000);
 
-wss.on("close", function close() {
-  clearInterval(interval);
-});
+    this.ws = ws;
+    this.isExplicitlyTerminated = false;
 
-wss.on("connection", (ws: ExtendedWebSocket) => {
-  ws.isAlive = true;
-  ws.on("pong", () => {
-    ws.isAlive = true;
-  });
-  let engineHandle: EngineHandle | null = null;
-  let connectingSocket: net.Socket | null = null;
-  let engineState = EngineState.UNINITIALIZED;
-  const commandQueue: string[] = [];
-  const postStopCommandQueue: string[] = [];
-  let isThinking = false;
-  let isWaitingForBestmove = false;
-  let stopTimeout: NodeJS.Timeout | null = null;
-  let currentEngineSfen: string | null = null;
-  let pendingGoSfen: string | null = null;
-  let isStopping = false;
+    ws.on("message", (message) => this.handleMessage(message.toString()));
+    ws.on("close", () => this.handleDisconnect(ws));
 
-  console.log("Client connected");
+    // Send initial state to client
+    this.sendState();
 
-  const updateCurrentSfen = (command: string) => {
-    if (command.startsWith("position ")) {
-      currentEngineSfen = command;
+    // Replay buffered messages
+    console.log(
+      `Replaying ${this.messageBuffer.length} buffered messages for session ${this.sessionId}`,
+    );
+    while (this.messageBuffer.length > 0) {
+      const { data, createdAt } = this.messageBuffer.shift()!;
+      this.sendToClient(data, createdAt);
     }
-  };
+  }
 
-  const clearStopTimeout = () => {
-    if (stopTimeout) {
-      clearTimeout(stopTimeout);
-      stopTimeout = null;
+  private sendState() {
+    let stateStr = "uninitialized";
+    switch (this.engineState) {
+      case EngineState.STARTING:
+      case EngineState.WAITING_USIOK:
+      case EngineState.WAITING_READYOK:
+        stateStr = "starting";
+        break;
+      case EngineState.THINKING:
+      case EngineState.STOPPING_SEARCH:
+        stateStr = "thinking";
+        break;
+      case EngineState.READY:
+        stateStr = "ready";
+        break;
+      case EngineState.TERMINATING:
+      case EngineState.STOPPED:
+        stateStr = "stopped";
+        break;
     }
-  };
+    this.sendToClient({ state: stateStr });
+  }
 
-  const isValidUsiCommand = (command: string): boolean => {
+  private handleDisconnect(socket: ExtendedWebSocket) {
+    if (this.ws !== socket) {
+      console.log(`Ignoring disconnect for session ${this.sessionId} (socket replaced)`);
+      return;
+    }
+
+    console.log(`WebSocket disconnected for session ${this.sessionId}`);
+    this.ws = null;
+
+    if (
+      this.isExplicitlyTerminated ||
+      this.sessionId.startsWith("discovery-") ||
+      this.engineState === EngineState.UNINITIALIZED
+    ) {
+      this.terminate();
+    } else {
+      console.log(
+        `Session ${this.sessionId} entered disconnection protection (${CONNECTION_PROTECTION_TIMEOUT}ms)`,
+      );
+      this.cleanupTimeout = setTimeout(() => {
+        console.log(`Session ${this.sessionId} protection timed out. Terminating.`);
+        this.terminate();
+      }, CONNECTION_PROTECTION_TIMEOUT);
+    }
+  }
+
+  private clearCleanupTimeout() {
+    if (this.cleanupTimeout) {
+      clearTimeout(this.cleanupTimeout);
+      this.cleanupTimeout = null;
+    }
+  }
+
+  private terminate() {
+    this.clearCleanupTimeout();
+    this.messageBuffer = [];
+    if (this.connectingSocket) {
+      this.connectingSocket.destroy();
+      this.connectingSocket = null;
+    }
+    if (this.engineHandle && this.engineState !== EngineState.TERMINATING) {
+      this.engineState = EngineState.TERMINATING;
+      this.engineHandle.close();
+    } else {
+      this.onEngineClose();
+    }
+    sessionManager.removeSession(this.sessionId);
+  }
+
+  private sendToClient(data: unknown, createdAt: number = Date.now()) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (typeof data === "object" && data !== null) {
+        const delay = Date.now() - createdAt;
+        // Clone object to avoid side effects if strictly necessary, but here we construct fresh objects mostly
+        this.ws.send(JSON.stringify({ ...data, delay }));
+      } else {
+        this.ws.send(JSON.stringify(data));
+      }
+    } else {
+      // Buffer messages during disconnection
+      // For 'info' messages, we only keep the latest few to avoid memory issues
+      if (typeof data === "object" && data !== null && "info" in data) {
+        const info = (data as { info: string }).info;
+        if (info.startsWith("info")) {
+          // Keep only the last 10 info messages if disconnected
+          const infoCount = this.messageBuffer.filter(
+            (m) =>
+              typeof m.data === "object" &&
+              m.data !== null &&
+              "info" in m.data &&
+              (m.data as { info: string }).info.startsWith("info"),
+          ).length;
+          if (infoCount >= 10) {
+            const firstInfoIndex = this.messageBuffer.findIndex(
+              (m) =>
+                typeof m.data === "object" &&
+                m.data !== null &&
+                "info" in m.data &&
+                (m.data as { info: string }).info.startsWith("info"),
+            );
+            if (firstInfoIndex !== -1) {
+              this.messageBuffer.splice(firstInfoIndex, 1);
+            }
+          }
+        }
+      }
+      this.messageBuffer.push({ data, createdAt });
+    }
+  }
+
+  private sendError(message: string) {
+    let safeMessage = message;
+    if (message.includes("WRAPPER_ERROR:")) {
+      console.error(`Internal Wrapper Error: ${message}`);
+      if (message.includes("Engine executable not found")) {
+        safeMessage = "error: Engine executable not found.";
+      } else if (message.includes("Engine path for type")) {
+        safeMessage = "error: Engine path configuration error.";
+      } else {
+        safeMessage = "error: Internal server error.";
+      }
+    } else {
+      safeMessage = message.startsWith("error: ") ? message : `error: ${message}`;
+    }
+    this.sendToClient({ error: safeMessage });
+  }
+
+  private isValidUsiCommand(command: string): boolean {
     if (/[\r\n]/.test(command)) return false;
 
     const cmd = command.trim();
@@ -211,10 +347,8 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       case "gameover":
         return parts.length === 2 && ["win", "lose", "draw"].includes(parts[1]);
       case "setoption":
-        // setoption name <id> [value <x>]
         return /^setoption name \S+( value .+)?$/.test(cmd);
       case "position":
-        // position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>
         if (parts[1] === "startpos") {
           if (parts.length === 2) return true;
           if (parts[2] === "moves") {
@@ -252,288 +386,225 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
       default:
         return false;
     }
-  };
+  }
 
-  const sendToEngine = (command: string) => {
-    if (engineHandle) {
-      if (!isValidUsiCommand(command)) {
+  private sendToEngine(command: string) {
+    if (this.engineHandle) {
+      if (!this.isValidUsiCommand(command)) {
         console.warn(`Invalid USI command blocked: ${command}`);
         return;
       }
 
-      // NOTE: updateCurrentSfen must be called before setting pendingGoSfen for 'go' command.
-      // pendingGoSfen captures the sfen set by the IMMEDIATELY PRECEDING 'position' command (stored in currentEngineSfen).
-      updateCurrentSfen(command);
+      if (command.startsWith("position ")) {
+        this.currentEngineSfen = command;
+      }
       if (command.startsWith("go")) {
-        isThinking = true;
-        pendingGoSfen = currentEngineSfen;
+        this.engineState = EngineState.THINKING;
+        this.pendingGoSfen = this.currentEngineSfen;
+        this.sendState();
       }
-      console.log(`Sending to engine: ${command}`);
-      engineHandle.write(command + "\n");
+      console.log(`Sending to engine (${this.sessionId}): ${command}`);
+      this.engineHandle.write(command + "\n");
     }
-  };
+  }
 
-  const sendError = (message: string) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      let safeMessage = message;
-      if (message.includes("WRAPPER_ERROR:")) {
-        console.error(`Internal Wrapper Error: ${message}`); // Log full error on server
-        // Sanitize for client
-        if (message.includes("Engine executable not found")) {
-          safeMessage = "error: Engine executable not found.";
-        } else if (message.includes("Engine path for type")) {
-          safeMessage = "error: Engine path configuration error.";
-        } else {
-          safeMessage = "error: Internal server error.";
-        }
-      } else {
-        safeMessage = message.startsWith("error: ") ? message : `error: ${message}`;
-      }
-      ws.send(JSON.stringify({ error: safeMessage }));
-    }
-  };
-
-  const processCommandQueue = () => {
-    while (commandQueue.length > 0) {
-      const command = commandQueue.shift();
-      if (command) {
-        sendToEngine(command);
-      }
-    }
-  };
-
-  const startEngine = (engineId: string) => {
-    if (engineHandle || engineState === EngineState.STARTING) {
-      sendError("engine already running or starting");
+  private onEngineClose() {
+    if (
+      this.engineState === EngineState.STOPPED ||
+      this.engineState === EngineState.UNINITIALIZED ||
+      this.sessionId.startsWith("discovery-")
+    ) {
       return;
     }
-    engineState = EngineState.STARTING;
+    console.log(`Engine process exited for session ${this.sessionId}.`);
+    if (this.engineHandle) {
+      this.engineHandle.removeAllListeners();
+      this.engineHandle = null;
+    }
+    this.currentEngineId = null;
+    this.engineState = EngineState.STOPPED;
+    this.commandQueue.length = 0;
+    this.postStopCommandQueue.length = 0;
+    if (this.stopTimeout) {
+      clearTimeout(this.stopTimeout);
+      this.stopTimeout = null;
+    }
+    this.currentEngineSfen = null;
+    this.pendingGoSfen = null;
+    this.sendState();
+    this.sendToClient({ info: "info: engine stopped" });
+  }
 
-    const onEngineClose = () => {
-      console.log("Engine process exited.");
-      if (engineHandle) {
-        engineHandle.removeAllListeners();
-        engineHandle = null;
+  private setupEngineHandlers(stream: NodeJS.ReadableStream) {
+    const rl = readline.createInterface({ input: stream });
+    rl.on("line", (line) => {
+      if (!line.startsWith("info")) {
+        console.log(`Engine output (${this.sessionId}): ${line}`);
       }
-      engineState = EngineState.STOPPED;
-      isStopping = false;
-      commandQueue.length = 0;
-      postStopCommandQueue.length = 0;
-      isThinking = false;
-      isWaitingForBestmove = false;
-      clearStopTimeout();
-      currentEngineSfen = null;
-      pendingGoSfen = null;
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ info: "info: engine stopped" }));
+
+      if (line.trim().startsWith("WRAPPER_ERROR:")) {
+        console.error(`Engine wrapper error: ${line}`);
+        this.sendError(line);
+        this.terminate();
+        return;
       }
-    };
 
-    const setupEngineHandlers = (stream: NodeJS.ReadableStream) => {
-      const rl = readline.createInterface({ input: stream });
-      rl.on("line", (line) => {
-        if (!line.startsWith("info")) {
-          console.log(`Engine output: ${line}`);
-        }
+      this.sendToClient({ sfen: this.pendingGoSfen, info: line });
 
-        if (line.trim().startsWith("WRAPPER_ERROR:")) {
-          console.error(`Engine wrapper error: ${line}`);
-          sendError(line);
-          onEngineClose();
-          return;
-        }
+      if (line.startsWith("bestmove")) {
+        if (this.engineState === EngineState.STOPPING_SEARCH) {
+          if (this.stopTimeout) {
+            clearTimeout(this.stopTimeout);
+            this.stopTimeout = null;
+          }
 
-        const response = { sfen: pendingGoSfen, info: line };
-        ws.send(JSON.stringify(response));
+          let latestSetoptionMultiPV: string | null = null;
+          let latestGoIndex = -1;
 
-        if (line.startsWith("bestmove")) {
-          isThinking = false;
-          if (isWaitingForBestmove) {
-            isWaitingForBestmove = false;
-            clearStopTimeout();
-
-            // --- Debounce commands (handling setoption and position) ---
-            let latestSetoptionMultiPV: string | null = null;
-            let latestGoIndex = -1;
-
-            for (let i = 0; i < postStopCommandQueue.length; i++) {
-              const command = postStopCommandQueue[i];
-              if (command.startsWith("setoption name MultiPV")) {
-                latestSetoptionMultiPV = command;
-              } else if (command.startsWith("go")) {
-                latestGoIndex = i;
-              }
-            }
-
-            const commandsToRun: string[] = [];
-            // Ensure 'setoption' is sent before 'position'
-            if (latestSetoptionMultiPV) {
-              commandsToRun.push(latestSetoptionMultiPV);
-            }
-
-            if (latestGoIndex !== -1) {
-              // Find the position command corresponding to the latest go
-              let correspondingPosition: string | null = null;
-              for (let i = latestGoIndex - 1; i >= 0; i--) {
-                if (postStopCommandQueue[i].startsWith("position")) {
-                  correspondingPosition = postStopCommandQueue[i];
-                  break;
-                }
-              }
-
-              if (correspondingPosition) {
-                commandsToRun.push(correspondingPosition);
-              }
-              commandsToRun.push(postStopCommandQueue[latestGoIndex]);
-            }
-
-            postStopCommandQueue.length = 0;
-
-            if (commandsToRun.length > 0) {
-              console.log(`Running debounced commands: ${JSON.stringify(commandsToRun)}`);
-              for (const command of commandsToRun) {
-                sendToEngine(command);
-              }
+          for (let i = 0; i < this.postStopCommandQueue.length; i++) {
+            const command = this.postStopCommandQueue[i];
+            if (command.startsWith("setoption name MultiPV")) {
+              latestSetoptionMultiPV = command;
+            } else if (command.startsWith("go")) {
+              latestGoIndex = i;
             }
           }
-        }
 
-        if (engineState === EngineState.WAITING_USIOK && line.trim() === "usiok") {
-          engineState = EngineState.WAITING_READYOK;
-          sendToEngine("isready");
-        } else if (engineState === EngineState.WAITING_READYOK && line.trim() === "readyok") {
-          engineState = EngineState.READY;
-          ws.send(JSON.stringify({ info: "info: engine is ready" }));
-          processCommandQueue();
+          const commandsToRun: string[] = [];
+          if (latestSetoptionMultiPV) {
+            commandsToRun.push(latestSetoptionMultiPV);
+          }
+
+          if (latestGoIndex !== -1) {
+            let correspondingPosition: string | null = null;
+            for (let i = latestGoIndex - 1; i >= 0; i--) {
+              if (this.postStopCommandQueue[i].startsWith("position")) {
+                correspondingPosition = this.postStopCommandQueue[i];
+                break;
+              }
+            }
+            if (correspondingPosition) {
+              commandsToRun.push(correspondingPosition);
+            }
+            commandsToRun.push(this.postStopCommandQueue[latestGoIndex]);
+          }
+
+          this.postStopCommandQueue.length = 0;
+          this.engineState = EngineState.READY;
+          this.sendState();
+
+          if (commandsToRun.length > 0) {
+            for (const command of commandsToRun) {
+              this.sendToEngine(command);
+            }
+          }
+        } else {
+          this.engineState = EngineState.READY;
+          this.sendState();
         }
-      });
-    };
+      }
+
+      if (this.engineState === EngineState.WAITING_USIOK && line.trim() === "usiok") {
+        this.engineState = EngineState.WAITING_READYOK;
+        this.sendToEngine("isready");
+      } else if (this.engineState === EngineState.WAITING_READYOK && line.trim() === "readyok") {
+        this.engineState = EngineState.READY;
+        this.sendState();
+        this.sendToClient({ info: "info: engine is ready" });
+        while (this.commandQueue.length > 0) {
+          const command = this.commandQueue.shift();
+          if (command) this.sendToEngine(command);
+        }
+      }
+    });
+  }
+
+  private startEngine(engineId: string) {
+    if (this.engineHandle || this.engineState === EngineState.STARTING) {
+      this.sendError("engine already running or starting");
+      return;
+    }
+    this.engineState = EngineState.STARTING;
+    this.currentEngineId = engineId;
 
     console.log(`Connecting to remote engine at ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
-
     const socket = new net.Socket();
-    connectingSocket = socket;
+    this.connectingSocket = socket;
 
     const connectionTimeout = setTimeout(() => {
       console.error("Connection timed out after 5 seconds");
-      sendError("connection timed out");
+      this.sendError("connection timed out");
       socket.destroy();
-      connectingSocket = null;
-      onEngineClose();
-    }, 5000); // 5-second timeout
+      this.connectingSocket = null;
+      this.onEngineClose();
+    }, 5000);
 
     socket.on("connect", () => {
       clearTimeout(connectionTimeout);
-      connectingSocket = null; // Connection established, no longer pending
+      this.connectingSocket = null;
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
       socket.write(`run ${engineId}\n`);
 
-      engineState = EngineState.WAITING_USIOK;
-      engineHandle = {
+      this.engineState = EngineState.WAITING_USIOK;
+      this.engineHandle = {
         write: (cmd) => socket.write(cmd),
         close: () => socket.end(),
         on: (e, l) => socket.on(e, l),
         off: (e, l) => socket.off(e, l),
         removeAllListeners: (e) => socket.removeAllListeners(e),
       };
-      setupEngineHandlers(socket);
-      engineHandle.on("close", onEngineClose);
-      engineHandle.on("error", (err) => {
+      this.setupEngineHandlers(socket);
+      this.engineHandle.on("close", () => this.onEngineClose());
+      this.engineHandle.on("error", (err) => {
         console.error("Remote engine connection error:", err);
-        sendError("remote engine connection failed");
-        onEngineClose();
+        this.sendError("remote engine connection failed");
+        this.onEngineClose();
       });
-      // Initiate USI handshake automatically
-      sendToEngine("usi");
+      this.sendToEngine("usi");
     });
 
     socket.on("close", () => {
       clearTimeout(connectionTimeout);
-      if (connectingSocket === socket) connectingSocket = null;
+      if (this.connectingSocket === socket) this.connectingSocket = null;
     });
 
     socket.on("error", (err) => {
       clearTimeout(connectionTimeout);
-      if (connectingSocket === socket) connectingSocket = null;
-      if (engineState === EngineState.STARTING) {
+      if (this.connectingSocket === socket) this.connectingSocket = null;
+      if (this.engineState === EngineState.STARTING) {
         console.error("Failed to connect to remote engine:", err);
-        sendError(`failed to connect to remote engine (${err.message})`);
-        onEngineClose();
+        this.sendError(`failed to connect to remote engine (${err.message})`);
+        this.onEngineClose();
       }
     });
 
     socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
-  };
+  }
 
-  const getEngineList = () => {
-    console.log(`Fetching engine list from ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
-    const socket = new net.Socket();
-    let data = "";
-
-    const connectionTimeout = setTimeout(() => {
-      socket.destroy(new Error("Connection timed out"));
-    }, 5000);
-
-    socket.on("connect", () => {
-      clearTimeout(connectionTimeout);
-      socket.write("list\n");
-    });
-
-    socket.on("data", (chunk) => {
-      data += chunk.toString();
-    });
-
-    socket.on("end", () => {
-      try {
-        const engines = JSON.parse(data.trim());
-        ws.send(JSON.stringify({ engineList: engines }));
-      } catch (e) {
-        console.error("Failed to parse engine list from wrapper:", e);
-        sendError("failed to parse engine list");
-      }
-    });
-
-    socket.on("error", (err) => {
-      clearTimeout(connectionTimeout);
-      console.error("Failed to get engine list:", err);
-      sendError(`failed to connect to engine wrapper (${err.message})`);
-    });
-
-    socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
-  };
-
-  ws.on("message", (message) => {
-    const command = message.toString();
-    console.log(`Received command: ${command}`);
+  private handleMessage(command: string) {
+    console.log(`Received command (${this.sessionId}): ${command}`);
 
     if (command === "get_engine_list") {
-      getEngineList();
+      getEngineList(this.ws!);
+      return;
+    }
+
+    if (command === "ping") {
+      this.sendToClient({ info: "pong" });
       return;
     }
 
     const handleStop = () => {
-      // Prevent duplicate stop commands if we are already waiting for bestmove
-      if (isWaitingForBestmove) {
-        console.log("Ignored stop command: already waiting for bestmove.");
-        return;
-      }
-
-      if (engineState === EngineState.READY && isThinking) {
-        isWaitingForBestmove = true;
-        postStopCommandQueue.length = 0;
-        sendToEngine("stop");
-
-        // Set timeout to resend stop command if no bestmove received
-        stopTimeout = setTimeout(() => {
-          if (isWaitingForBestmove) {
-            console.warn(
-              "Engine did not respond to stop command within 5 seconds. Resending stop.",
-            );
-            sendToEngine("stop");
-            // Note: We don't set another timeout here, just a one-time retry for now.
-            // If the engine is truly stuck, multiple stops might not help, but one retry covers dropped packets.
-            // Consider recursively setting timeout for repeated retries if needed.
-            stopTimeout = null;
+      if (this.engineState === EngineState.STOPPING_SEARCH) return;
+      if (this.engineState === EngineState.THINKING) {
+        this.engineState = EngineState.STOPPING_SEARCH;
+        this.postStopCommandQueue.length = 0;
+        this.sendToEngine("stop");
+        this.stopTimeout = setTimeout(() => {
+          if (this.engineState === EngineState.STOPPING_SEARCH) {
+            console.warn("Engine did not respond to stop command. Resending.");
+            this.sendToEngine("stop");
+            this.stopTimeout = null;
           }
         }, 5000);
       }
@@ -545,113 +616,184 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
     }
 
     if (command === "quit") {
-      sendToEngine(command);
+      this.sendToEngine(command);
       return;
     }
 
-    // Resilience: If we receive a command that changes state while thinking, assume we missed a stop or client timed out.
-    // We implicitly trigger stop and let the flow fall through to the queueing logic.
     if (
-      isThinking &&
-      !isWaitingForBestmove &&
+      this.engineState === EngineState.THINKING &&
       (command.startsWith("position") ||
         command.startsWith("go") ||
         command.startsWith("setoption"))
     ) {
-      console.warn(
-        `Received ${
-          command.split(" ")[0]
-        } while thinking. Implicitly stopping engine to ensure consistency.`,
-      );
+      console.warn(`Implicitly stopping engine for session ${this.sessionId}`);
       handleStop();
     }
 
-    if (isWaitingForBestmove) {
-      // Prevent queuing duplicate stop commands or irrelevant commands
-      if (command === "stop") return;
-
-      postStopCommandQueue.push(command);
+    if (this.engineState === EngineState.STOPPING_SEARCH) {
+      if (command !== "stop") this.postStopCommandQueue.push(command);
       return;
     }
 
     if (command.startsWith("start_engine ")) {
-      // FIX: Check isStopping to prevent race conditions during engine shutdown
-      if (engineHandle || engineState === EngineState.STARTING || isStopping) {
-        sendError("engine already running, starting, or stopping");
-        return;
-      }
       const engineId = command.substring("start_engine ".length).trim();
       if (!/^[a-zA-Z0-9_\-.]+$/.test(engineId)) {
-        sendError("invalid engine id");
+        this.sendError("invalid engine id");
         return;
       }
-      startEngine(engineId);
+      if (
+        this.currentEngineId === engineId &&
+        (this.engineHandle || this.engineState === EngineState.STARTING)
+      ) {
+        console.log(
+          `Engine ${engineId} is already active or starting for session ${this.sessionId}. Ignoring redundant start request.`,
+        );
+        this.sendState();
+        return;
+      }
+      if (
+        this.engineHandle ||
+        this.engineState === EngineState.STARTING ||
+        this.engineState === EngineState.TERMINATING
+      ) {
+        this.sendError("engine already running, starting, or stopping");
+        return;
+      }
+      this.startEngine(engineId);
       return;
     }
 
     if (command === "stop_engine") {
-      if (engineHandle) {
-        isStopping = true;
-        commandQueue.length = 0;
-        postStopCommandQueue.length = 0;
-        isThinking = false;
-        isWaitingForBestmove = false;
-        clearStopTimeout();
-        currentEngineSfen = null;
-        engineHandle.close();
+      this.isExplicitlyTerminated = true;
+      if (this.engineHandle) {
+        this.engineState = EngineState.TERMINATING;
+        this.currentEngineId = null;
+        this.commandQueue.length = 0;
+        this.postStopCommandQueue.length = 0;
+        if (this.stopTimeout) {
+          clearTimeout(this.stopTimeout);
+          this.stopTimeout = null;
+        }
+        this.currentEngineSfen = null;
+        this.engineHandle.close();
       }
       return;
     }
 
-    if (command === "usi" || command === "isready") {
-      // Handshake is managed by the server automatically.
-      return;
-    }
+    if (command === "usi" || command === "isready") return;
 
     if (command.startsWith("setoption ")) {
-      if (engineState >= EngineState.WAITING_USIOK) {
-        sendToEngine(command);
+      if (this.engineState >= EngineState.WAITING_USIOK) {
+        this.sendToEngine(command);
       } else {
-        console.log(`Engine connection in progress, queueing: ${command}`);
-        commandQueue.push(command);
+        this.commandQueue.push(command);
       }
       return;
     }
 
-    if (engineState === EngineState.READY) {
-      sendToEngine(command);
-    } else if (engineState > EngineState.UNINITIALIZED && engineState < EngineState.READY) {
-      console.log(`Engine not ready, queueing command: ${command}`);
-      commandQueue.push(command);
+    if (this.engineState === EngineState.READY || this.engineState === EngineState.THINKING) {
+      this.sendToEngine(command);
+    } else if (
+      this.engineState > EngineState.UNINITIALIZED &&
+      this.engineState < EngineState.READY
+    ) {
+      this.commandQueue.push(command);
     } else {
-      sendError(`engine not started. Cannot process command: ${command}`);
+      this.sendError(`engine not started. Cannot process command: ${command}`);
+    }
+  }
+}
+
+class SessionManager {
+  private sessions = new Map<string, EngineSession>();
+
+  getOrCreateSession(sessionId: string): EngineSession {
+    let session = this.sessions.get(sessionId);
+    if (!session) {
+      console.log(`Creating new session: ${sessionId}`);
+      session = new EngineSession(sessionId);
+      this.sessions.set(sessionId, session);
+    }
+    return session;
+  }
+
+  removeSession(sessionId: string) {
+    this.sessions.delete(sessionId);
+  }
+}
+
+const sessionManager = new SessionManager();
+
+const getEngineList = (ws: WebSocket) => {
+  console.log(`Fetching engine list from ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
+  const socket = new net.Socket();
+  let data = "";
+
+  const connectionTimeout = setTimeout(() => {
+    socket.destroy(new Error("Connection timed out"));
+  }, 5000);
+
+  socket.on("connect", () => {
+    clearTimeout(connectionTimeout);
+    socket.write("list\n");
+  });
+
+  socket.on("data", (chunk) => {
+    data += chunk.toString();
+  });
+
+  socket.on("end", () => {
+    try {
+      const engines = JSON.parse(data.trim());
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ engineList: engines }));
+      }
+    } catch (e) {
+      console.error("Failed to parse engine list from wrapper:", e);
     }
   });
 
-  ws.on("close", () => {
-    console.log("Client disconnected");
-    commandQueue.length = 0;
-    postStopCommandQueue.length = 0;
-    isThinking = false;
-    isWaitingForBestmove = false;
-    clearStopTimeout();
-    currentEngineSfen = null;
-    pendingGoSfen = null;
-
-    if (connectingSocket) {
-      console.log("Terminating pending connection...");
-      connectingSocket.destroy();
-      connectingSocket = null;
-    }
-
-    if (engineHandle && !isStopping) {
-      isStopping = true;
-      engineHandle.close();
-    } else {
-      engineState = EngineState.UNINITIALIZED;
-      isStopping = false;
-    }
+  socket.on("error", (err) => {
+    clearTimeout(connectionTimeout);
+    console.error("Failed to get engine list:", err);
   });
+
+  socket.connect(REMOTE_ENGINE_PORT, REMOTE_ENGINE_HOST);
+};
+
+// Add a keep-alive mechanism
+const interval = setInterval(function ping() {
+  wss.clients.forEach(function each(ws: ExtendedWebSocket) {
+    if (ws.isAlive === false) {
+      console.log("Client connection timed out, terminating.");
+      return ws.terminate();
+    }
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 20000);
+
+wss.on("close", function close() {
+  clearInterval(interval);
+});
+
+wss.on("connection", (ws: ExtendedWebSocket, req) => {
+  ws.isAlive = true;
+  ws.on("pong", () => {
+    ws.isAlive = true;
+  });
+
+  const url = new URL(req.url!, `http://${req.headers.host}`);
+  const sessionId = url.searchParams.get("sessionId");
+
+  if (!sessionId) {
+    console.warn("Connection attempt without sessionId. Closing.");
+    ws.close(1008, "sessionId required");
+    return;
+  }
+
+  const session = sessionManager.getOrCreateSession(sessionId);
+  session.attach(ws);
 });
 
 const BIND_ADDRESS = process.env.BIND_ADDRESS || "0.0.0.0";

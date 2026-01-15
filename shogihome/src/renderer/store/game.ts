@@ -307,11 +307,15 @@ export class GameManager {
         });
       }
       // プレイヤーを初期化する。
-      this.blackPlayer = await this.playerBuilder.build(this.settings.black, (info) =>
-        this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+      this.blackPlayer = await this.playerBuilder.build(
+        this.settings.black,
+        (info) => this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        "game_black",
       );
-      this.whitePlayer = await this.playerBuilder.build(this.settings.white, (info) =>
-        this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+      this.whitePlayer = await this.playerBuilder.build(
+        this.settings.white,
+        (info) => this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        "game_white",
       );
       await this.goNextGame();
     } catch (e) {
@@ -499,6 +503,10 @@ export class GameManager {
     }
     // 手番側の時計をストップする。
     this.getActiveClock().stop();
+    // 遅延を補正する。
+    if (info?.delay) {
+      this.getActiveClock().correct(-info.delay);
+    }
     // 指し手を追加して局面を進める。
     this.recordManager.appendMove({
       move,

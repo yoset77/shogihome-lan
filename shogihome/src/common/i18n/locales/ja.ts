@@ -411,6 +411,7 @@ export const ja: Texts = {
   hashUsage: "Hash使用率",
   stop: "停止",
   resume: "再開",
+  connecting: "接続中",
   noHandicap: "平手",
   lanceHandicap: "香落ち",
   rightLanceHandicap: "右香落ち",

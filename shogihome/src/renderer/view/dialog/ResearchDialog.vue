@@ -85,7 +85,7 @@ import { IconType } from "@/renderer/assets/icons";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DialogFrame from "./DialogFrame.vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { useLanStore } from "@/renderer/store/lan";
 import { useAppSettings } from "@/renderer/store/settings";
 
 const store = useStore();
@@ -95,7 +95,7 @@ const researchSettings = ref(defaultResearchSettings());
 const engines = ref(new USIEngines());
 const engineURI = ref("");
 const secondaryEngineURIs = ref([] as string[]);
-const lanEngineList = ref<LanEngineInfo[]>([]);
+const lanStore = useLanStore();
 
 busyState.retain();
 
@@ -112,10 +112,12 @@ onMounted(async () => {
     secondaryEngineURIs.value =
       researchSettings.value.secondaries?.map((engine) => engine.usi?.uri || "") || [];
 
-    try {
-      lanEngineList.value = await lanEngine.getEngineList();
-    } catch (e) {
-      console.warn("Failed to load LAN engines:", e);
+    if (lanStore.status.value === "disconnected") {
+      try {
+        await lanStore.fetchEngineList();
+      } catch (e) {
+        console.warn("Failed to connect to LAN engine server:", e);
+      }
     }
   } catch (e) {
     useErrorStore().add(e);
@@ -130,7 +132,7 @@ const resolveEngine = (uri: string): USIEngine | undefined => {
     let name = "LAN Engine";
     if (uri.startsWith("lan-engine:")) {
       const id = uri.split(":")[1];
-      const info = lanEngineList.value.find((e) => e.id === id);
+      const info = lanStore.engineList.value.find((e) => e.id === id);
       if (info) {
         name = info.name;
       } else {
@@ -194,5 +196,13 @@ const onUpdatePlayerSettings = async (val: USIEngines) => {
 input.number {
   text-align: right;
   width: 80px;
+}
+@media (max-width: 600px) {
+  .root {
+    width: 80vw;
+  }
+  :deep(.form-item-label-wide) {
+    width: 120px;
+  }
 }
 </style>

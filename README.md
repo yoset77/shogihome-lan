@@ -48,8 +48,12 @@ PC上のUSI将棋エンジンをLAN内のスマートフォンやタブレット
 ### A. 配布パッケージ（exe）を利用する場合
 
 [Releases](https://github.com/yoset77/shogihome-lan/releases) からWindows用のビルド済みファイルをダウンロードできます。
-1.  ダウンロードしたファイルを展開して、 **`README.txt`** の手順に従ってセットアップしてください。
-2.  Node.js や Python などのインストールは不要です。
+
+詳細なセットアップ手順やトラブルシューティングについては、同梱の **[ユーザーガイド (README.txt)](./assets/release/README.txt)** を参照してください。
+
+1.  ダウンロードしたファイルを展開します。
+2.  `README.txt` を参考にセットアップを行ってください。
+3.  Node.js や Python などのインストールは不要です。
 
 ### B. ソースコードから実行・ビルドする場合
 

@@ -182,9 +182,9 @@ import { installHotKeyForDialog, uninstallHotKeyForDialog } from "@/renderer/dev
 import { openCopyright } from "@/renderer/helpers/copyright";
 import { RecordFileFormat } from "@/common/file/record";
 import MobileGameMenu from "@/renderer/view/menu/MobileGameMenu.vue";
-import { lanEngine } from "@/renderer/network/lan_engine";
 import { defaultResearchSettings } from "@/common/settings/research";
 import { USIEngine } from "@/common/settings/usi";
+import { useLanStore } from "@/renderer/store/lan";
 
 const emit = defineEmits<{
   close: [];
@@ -192,6 +192,7 @@ const emit = defineEmits<{
 
 const store = useStore();
 const appSettings = useAppSettings();
+const lanStore = useLanStore();
 const dialog = ref();
 const isGameMenuVisible = ref(false);
 const onClose = () => {
@@ -232,7 +233,8 @@ const onResearch = async () => {
       if (uri.startsWith("lan-engine:")) {
         const id = uri.split(":")[1];
         try {
-          const list = await lanEngine.getEngineList();
+          await lanStore.fetchEngineList();
+          const list = lanStore.engineList.value;
           const info = list.find((e) => e.id === id);
           if (info) name = info.name;
           else name = `LAN Engine (${id})`;

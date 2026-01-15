@@ -176,4 +176,61 @@ describe("store/clock", () => {
     expect(clock.timeMs).toBe(63 * 1e3);
     expect(settings.onStopBeep).toBeCalledTimes(4);
   });
+
+  it("correct", () => {
+    const settings = {
+      timeMs: 300 * 1e3,
+      byoyomi: 60,
+      increment: 0,
+      onBeepShort: vi.fn(),
+      onBeepUnlimited: vi.fn(),
+      onStopBeep: vi.fn(),
+      onTimeout: vi.fn(),
+    };
+    const clock = new Clock();
+    clock.setup(settings);
+    clock.start();
+
+    // 5:00 - 60
+    expect(clock.timeMs).toBe(300 * 1e3);
+    expect(clock.byoyomi).toBe(60);
+
+    vi.advanceTimersByTime(10 * 1e3);
+    // 4:50 - 60
+    expect(clock.timeMs).toBe(290 * 1e3);
+
+    // Correct: -1000ms (Add 1s) -> 4:51
+    clock.correct(-1000);
+    expect(clock.timeMs).toBe(291 * 1e3);
+
+    // Correct: +5000ms (Consume 5s) -> 4:46
+    clock.correct(5000);
+    expect(clock.timeMs).toBe(286 * 1e3);
+
+    // Correct: +286000ms (Consume all time) -> 0:00 - 60
+    clock.correct(286 * 1e3);
+    expect(clock.timeMs).toBe(0);
+    expect(clock.byoyomi).toBe(60);
+
+    // Correct: +10000ms (Consume 10s of byoyomi) -> 0:00 - 50
+    clock.correct(10000);
+    expect(clock.timeMs).toBe(0);
+    expect(clock.byoyomi).toBe(50);
+
+    // Correct: -5000ms (Rewind 5s of byoyomi) -> 0:00 - 55
+    clock.correct(-5000);
+    expect(clock.timeMs).toBe(0);
+    expect(clock.byoyomi).toBe(55);
+
+    // Correct: -60000ms (Rewind 60s -> Back to main time)
+    // Current Elapsed: 10(adv) - 1(cor) + 5(cor) + 286(cor) + 10(cor) - 5(cor) = 305s
+    // Initial Time: 300s
+    // Byoyomi: 60s
+    // 305s elapsed -> 300s time consumed, 5s byoyomi consumed.
+    // Rewind 60s -> 245s elapsed.
+    // 300 - 245 = 55s remaining.
+    clock.correct(-60000);
+    expect(clock.timeMs).toBe(55 * 1e3);
+    expect(clock.byoyomi).toBe(60);
+  });
 });

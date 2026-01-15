@@ -134,4 +134,20 @@ export class Clock {
   private incrementTime(): void {
     this._timeMs += (this.settings.increment || 0) * 1e3;
   }
+
+  correct(elapsedMsCorrection: number): void {
+    this._elapsedMs += elapsedMsCorrection;
+    if (this._elapsedMs < 0) {
+      this._elapsedMs = 0;
+    }
+
+    const timeMs = this.lastTimeMs - this._elapsedMs;
+    if (timeMs >= 0) {
+      this._timeMs = timeMs;
+      this._byoyomi = this.settings.byoyomi || 0;
+    } else {
+      this._timeMs = 0;
+      this._byoyomi = Math.max(Math.ceil((this.settings.byoyomi || 0) + timeMs / 1e3), 0);
+    }
+  }
 }

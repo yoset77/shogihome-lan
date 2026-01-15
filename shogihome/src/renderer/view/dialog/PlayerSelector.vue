@@ -57,7 +57,7 @@ import api from "@/renderer/ipc/api";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DropdownList from "@/renderer/view/primitive/DropdownList.vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { useLanStore } from "@/renderer/store/lan";
 
 const selectedPlayerURI = defineModel<string>("playerUri", { required: true });
 const defaultTags = computed(() => (props.defaultTag ? [props.defaultTag] : []));
@@ -112,15 +112,17 @@ const emit = defineEmits<{
 
 const busyState = useBusyState();
 const engineOptionsDialog = ref(null as USIEngine | null);
-const lanEngineList = ref<LanEngineInfo[]>([]);
+const lanStore = useLanStore();
 
 onMounted(async () => {
   // Fetch LAN engines if containsHuman or containsLan is true
   if (props.containsHuman || props.containsLan) {
-    try {
-      lanEngineList.value = await lanEngine.getEngineList();
-    } catch (e) {
-      console.warn("Failed to load LAN engines:", e);
+    if (lanStore.status.value === "disconnected") {
+      try {
+        await lanStore.fetchEngineList();
+      } catch (e) {
+        console.warn("Failed to connect to LAN engine server:", e);
+      }
     }
   }
 });
@@ -138,8 +140,16 @@ const listItems = computed(() => {
   }
 
   if (props.containsHuman || props.containsLan) {
-    if (lanEngineList.value.length > 0) {
-      for (const info of lanEngineList.value) {
+    // Check status or list availability
+    if (lanStore.status.value === "connecting") {
+      items.push({
+        label: t.connecting,
+        value: "",
+        tags: [tag],
+        disabled: true,
+      });
+    } else if (lanStore.engineList.value.length > 0) {
+      for (const info of lanStore.engineList.value) {
         // Filter by type if context is known
         if (props.defaultTag === getPredefinedUSIEngineTag("game")) {
           if (info.type && info.type !== "game" && info.type !== "both") continue;
@@ -148,11 +158,13 @@ const listItems = computed(() => {
         }
 
         items.push({
-          label: `LAN: ${info.name}`,
+          label: info.name,
           value: `lan-engine:${info.id}`,
           tags: [tag],
         });
       }
+    } else if (lanStore.status.value === "connected" && lanStore.engineList.value.length === 0) {
+      // Connected but no engines found? or just show nothing specific
     }
   }
 

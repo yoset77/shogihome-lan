@@ -5,15 +5,19 @@
         <BoardPane
           :max-size="boardPaneMaxSize"
           :layout-type="boardLayoutType"
+          style="flex-shrink: 0"
           @resize="onBoardPaneResize"
         />
         <MobileControls
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
-          :style="{ height: `${controlPaneHeight}px` }"
+          :style="{ height: `${controlPaneHeight}px`, flexShrink: 0 }"
         />
         <PuzzlePane
           v-if="showRecordViewOnBottom && isEvaluationPuzzle"
-          :style="{ height: `${bottomViewSize.height + controlPaneHeight + selectorHeight}px` }"
+          :style="{
+            height: `${bottomViewSize.height + controlPaneHeight + selectorHeight}px`,
+            flexShrink: 0,
+          }"
         />
         <RecordPane
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
@@ -21,6 +25,7 @@
           :style="{
             width: `${windowSize.width}px`,
             height: `${bottomViewSize.height}px`,
+            flexShrink: 0,
           }"
           :show-top-control="false"
           :show-bottom-control="false"
@@ -30,19 +35,23 @@
         <RecordComment
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.COMMENT"
+          class="bottom-element"
           :style="{
             width: `${windowSize.width}px`,
             height: `${bottomViewSize.height}px`,
+            flexShrink: 0,
           }"
         />
         <RecordInfo
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.INFO"
+          :style="{ flexShrink: 0 }"
           :size="bottomViewSize"
         />
         <EngineAnalytics
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.PV"
+          :style="{ flexShrink: 0 }"
           :size="bottomViewSize"
           :history-mode="false"
           :mobile-layout="true"
@@ -56,6 +65,7 @@
         <EvaluationChart
           v-if="showRecordViewOnBottom && !isEvaluationPuzzle"
           v-show="bottomUIType === BottomUIType.CHART"
+          :style="{ flexShrink: 0 }"
           :size="bottomViewSize"
           :type="EvaluationChartType.RAW"
           :thema="appSettings.thema"
@@ -73,6 +83,7 @@
           ]"
           :height="selectorHeight"
           :scroll="true"
+          style="flex-shrink: 0"
         />
       </div>
       <div
@@ -80,12 +91,15 @@
         class="column"
         :style="{ width: `${windowSize.width - boardPaneSize.width}px`, overflow: 'hidden' }"
       >
-        <MobileControls v-if="!isEvaluationPuzzle" :style="{ height: `${controlPaneHeight}px` }" />
-        <PuzzlePane v-if="isEvaluationPuzzle" class="full" />
+        <MobileControls
+          v-if="!isEvaluationPuzzle"
+          :style="{ height: `${controlPaneHeight}px`, flexShrink: 0 }"
+        />
+        <PuzzlePane v-if="isEvaluationPuzzle" class="full" style="flex-shrink: 0" />
         <RecordPane
           v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.RECORD"
-          :style="{ height: `${sideViewSize.height * 0.6}px` }"
+          :style="{ height: `${sideViewSize.height * 0.6}px`, flexShrink: 0 }"
           :show-top-control="false"
           :show-bottom-control="false"
           :show-elapsed-time="true"
@@ -97,16 +111,19 @@
           :style="{
             'margin-top': '5px',
             height: `${sideViewSize.height * 0.4 - 5}px`,
+            flexShrink: 0,
           }"
         />
         <RecordInfo
           v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.INFO"
+          :style="{ flexShrink: 0 }"
           :size="sideViewSize"
         />
         <EngineAnalytics
           v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.PV"
+          :style="{ flexShrink: 0 }"
           :size="sideViewSize"
           :history-mode="false"
           :mobile-layout="true"
@@ -120,6 +137,7 @@
         <EvaluationChart
           v-if="!isEvaluationPuzzle"
           v-show="sideUIType === SideUIType.CHART"
+          :style="{ flexShrink: 0 }"
           :size="sideViewSize"
           :type="EvaluationChartType.RAW"
           :thema="appSettings.thema"
@@ -136,6 +154,7 @@
           ]"
           :height="selectorHeight"
           :scroll="true"
+          style="flex-shrink: 0"
         />
       </div>
     </div>
@@ -260,5 +279,9 @@ onUnmounted(() => {
 }
 .controls button .icon {
   height: 68%;
+}
+
+.bottom-element :deep(textarea) {
+  border-top: none;
 }
 </style>

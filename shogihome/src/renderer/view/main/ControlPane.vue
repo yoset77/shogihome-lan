@@ -256,9 +256,9 @@ import {
 } from "@/renderer/devices/hotkey";
 import { useConfirmationStore } from "@/renderer/store/confirm";
 import api from "@/renderer/ipc/api";
-import { lanEngine } from "@/renderer/network/lan_engine";
 import { defaultResearchSettings } from "@/common/settings/research";
 import { USIEngine } from "@/common/settings/usi";
+import { useLanStore } from "@/renderer/store/lan";
 
 defineProps({
   group: {
@@ -277,6 +277,7 @@ const root = ref();
 const isGameMenuVisible = ref(false);
 const isFileMenuVisible = ref(false);
 const isInitialPositionMenuVisible = ref(false);
+const lanStore = useLanStore();
 
 onMounted(() => {
   installHotKeyForMainWindow(root.value);
@@ -329,7 +330,8 @@ const onResearch = async () => {
       if (uri.startsWith("lan-engine:")) {
         const id = uri.split(":")[1];
         try {
-          const list = await lanEngine.getEngineList();
+          await lanStore.fetchEngineList();
+          const list = lanStore.engineList.value;
           const info = list.find((e) => e.id === id);
           if (info) name = info.name;
           else name = `LAN Engine (${id})`;
@@ -337,6 +339,7 @@ const onResearch = async () => {
           name = `LAN Engine (${id})`;
         }
       }
+
       engine = {
         uri,
         name,

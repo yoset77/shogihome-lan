@@ -408,6 +408,7 @@ export const zh_tw: Texts = {
   hashUsage: "Hash使用率",
   stop: "停止",
   resume: "重新開始",
+  connecting: "連線中...",
   noHandicap: "平手",
   lanceHandicap: "香落",
   rightLanceHandicap: "右香落",
