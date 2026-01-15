@@ -8,7 +8,9 @@ export class HPortraitLayoutBuilder {
   constructor(private config: Config) {}
 
   get ratio(): number {
-    let ratio = this.config.upperSizeLimit.width / hPortraitViewParams.frame.width;
+    // Add a margin of 2px to avoid overflowing the screen width due to calculation errors.
+    const safeWidth = hPortraitViewParams.frame.width + 2;
+    let ratio = this.config.upperSizeLimit.width / safeWidth;
     if (hPortraitViewParams.frame.height * ratio > this.config.upperSizeLimit.height) {
       ratio = this.config.upperSizeLimit.height / hPortraitViewParams.frame.height;
     }

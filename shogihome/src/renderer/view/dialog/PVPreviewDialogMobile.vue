@@ -145,7 +145,7 @@ const record = reactive(new Record());
 const flip = ref(appSettings.boardFlipping);
 
 const updateSize = () => {
-  maxSize.width = window.innerWidth * 0.95;
+  maxSize.width = window.innerWidth - 70;
   maxSize.height = window.innerHeight * 0.95 - 220;
 };
 
@@ -303,7 +303,7 @@ const insertToComment = () => {
 }
 .informations {
   height: 120px;
-  width: 95vw;
+  width: 100%;
   overflow-y: scroll;
   margin-left: auto;
   margin-right: auto;
