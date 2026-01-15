@@ -130,6 +130,9 @@ enum EngineState {
   WAITING_USIOK,
   WAITING_READYOK,
   READY,
+  THINKING,
+  STOPPING_SEARCH,
+  TERMINATING,
   STOPPED,
 }
 
@@ -147,21 +150,19 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 class EngineSession {
+  private currentEngineId: string | null = null;
   private engineHandle: EngineHandle | null = null;
   private connectingSocket: net.Socket | null = null;
   private engineState = EngineState.UNINITIALIZED;
   private commandQueue: string[] = [];
   private postStopCommandQueue: string[] = [];
-  private isThinking = false;
-  private isWaitingForBestmove = false;
   private stopTimeout: NodeJS.Timeout | null = null;
   private currentEngineSfen: string | null = null;
   private pendingGoSfen: string | null = null;
-  private isStopping = false;
   private isExplicitlyTerminated = false;
   private ws: ExtendedWebSocket | null = null;
   private cleanupTimeout: NodeJS.Timeout | null = null;
-  private messageBuffer: unknown[] = [];
+  private messageBuffer: { data: unknown; createdAt: number }[] = [];
 
   constructor(public readonly sessionId: string) {}
 
@@ -192,24 +193,31 @@ class EngineSession {
       `Replaying ${this.messageBuffer.length} buffered messages for session ${this.sessionId}`,
     );
     while (this.messageBuffer.length > 0) {
-      const data = this.messageBuffer.shift();
-      ws.send(JSON.stringify(data));
+      const { data, createdAt } = this.messageBuffer.shift()!;
+      this.sendToClient(data, createdAt);
     }
   }
 
   private sendState() {
-    const stateStr =
-      this.engineState === EngineState.UNINITIALIZED
-        ? "uninitialized"
-        : this.engineState === EngineState.STARTING ||
-            this.engineState === EngineState.WAITING_USIOK ||
-            this.engineState === EngineState.WAITING_READYOK
-          ? "starting"
-          : this.engineState === EngineState.READY && this.isThinking
-            ? "thinking"
-            : this.engineState === EngineState.READY
-              ? "ready"
-              : "stopped";
+    let stateStr = "uninitialized";
+    switch (this.engineState) {
+      case EngineState.STARTING:
+      case EngineState.WAITING_USIOK:
+      case EngineState.WAITING_READYOK:
+        stateStr = "starting";
+        break;
+      case EngineState.THINKING:
+      case EngineState.STOPPING_SEARCH:
+        stateStr = "thinking";
+        break;
+      case EngineState.READY:
+        stateStr = "ready";
+        break;
+      case EngineState.TERMINATING:
+      case EngineState.STOPPED:
+        stateStr = "stopped";
+        break;
+    }
     this.sendToClient({ state: stateStr });
   }
 
@@ -222,7 +230,11 @@ class EngineSession {
     console.log(`WebSocket disconnected for session ${this.sessionId}`);
     this.ws = null;
 
-    if (this.isExplicitlyTerminated || this.sessionId.startsWith("discovery-")) {
+    if (
+      this.isExplicitlyTerminated ||
+      this.sessionId.startsWith("discovery-") ||
+      this.engineState === EngineState.UNINITIALIZED
+    ) {
       this.terminate();
     } else {
       console.log(
@@ -249,8 +261,8 @@ class EngineSession {
       this.connectingSocket.destroy();
       this.connectingSocket = null;
     }
-    if (this.engineHandle && !this.isStopping) {
-      this.isStopping = true;
+    if (this.engineHandle && this.engineState !== EngineState.TERMINATING) {
+      this.engineState = EngineState.TERMINATING;
       this.engineHandle.close();
     } else {
       this.onEngineClose();
@@ -258,9 +270,15 @@ class EngineSession {
     sessionManager.removeSession(this.sessionId);
   }
 
-  private sendToClient(data: unknown) {
+  private sendToClient(data: unknown, createdAt: number = Date.now()) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(data));
+      if (typeof data === "object" && data !== null) {
+        const delay = Date.now() - createdAt;
+        // Clone object to avoid side effects if strictly necessary, but here we construct fresh objects mostly
+        this.ws.send(JSON.stringify({ ...data, delay }));
+      } else {
+        this.ws.send(JSON.stringify(data));
+      }
     } else {
       // Buffer messages during disconnection
       // For 'info' messages, we only keep the latest few to avoid memory issues
@@ -270,18 +288,18 @@ class EngineSession {
           // Keep only the last 10 info messages if disconnected
           const infoCount = this.messageBuffer.filter(
             (m) =>
-              typeof m === "object" &&
-              m !== null &&
-              "info" in m &&
-              (m as { info: string }).info.startsWith("info"),
+              typeof m.data === "object" &&
+              m.data !== null &&
+              "info" in m.data &&
+              (m.data as { info: string }).info.startsWith("info"),
           ).length;
           if (infoCount >= 10) {
             const firstInfoIndex = this.messageBuffer.findIndex(
               (m) =>
-                typeof m === "object" &&
-                m !== null &&
-                "info" in m &&
-                (m as { info: string }).info.startsWith("info"),
+                typeof m.data === "object" &&
+                m.data !== null &&
+                "info" in m.data &&
+                (m.data as { info: string }).info.startsWith("info"),
             );
             if (firstInfoIndex !== -1) {
               this.messageBuffer.splice(firstInfoIndex, 1);
@@ -289,7 +307,7 @@ class EngineSession {
           }
         }
       }
-      this.messageBuffer.push(data);
+      this.messageBuffer.push({ data, createdAt });
     }
   }
 
@@ -381,7 +399,7 @@ class EngineSession {
         this.currentEngineSfen = command;
       }
       if (command.startsWith("go")) {
-        this.isThinking = true;
+        this.engineState = EngineState.THINKING;
         this.pendingGoSfen = this.currentEngineSfen;
         this.sendState();
       }
@@ -391,18 +409,22 @@ class EngineSession {
   }
 
   private onEngineClose() {
-    if (this.engineState === EngineState.STOPPED) return;
+    if (
+      this.engineState === EngineState.STOPPED ||
+      this.engineState === EngineState.UNINITIALIZED ||
+      this.sessionId.startsWith("discovery-")
+    ) {
+      return;
+    }
     console.log(`Engine process exited for session ${this.sessionId}.`);
     if (this.engineHandle) {
       this.engineHandle.removeAllListeners();
       this.engineHandle = null;
     }
+    this.currentEngineId = null;
     this.engineState = EngineState.STOPPED;
-    this.isStopping = false;
     this.commandQueue.length = 0;
     this.postStopCommandQueue.length = 0;
-    this.isThinking = false;
-    this.isWaitingForBestmove = false;
     if (this.stopTimeout) {
       clearTimeout(this.stopTimeout);
       this.stopTimeout = null;
@@ -430,10 +452,7 @@ class EngineSession {
       this.sendToClient({ sfen: this.pendingGoSfen, info: line });
 
       if (line.startsWith("bestmove")) {
-        this.isThinking = false;
-        this.sendState();
-        if (this.isWaitingForBestmove) {
-          this.isWaitingForBestmove = false;
+        if (this.engineState === EngineState.STOPPING_SEARCH) {
           if (this.stopTimeout) {
             clearTimeout(this.stopTimeout);
             this.stopTimeout = null;
@@ -471,11 +490,17 @@ class EngineSession {
           }
 
           this.postStopCommandQueue.length = 0;
+          this.engineState = EngineState.READY;
+          this.sendState();
+
           if (commandsToRun.length > 0) {
             for (const command of commandsToRun) {
               this.sendToEngine(command);
             }
           }
+        } else {
+          this.engineState = EngineState.READY;
+          this.sendState();
         }
       }
 
@@ -500,6 +525,7 @@ class EngineSession {
       return;
     }
     this.engineState = EngineState.STARTING;
+    this.currentEngineId = engineId;
 
     console.log(`Connecting to remote engine at ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
     const socket = new net.Socket();
@@ -569,13 +595,13 @@ class EngineSession {
     }
 
     const handleStop = () => {
-      if (this.isWaitingForBestmove) return;
-      if (this.engineState === EngineState.READY && this.isThinking) {
-        this.isWaitingForBestmove = true;
+      if (this.engineState === EngineState.STOPPING_SEARCH) return;
+      if (this.engineState === EngineState.THINKING) {
+        this.engineState = EngineState.STOPPING_SEARCH;
         this.postStopCommandQueue.length = 0;
         this.sendToEngine("stop");
         this.stopTimeout = setTimeout(() => {
-          if (this.isWaitingForBestmove) {
+          if (this.engineState === EngineState.STOPPING_SEARCH) {
             console.warn("Engine did not respond to stop command. Resending.");
             this.sendToEngine("stop");
             this.stopTimeout = null;
@@ -595,8 +621,7 @@ class EngineSession {
     }
 
     if (
-      this.isThinking &&
-      !this.isWaitingForBestmove &&
+      this.engineState === EngineState.THINKING &&
       (command.startsWith("position") ||
         command.startsWith("go") ||
         command.startsWith("setoption"))
@@ -605,19 +630,33 @@ class EngineSession {
       handleStop();
     }
 
-    if (this.isWaitingForBestmove) {
+    if (this.engineState === EngineState.STOPPING_SEARCH) {
       if (command !== "stop") this.postStopCommandQueue.push(command);
       return;
     }
 
     if (command.startsWith("start_engine ")) {
-      if (this.engineHandle || this.engineState === EngineState.STARTING || this.isStopping) {
-        this.sendError("engine already running, starting, or stopping");
-        return;
-      }
       const engineId = command.substring("start_engine ".length).trim();
       if (!/^[a-zA-Z0-9_\-.]+$/.test(engineId)) {
         this.sendError("invalid engine id");
+        return;
+      }
+      if (
+        this.currentEngineId === engineId &&
+        (this.engineHandle || this.engineState === EngineState.STARTING)
+      ) {
+        console.log(
+          `Engine ${engineId} is already active or starting for session ${this.sessionId}. Ignoring redundant start request.`,
+        );
+        this.sendState();
+        return;
+      }
+      if (
+        this.engineHandle ||
+        this.engineState === EngineState.STARTING ||
+        this.engineState === EngineState.TERMINATING
+      ) {
+        this.sendError("engine already running, starting, or stopping");
         return;
       }
       this.startEngine(engineId);
@@ -627,11 +666,10 @@ class EngineSession {
     if (command === "stop_engine") {
       this.isExplicitlyTerminated = true;
       if (this.engineHandle) {
-        this.isStopping = true;
+        this.engineState = EngineState.TERMINATING;
+        this.currentEngineId = null;
         this.commandQueue.length = 0;
         this.postStopCommandQueue.length = 0;
-        this.isThinking = false;
-        this.isWaitingForBestmove = false;
         if (this.stopTimeout) {
           clearTimeout(this.stopTimeout);
           this.stopTimeout = null;
@@ -653,7 +691,7 @@ class EngineSession {
       return;
     }
 
-    if (this.engineState === EngineState.READY) {
+    if (this.engineState === EngineState.READY || this.engineState === EngineState.THINKING) {
       this.sendToEngine(command);
     } else if (
       this.engineState > EngineState.UNINITIALIZED &&

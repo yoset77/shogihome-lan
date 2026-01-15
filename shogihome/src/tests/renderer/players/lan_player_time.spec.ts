@@ -113,8 +113,60 @@ describe("LanPlayer Time Control", () => {
 
     await player.startSearch(record.position, usi, timeStates, dummyHandler);
 
-    // Should behave as byoyomi mode (no subtraction, no binc/winc)
-    const expectedGo = "go btime 60000 wtime 60000 byoyomi 10000";
-    expect(LanEngine.prototype.sendCommand).toHaveBeenCalledWith(expectedGo);
+    // Should subtract increment (5000) from both even if byoyomi > 0
+    const expectedGo = "go btime 55000 wtime 55000 byoyomi 10000";
+    expect(LanEngine.prototype.sendCommand).toHaveBeenNthCalledWith(2, expectedGo);
+  });
+
+  it("should calculate correct time for 3rd move (Black) with Fischer rule", async () => {
+    // 3rd move: Black -> White -> Black (Current)
+    const usi = "position startpos moves 7g7f 3c3d";
+    const record = Record.newByUSI(usi) as Record;
+
+    // Initial: 60s, Inc: 5s
+    // Black consumed 10s in 1st move.
+    // Current timeMs = 60000 - 10000 + 5000 = 55000
+    const timeStates: TimeStates = {
+      black: { timeMs: 55000, byoyomi: 0, increment: 5 },
+      white: { timeMs: 60000, byoyomi: 0, increment: 5 }, // White hasn't moved or consumed roughly
+    };
+
+    await player.startSearch(record.position, usi, timeStates, dummyHandler);
+
+    // Expected btime: 55000 - 5000 = 50000
+    // Expected wtime: 60000 - 5000 = 55000 (Always subtract inc)
+    const expectedGo = "go btime 50000 wtime 55000 binc 5000 winc 5000";
+    expect(LanEngine.prototype.sendCommand).toHaveBeenNthCalledWith(2, expectedGo);
+  });
+
+  it("should pass delay to handler", async () => {
+    const usi = "position startpos";
+    const record = Record.newByUSI(usi) as Record;
+    const dummyHandler: SearchHandler = {
+      onMove: vi.fn(),
+      onResign: vi.fn(),
+      onWin: vi.fn(),
+      onError: vi.fn(),
+    };
+
+    const timeStates: TimeStates = {
+      black: { timeMs: 60000, byoyomi: 0, increment: 0 },
+      white: { timeMs: 60000, byoyomi: 0, increment: 0 },
+    };
+
+    await player.startSearch(record.position, usi, timeStates, dummyHandler);
+
+    // Simulate server response with delay
+    const response = JSON.stringify({
+      sfen: usi,
+      info: "bestmove 7g7f",
+      delay: 1234,
+    });
+    messageHandler(response);
+
+    expect(dummyHandler.onMove).toHaveBeenCalledWith(
+      expect.objectContaining({ usi: "7g7f" }), // Move object check
+      expect.objectContaining({ delay: 1234, usi }), // SearchInfo object check
+    );
   });
 });

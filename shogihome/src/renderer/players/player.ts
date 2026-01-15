@@ -9,6 +9,7 @@ export type SearchInfo = {
   score?: number; // 先手から見た評価値
   mate?: number; // 先手勝ちの場合に正の値、後手勝ちの場合に負の値
   pv?: Move[];
+  delay?: number; // サーバーからの送信遅延(ms)
 };
 
 export interface SearchHandler {

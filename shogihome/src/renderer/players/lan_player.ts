@@ -108,22 +108,20 @@ export class LanPlayer implements Player {
     // ShogiHome keeps the time after adding the increment.
     // However, USI requires the time before adding the increment (btime + binc).
     // So we subtract the increment from the current time.
-    const binc = timeStates.black.increment || 0;
-    const winc = timeStates.white.increment || 0;
+    const black = timeStates.black;
+    const white = timeStates.white;
     const byoyomi = timeStates[position.color === Color.BLACK ? "black" : "white"].byoyomi || 0;
 
-    let btime = timeStates.black.timeMs;
-    let wtime = timeStates.white.timeMs;
-    if (byoyomi === 0) {
-      btime -= binc * 1000;
-      wtime -= winc * 1000;
-    }
+    const btime = black.timeMs - (black.increment || 0) * 1e3;
+    const wtime = white.timeMs - (white.increment || 0) * 1e3;
+    const binc = byoyomi === 0 ? (black.increment || 0) * 1e3 : 0;
+    const winc = byoyomi === 0 ? (white.increment || 0) * 1e3 : 0;
 
     let goCommand = `go btime ${btime} wtime ${wtime}`;
     if (byoyomi > 0) {
-      goCommand += ` byoyomi ${byoyomi * 1000}`;
+      goCommand += ` byoyomi ${byoyomi * 1e3}`;
     } else if (binc > 0 || winc > 0) {
-      goCommand += ` binc ${binc * 1000} winc ${winc * 1000}`;
+      goCommand += ` binc ${binc} winc ${winc}`;
     }
     this.lastGoCommand = goCommand;
     this.lanEngine.sendCommand(goCommand);
@@ -247,7 +245,9 @@ export class LanPlayer implements Player {
       if (data.info) {
         const infoStr = data.info as string;
         if (infoStr.startsWith("bestmove")) {
-          this.isThinking = false;
+          if (this.stopPromiseResolver || data.sfen === this.currentSfen) {
+            this.isThinking = false;
+          }
           if (this.stopPromiseResolver) {
             this.stopPromiseResolver();
             this.stopPromiseResolver = null;
@@ -269,14 +269,18 @@ export class LanPlayer implements Player {
             }
             const move = this.position.createMoveByUSI(parts[1]);
             if (move) {
+              const delay = data.delay as number | undefined;
+              const baseInfo = this.info || { usi: this.currentSfen };
+              const infoWithDelay = delay ? { ...baseInfo, delay } : baseInfo;
+
               if (this.info?.pv && this.info.pv.length >= 1 && this.info.pv[0].equals(move)) {
                 const info = {
-                  ...this.info,
+                  ...infoWithDelay,
                   pv: this.info.pv.slice(1),
                 };
                 this.handler.onMove(move, info);
               } else {
-                this.handler.onMove(move);
+                this.handler.onMove(move, delay ? infoWithDelay : undefined);
               }
             }
           }

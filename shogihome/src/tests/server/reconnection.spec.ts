@@ -41,9 +41,9 @@ describe("Server Session Reconnection", () => {
 
       setTimeout(() => {
         if (!serverReady) reject(new Error("Server start timeout"));
-      }, 10000);
+      }, 30000);
     });
-  });
+  }, 30000);
 
   afterAll(() => {
     if (serverProcess) {

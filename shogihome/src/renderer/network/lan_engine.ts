@@ -17,14 +17,33 @@ export class LanEngine {
   private engineListCache: LanEngineInfo[] | null = null;
   private reconnectAttempts = 0;
   private reconnectTimeout: number | null = null;
-  private isExplicitlyClosed = false;
+  private isExplicitlyClosed = true;
   private _status: LanEngineStatus = "disconnected";
   private statusListeners: ((status: LanEngineStatus) => void)[] = [];
   private commandQueue: string[] = [];
   private pingIntervalId: number | null = null;
   private pongTimeoutId: number | null = null;
 
-  constructor(private sessionId: string) {}
+  constructor(private sessionId: string) {
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", this.onVisibilityChange);
+    }
+  }
+
+  private onVisibilityChange = () => {
+    if (document.visibilityState === "visible" && !this.isExplicitlyClosed) {
+      console.log(`Foreground detected. Refreshing session ${this.sessionId}...`);
+      this.clearReconnect();
+      if (this.ws) {
+        // Close the potentially zombie connection without triggering normal onclose logic.
+        this.ws.onclose = null;
+        this.ws.close();
+        this.ws = null;
+        this.setStatus("disconnected");
+      }
+      this.connect();
+    }
+  };
 
   get status(): LanEngineStatus {
     return this._status;
@@ -124,12 +143,11 @@ export class LanEngine {
 
   private startHeartbeat() {
     this.stopHeartbeat();
-    // Send ping every 5 seconds
+    // Send ping every 6 seconds
     this.pingIntervalId = window.setInterval(() => {
       this.sendPing();
-    }, 5000);
+    }, 6000);
   }
-
   private stopHeartbeat() {
     if (this.pingIntervalId !== null) {
       clearInterval(this.pingIntervalId);
@@ -144,14 +162,14 @@ export class LanEngine {
   private sendPing() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-    // Set timeout for pong response (e.g. 4 seconds)
+    // Set timeout for pong response (e.g. 6 seconds)
     if (this.pongTimeoutId === null) {
       this.pongTimeoutId = window.setTimeout(() => {
         console.warn("Heartbeat timeout. Closing connection.");
         if (this.ws) {
           this.ws.close(); // This will trigger onclose and scheduleReconnect
         }
-      }, 4000);
+      }, 6000);
     }
     try {
       this.ws.send("ping");
@@ -191,6 +209,9 @@ export class LanEngine {
 
   disconnect() {
     this.isExplicitlyClosed = true;
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    }
     this.clearReconnect();
     this.stopHeartbeat();
     this.commandQueue = [];
