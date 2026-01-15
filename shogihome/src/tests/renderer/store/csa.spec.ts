@@ -74,12 +74,12 @@ describe("store/csa", () => {
     vi.clearAllMocks();
   });
 
-  it("CSAManager/resign", async () => {
+  it("CSAManager", async () => {
     const sessionID = Math.floor(Math.random() * 1000);
-    mockAPI.csaLogin.mockResolvedValueOnce(sessionID);
-    mockAPI.csaAgree.mockResolvedValueOnce();
+    mockAPI.csaLogin.mockResolvedValue(sessionID);
+    mockAPI.csaAgree.mockResolvedValue();
     mockAPI.csaMove.mockResolvedValue();
-    mockAPI.csaLogout.mockResolvedValueOnce();
+    mockAPI.csaLogout.mockResolvedValue(undefined);
     const mockPlayer = createMockPlayer({
       "position startpos": {
         usi: "7g7f",
