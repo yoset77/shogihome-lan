@@ -411,6 +411,7 @@ export const vi: Texts = {
   hashUsage: "Sử dụng hash",
   stop: "Dừng",
   resume: "Tiếp tục",
+  connecting: "Đang kết nối...",
   noHandicap: "Không chấp",
   lanceHandicap: "Chấp Thương",
   rightLanceHandicap: "Chấp Thương phải",

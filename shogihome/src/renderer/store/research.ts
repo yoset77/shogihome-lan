@@ -24,6 +24,7 @@ function getSenderTypeByIndex(index: number): SearchInfoSenderType | undefined {
 }
 
 type UpdateSearchInfoCallback = (type: SearchInfoSenderType, info: SearchInfo) => void;
+type ResearchErrorCallback = (e: unknown) => void;
 
 type Engine = {
   usi: USIPlayer | LanPlayer;
@@ -38,7 +39,7 @@ export class ResearchManager {
   private onUpdateSearchInfo: UpdateSearchInfoCallback = () => {
     /* noop */
   };
-  private onError: ErrorCallback = () => {
+  private onError: ResearchErrorCallback = () => {
     /* noop */
   };
   private record?: ImmutableRecord;
@@ -46,14 +47,14 @@ export class ResearchManager {
   private synced = true;
 
   on(event: "updateSearchInfo", handler: UpdateSearchInfoCallback): this;
-  on(event: "error", handler: ErrorCallback): this;
+  on(event: "error", handler: ResearchErrorCallback): this;
   on(event: string, handler: unknown): this {
     switch (event) {
       case "updateSearchInfo":
         this.onUpdateSearchInfo = handler as UpdateSearchInfoCallback;
         break;
       case "error":
-        this.onError = handler as ErrorCallback;
+        this.onError = handler as ResearchErrorCallback;
         break;
     }
     return this;
@@ -96,12 +97,22 @@ export class ResearchManager {
           engineId = "research";
         }
 
+        const sessionKey = index === 0 ? "research_main" : `research_sub_${index}`;
+
         return {
-          usi: new LanPlayer(engineId, engineName, (info) => {
-            if (type !== undefined && this.synced) {
-              this.onUpdateSearchInfo(type, info);
-            }
-          }),
+          usi: new LanPlayer(
+            sessionKey,
+            engineId,
+            engineName,
+            (info) => {
+              if (type !== undefined && this.synced) {
+                this.onUpdateSearchInfo(type, info);
+              }
+            },
+            (e) => {
+              this.onError(e);
+            },
+          ),
           paused: false,
         };
       }

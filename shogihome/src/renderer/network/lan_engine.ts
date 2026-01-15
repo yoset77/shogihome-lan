@@ -8,37 +8,70 @@ export interface LanEngineInfo {
   path: string;
 }
 
-class LanEngine {
+export type LanEngineStatus = "disconnected" | "connecting" | "connected";
+
+export class LanEngine {
   private ws: WebSocket | null = null;
-  private static instance: LanEngine;
   private onMessageHandler: MessageHandler | null = null;
   private messageListeners: MessageListener[] = [];
   private engineListCache: LanEngineInfo[] | null = null;
+  private reconnectAttempts = 0;
+  private reconnectTimeout: number | null = null;
+  private isExplicitlyClosed = false;
+  private _status: LanEngineStatus = "disconnected";
+  private statusListeners: ((status: LanEngineStatus) => void)[] = [];
+  private commandQueue: string[] = [];
+  private pingIntervalId: number | null = null;
+  private pongTimeoutId: number | null = null;
 
-  private constructor() {}
+  constructor(private sessionId: string) {}
 
-  public static getInstance(): LanEngine {
-    if (!LanEngine.instance) {
-      LanEngine.instance = new LanEngine();
+  get status(): LanEngineStatus {
+    return this._status;
+  }
+
+  private setStatus(status: LanEngineStatus) {
+    if (this._status !== status) {
+      this._status = status;
+      this.statusListeners.forEach((listener) => listener(status));
     }
-    return LanEngine.instance;
+  }
+
+  subscribeStatus(listener: (status: LanEngineStatus) => void): () => void {
+    this.statusListeners.push(listener);
+    listener(this._status);
+    return () => {
+      this.statusListeners = this.statusListeners.filter((l) => l !== listener);
+    };
   }
 
   connect(onMessage?: MessageHandler): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        console.log("WebSocket is already connected.");
-        // Update handler even if already connected
+    this.isExplicitlyClosed = false;
+    return new Promise((resolve) => {
+      if (
+        this.ws &&
+        (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)
+      ) {
+        console.log("WebSocket is already connected or connecting.");
         if (onMessage) {
           this.onMessageHandler = onMessage;
+        }
+        if (this.ws.readyState === WebSocket.OPEN) {
+          this.setStatus("connected");
+          this.flushCommandQueue();
+          this.startHeartbeat();
+        } else {
+          this.setStatus("connecting");
         }
         resolve();
         return;
       }
 
-      // Use the same port as the server.ts, and connect to the host serving the web page.
+      this.clearReconnect();
+      this.setStatus("connecting");
+
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const url = `${protocol}//${window.location.host}`;
+      const url = `${protocol}//${window.location.host}/?sessionId=${this.sessionId}`;
       this.ws = new WebSocket(url);
       if (onMessage) {
         this.onMessageHandler = onMessage;
@@ -46,43 +79,162 @@ class LanEngine {
 
       this.ws.onopen = () => {
         console.log("WebSocket connection established");
+        this.reconnectAttempts = 0;
+        this.setStatus("connected");
+        this.flushCommandQueue();
+        this.startHeartbeat();
         resolve();
       };
 
       this.ws.onmessage = (event) => {
         const data = event.data;
 
-        // Process temporary listeners
-        this.messageListeners = this.messageListeners.filter((listener) => !listener(data));
+        // Handle heartbeat
+        try {
+          const json = JSON.parse(data);
+          if (json.info === "pong") {
+            this.handlePong();
+            return; // Don't propagate pong
+          }
+        } catch (e) {
+          // ignore
+        }
 
+        this.messageListeners = this.messageListeners.filter((listener) => !listener(data));
         if (this.onMessageHandler) {
           this.onMessageHandler(data);
         }
       };
 
-      this.ws.onclose = () => {
-        console.log("WebSocket connection closed");
+      this.ws.onclose = (event) => {
+        console.log(`WebSocket connection closed: code=${event.code} reason=${event.reason}`);
         this.ws = null;
+        this.stopHeartbeat();
+        this.setStatus("disconnected");
+        if (!this.isExplicitlyClosed) {
+          this.scheduleReconnect();
+        }
       };
 
       this.ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        reject(error);
       };
     });
   }
 
+  private startHeartbeat() {
+    this.stopHeartbeat();
+    // Send ping every 5 seconds
+    this.pingIntervalId = window.setInterval(() => {
+      this.sendPing();
+    }, 5000);
+  }
+
+  private stopHeartbeat() {
+    if (this.pingIntervalId !== null) {
+      clearInterval(this.pingIntervalId);
+      this.pingIntervalId = null;
+    }
+    if (this.pongTimeoutId !== null) {
+      clearTimeout(this.pongTimeoutId);
+      this.pongTimeoutId = null;
+    }
+  }
+
+  private sendPing() {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    // Set timeout for pong response (e.g. 4 seconds)
+    if (this.pongTimeoutId === null) {
+      this.pongTimeoutId = window.setTimeout(() => {
+        console.warn("Heartbeat timeout. Closing connection.");
+        if (this.ws) {
+          this.ws.close(); // This will trigger onclose and scheduleReconnect
+        }
+      }, 4000);
+    }
+    try {
+      this.ws.send("ping");
+    } catch (e) {
+      console.warn("Failed to send ping:", e);
+    }
+  }
+
+  private handlePong() {
+    if (this.pongTimeoutId !== null) {
+      clearTimeout(this.pongTimeoutId);
+      this.pongTimeoutId = null;
+    }
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimeout !== null) return;
+
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    console.log(`Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
+
+    this.reconnectTimeout = window.setTimeout(() => {
+      this.reconnectTimeout = null;
+      this.reconnectAttempts++;
+      this.connect().catch(() => {
+        // Reconnection failed, will be rescheduled by onclose
+      });
+    }, delay);
+  }
+
+  private clearReconnect() {
+    if (this.reconnectTimeout !== null) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+  }
+
   disconnect() {
+    this.isExplicitlyClosed = true;
+    this.clearReconnect();
+    this.stopHeartbeat();
+    this.commandQueue = [];
     if (this.ws) {
       this.ws.close();
     }
+    this.setStatus("disconnected");
   }
 
   sendCommand(command: string) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(command);
+      try {
+        this.ws.send(command);
+      } catch (e) {
+        console.warn("Failed to send command, buffering:", command);
+        this.commandQueue.push(command);
+      }
     } else {
-      console.error("WebSocket is not connected.");
+      console.log("WebSocket is not connected, buffering command:", command);
+      this.commandQueue.push(command);
+    }
+  }
+
+  private flushCommandQueue() {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+    if (this.commandQueue.length > 0) {
+      console.log(`Flushing ${this.commandQueue.length} buffered commands`);
+      while (this.commandQueue.length > 0) {
+        const command = this.commandQueue.shift();
+        if (command) {
+          try {
+            this.ws.send(command);
+          } catch (e) {
+            console.error("Failed to flush command:", command, e);
+            // If send fails here, connection is likely broken again.
+            // Push back to front? Or just let onclose handle it?
+            // If we push back, we risk infinite loops if command is bad.
+            // But if it's network, we should keep it.
+            this.commandQueue.unshift(command);
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -141,4 +293,6 @@ class LanEngine {
   }
 }
 
-export const lanEngine = LanEngine.getInstance();
+export const lanDiscoveryEngine = new LanEngine(
+  "discovery-" + Math.random().toString(36).substring(2),
+);

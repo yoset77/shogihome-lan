@@ -7,7 +7,11 @@ import * as uri from "@/common/uri.js";
 import { LanPlayer } from "./lan_player.js";
 
 export interface PlayerBuilder {
-  build(playerSettings: PlayerSettings, onSearchInfo?: (info: SearchInfo) => void): Promise<Player>;
+  build(
+    playerSettings: PlayerSettings,
+    onSearchInfo?: (info: SearchInfo) => void,
+    sessionKey?: string,
+  ): Promise<Player>;
 }
 
 export function defaultPlayerBuilder(engineTimeoutSeconds?: number): PlayerBuilder {
@@ -15,6 +19,7 @@ export function defaultPlayerBuilder(engineTimeoutSeconds?: number): PlayerBuild
     async build(
       playerSettings: PlayerSettings,
       onSearchInfo?: (info: SearchInfo) => void,
+      sessionKey?: string,
     ): Promise<Player> {
       if (playerSettings.uri === uri.ES_HUMAN) {
         return humanPlayer;
@@ -26,7 +31,7 @@ export function defaultPlayerBuilder(engineTimeoutSeconds?: number): PlayerBuild
           engineId = playerSettings.uri.split(":")[1];
           engineName = playerSettings.name || `LAN:${engineId}`;
         }
-        const player = new LanPlayer(engineId, engineName, onSearchInfo);
+        const player = new LanPlayer(sessionKey || "default", engineId, engineName, onSearchInfo);
         await player.launch();
         return player;
       }

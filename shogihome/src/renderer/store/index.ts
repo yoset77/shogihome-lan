@@ -72,7 +72,6 @@ import { LayoutProfile, LayoutProfileList } from "@/common/settings/layout.js";
 import { clearURLParams, loadRecordForWebApp, saveRecordForWebApp } from "./webapp.js";
 import { CommentBehavior } from "@/common/settings/comment.js";
 import { Attachment, ListItem } from "@/common/message.js";
-import { lanEngine } from "@/renderer/network/lan_engine.js";
 
 const puzzleHistoryKey = "shogihome-puzzle-history";
 const puzzleHistoryExpirationDays = 28;
@@ -267,6 +266,7 @@ class Store {
       .on("stopBeep", stopBeep)
       .on("error", (e) => {
         useErrorStore().add(e);
+        refs.stopGame({ force: true });
       });
     this.csaGameManager
       .on("saveRecord", this.onSaveRecord.bind(refs))
@@ -283,6 +283,7 @@ class Store {
       .on("updateSearchInfo", this.onUpdateSearchInfo.bind(refs))
       .on("error", (e) => {
         useErrorStore().add(e);
+        refs.stopResearch();
       });
     this.analysisManager.on("finish", this.onFinish.bind(refs)).on("error", (e) => {
       useErrorStore().add(e);
@@ -1791,33 +1792,3 @@ export function useStore(): UnwrapNestedRefs<Store> {
   }
   return store;
 }
-
-// Detect app resume and sync LAN engine state.
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState !== "visible") {
-    return;
-  }
-  const store = useStore();
-
-  if (store.appState === AppState.GAME) {
-    const settings = store.gameSettings;
-    const isLanGame = settings.black.uri === "lan-engine" || settings.white.uri === "lan-engine";
-    if (isLanGame && !lanEngine.isConnected()) {
-      console.log("LAN Engine connection lost on resume, stopping game.");
-      useMessageStore().enqueue({
-        text: t.gameStoppedBecauseLanDisconnected,
-      });
-      store.stopGame({ force: true });
-    }
-  } else if (
-    store.researchState !== ResearchState.IDLE &&
-    store.hasLanEngineInResearch &&
-    !lanEngine.isConnected()
-  ) {
-    console.log("LAN Engine connection lost on resume, stopping research.");
-    useMessageStore().enqueue({
-      text: t.researchStoppedBecauseLanDisconnected,
-    });
-    store.stopResearch();
-  }
-});

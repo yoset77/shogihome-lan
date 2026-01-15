@@ -19,9 +19,9 @@
           <Icon :icon="IconType.ROBOT" />
           <div class="label">{{ `${t.beginner} (${t.rangingRook})` }}</div>
         </button>
-        <template v-if="lanEngineList.length > 0">
+        <template v-if="lanStore.engineList.value.length > 0">
           <button
-            v-for="info in lanEngineList.filter(
+            v-for="info in lanStore.engineList.value.filter(
               (e) => !e.type || e.type === 'game' || e.type === 'both',
             )"
             :key="info.id"
@@ -79,7 +79,7 @@ import { showModalDialog } from "@/renderer/helpers/dialog";
 import { useStore } from "@/renderer/store";
 import { Color, InitialPositionType } from "tsshogi";
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { useLanStore } from "@/renderer/store/lan";
 
 type View = "selectPlayer" | "selectPosition" | "selectTurn";
 
@@ -89,7 +89,7 @@ const currentView = ref<View>("selectPlayer");
 const playerURI = ref("");
 const playerName = ref("");
 const startPosition = ref<InitialPositionType | "current">(InitialPositionType.STANDARD);
-const lanEngineList = ref<LanEngineInfo[]>([]);
+const lanStore = useLanStore();
 
 const emit = defineEmits<{
   close: [];
@@ -102,10 +102,8 @@ const onClose = () => {
 onMounted(async () => {
   showModalDialog(dialog.value, onClose);
   installHotKeyForDialog(dialog.value);
-  try {
-    lanEngineList.value = await lanEngine.getEngineList();
-  } catch (e) {
-    console.error(e);
+  if (lanStore.status.value === "disconnected") {
+    lanStore.fetchEngineList().catch(console.error);
   }
 });
 

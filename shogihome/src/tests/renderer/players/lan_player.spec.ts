@@ -1,18 +1,19 @@
 import { LanPlayer } from "@/renderer/players/lan_player";
-import { lanEngine } from "@/renderer/network/lan_engine";
+import { LanEngine } from "@/renderer/network/lan_engine";
 import { dispatchUSIInfoUpdate } from "@/renderer/players/usi.js";
 import { Record } from "tsshogi";
-import { Mocked } from "vitest";
+import { Mock } from "vitest";
 
 vi.mock("@/renderer/network/lan_engine");
 vi.mock("@/renderer/players/usi.js");
-
-const mockLanEngine = lanEngine as Mocked<typeof lanEngine>;
 
 describe("LanPlayer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    (LanEngine.prototype.connect as Mock).mockResolvedValue(undefined);
+    (LanEngine.prototype.startEngine as Mock).mockResolvedValue(undefined);
+    (LanEngine.prototype.sendCommand as Mock).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -20,13 +21,15 @@ describe("LanPlayer", () => {
   });
 
   it("updateInfo should filter multipv > 1 and use throttling", async () => {
-    mockLanEngine.connect.mockResolvedValue();
     const onSearchInfo = vi.fn();
-    const player = new LanPlayer("test-engine", "Test Engine", onSearchInfo);
+    const player = new LanPlayer("test-session", "test-engine", "Test Engine", onSearchInfo);
 
     // Launch the player
     let messageHandler: (message: string) => void = () => {};
-    mockLanEngine.connect.mockImplementation((handler) => {
+    (LanEngine.prototype.connect as Mock).mockImplementation(function (
+      this: LanEngine,
+      handler?: (message: string) => void,
+    ) {
       if (handler) {
         messageHandler = handler;
       }
@@ -82,12 +85,14 @@ describe("LanPlayer", () => {
   });
 
   it("updateInfo should ignore stale messages with wrong SFEN", async () => {
-    mockLanEngine.connect.mockResolvedValue();
     const onSearchInfo = vi.fn();
-    const player = new LanPlayer("test-engine", "Test Engine", onSearchInfo);
+    const player = new LanPlayer("test-session", "test-engine", "Test Engine", onSearchInfo);
 
     let messageHandler: (message: string) => void = () => {};
-    mockLanEngine.connect.mockImplementation((handler) => {
+    (LanEngine.prototype.connect as Mock).mockImplementation(function (
+      this: LanEngine,
+      handler?: (message: string) => void,
+    ) {
       if (handler) {
         messageHandler = handler;
       }
@@ -148,12 +153,14 @@ describe("LanPlayer", () => {
   });
 
   it("updateInfo should not flush pending info after position change", async () => {
-    mockLanEngine.connect.mockResolvedValue();
     const onSearchInfo = vi.fn();
-    const player = new LanPlayer("test-engine", "Test Engine", onSearchInfo);
+    const player = new LanPlayer("test-session", "test-engine", "Test Engine", onSearchInfo);
 
     let messageHandler: (message: string) => void = () => {};
-    mockLanEngine.connect.mockImplementation((handler) => {
+    (LanEngine.prototype.connect as Mock).mockImplementation(function (
+      this: LanEngine,
+      handler?: (message: string) => void,
+    ) {
       if (handler) {
         messageHandler = handler;
       }
@@ -200,13 +207,15 @@ describe("LanPlayer", () => {
   });
 
   it("dispatchUSIInfoUpdate should be called even for multipv > 1", async () => {
-    mockLanEngine.connect.mockResolvedValue();
-    const player = new LanPlayer("test-engine", "Test Engine", () => {
+    const player = new LanPlayer("test-session", "test-engine", "Test Engine", () => {
       /* noop */
     });
 
     let messageHandler: (message: string) => void = () => {};
-    mockLanEngine.connect.mockImplementation((handler) => {
+    (LanEngine.prototype.connect as Mock).mockImplementation(function (
+      this: LanEngine,
+      handler?: (message: string) => void,
+    ) {
       if (handler) {
         messageHandler = handler;
       }

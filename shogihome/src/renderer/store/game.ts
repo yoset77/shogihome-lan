@@ -307,11 +307,15 @@ export class GameManager {
         });
       }
       // プレイヤーを初期化する。
-      this.blackPlayer = await this.playerBuilder.build(this.settings.black, (info) =>
-        this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+      this.blackPlayer = await this.playerBuilder.build(
+        this.settings.black,
+        (info) => this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        "game_black",
       );
-      this.whitePlayer = await this.playerBuilder.build(this.settings.white, (info) =>
-        this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+      this.whitePlayer = await this.playerBuilder.build(
+        this.settings.white,
+        (info) => this.updateSearchInfo(SearchInfoSenderType.OPPONENT, info),
+        "game_white",
       );
       await this.goNextGame();
     } catch (e) {

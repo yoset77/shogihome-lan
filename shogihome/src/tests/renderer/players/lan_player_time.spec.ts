@@ -1,14 +1,12 @@
 import { LanPlayer } from "@/renderer/players/lan_player";
-import { lanEngine } from "@/renderer/network/lan_engine";
+import { LanEngine } from "@/renderer/network/lan_engine";
 import { Record } from "tsshogi";
-import { Mocked } from "vitest";
 import { TimeStates } from "@/common/game/time";
 import { SearchHandler } from "@/renderer/players/player";
+import { Mock } from "vitest";
 
 vi.mock("@/renderer/network/lan_engine");
 vi.mock("@/renderer/players/usi.js");
-
-const mockLanEngine = lanEngine as Mocked<typeof lanEngine>;
 
 describe("LanPlayer Time Control", () => {
   let player: LanPlayer;
@@ -18,10 +16,16 @@ describe("LanPlayer Time Control", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    (LanEngine.prototype.connect as Mock).mockResolvedValue(undefined);
+    (LanEngine.prototype.startEngine as Mock).mockResolvedValue(undefined);
+    (LanEngine.prototype.sendCommand as Mock).mockResolvedValue(undefined);
 
-    player = new LanPlayer("test-engine", "Test Engine");
+    player = new LanPlayer("test-session", "test-engine", "Test Engine");
 
-    mockLanEngine.connect.mockImplementation((handler) => {
+    (LanEngine.prototype.connect as Mock).mockImplementation(function (
+      this: LanEngine,
+      handler?: (message: string) => void,
+    ) {
       if (handler) {
         messageHandler = handler;
       }
@@ -57,7 +61,7 @@ describe("LanPlayer Time Control", () => {
     // Expect btime/wtime to be subtracted by increment * 1000
     // 60000 - 5000 = 55000
     const expectedGo = "go btime 55000 wtime 55000 binc 5000 winc 5000";
-    expect(mockLanEngine.sendCommand).toHaveBeenCalledWith(expectedGo);
+    expect(LanEngine.prototype.sendCommand).toHaveBeenCalledWith(expectedGo);
   });
 
   it("should send correct go command for Byoyomi rule (Black)", async () => {
@@ -74,7 +78,7 @@ describe("LanPlayer Time Control", () => {
 
     // Expect NO subtraction for byoyomi
     const expectedGo = "go btime 60000 wtime 60000 byoyomi 10000";
-    expect(mockLanEngine.sendCommand).toHaveBeenCalledWith(expectedGo);
+    expect(LanEngine.prototype.sendCommand).toHaveBeenCalledWith(expectedGo);
   });
 
   it("should send correct go command for Fischer rule (White)", async () => {
@@ -93,7 +97,7 @@ describe("LanPlayer Time Control", () => {
     // Black: 55000 - 5000 = 50000
     // White: 60000 - 5000 = 55000
     const expectedGo = "go btime 50000 wtime 55000 binc 5000 winc 5000";
-    expect(mockLanEngine.sendCommand).toHaveBeenCalledWith(expectedGo);
+    expect(LanEngine.prototype.sendCommand).toHaveBeenCalledWith(expectedGo);
   });
 
   it("should prioritize Byoyomi over Increment if Byoyomi > 0", async () => {
@@ -111,6 +115,6 @@ describe("LanPlayer Time Control", () => {
 
     // Should behave as byoyomi mode (no subtraction, no binc/winc)
     const expectedGo = "go btime 60000 wtime 60000 byoyomi 10000";
-    expect(mockLanEngine.sendCommand).toHaveBeenCalledWith(expectedGo);
+    expect(LanEngine.prototype.sendCommand).toHaveBeenCalledWith(expectedGo);
   });
 });

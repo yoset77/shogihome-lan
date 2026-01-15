@@ -255,7 +255,7 @@ import { InitialPositionType } from "tsshogi";
 import { useErrorStore } from "@/renderer/store/error";
 import { useBusyState } from "@/renderer/store/busy";
 import DialogFrame from "./DialogFrame.vue";
-import { lanEngine, LanEngineInfo } from "@/renderer/network/lan_engine";
+import { useLanStore } from "@/renderer/store/lan";
 
 const store = useStore();
 const busyState = useBusyState();
@@ -273,7 +273,7 @@ const gameSettings = ref(defaultGameSettings());
 const engines = ref(new USIEngines());
 const blackPlayerURI = ref("");
 const whitePlayerURI = ref("");
-const lanEngineList = ref<LanEngineInfo[]>([]);
+const lanStore = useLanStore();
 
 busyState.retain();
 
@@ -296,10 +296,12 @@ onMounted(async () => {
     startPositionListShuffle.value = gameSettings.value.startPositionListOrder === "shuffle";
 
     // Fetch LAN engines
-    try {
-      lanEngineList.value = await lanEngine.getEngineList();
-    } catch (e) {
-      console.warn("Failed to load LAN engines:", e);
+    if (lanStore.status.value === "disconnected") {
+      try {
+        await lanStore.fetchEngineList();
+      } catch (e) {
+        console.warn("Failed to connect to LAN engine server:", e);
+      }
     }
   } catch (e) {
     useErrorStore().add(e);
@@ -314,7 +316,7 @@ const buildPlayerSettings = (playerURI: string): PlayerSettings => {
     let name = "LAN Engine";
     if (playerURI.startsWith("lan-engine:")) {
       const id = playerURI.split(":")[1];
-      const info = lanEngineList.value.find((e) => e.id === id);
+      const info = lanStore.engineList.value.find((e) => e.id === id);
       if (info) {
         name = info.name; // Use name from engines.json
       } else {
