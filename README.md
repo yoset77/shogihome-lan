@@ -1,5 +1,11 @@
 # ShogiHome LAN Engine
 
+> [!WARNING]
+> **試験運用中 (Experimental)**
+>
+> 本プロジェクトは現在、個人的な検証および限定的なテスト運用を目的として公開されています。
+> 予期せぬ不具合が含まれる可能性があり、将来的に仕様が変更される場合があります。
+
 [![Built with Gemini](https://img.shields.io/badge/Built%20with-Gemini-4E86F8?style=flat-square&logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![CI](https://github.com/yoset77/shogihome-lan/actions/workflows/test.yml/badge.svg)](https://github.com/yoset77/shogihome-lan/actions/workflows/test.yml)
 
@@ -58,7 +64,7 @@ PC上のUSI将棋エンジンをLAN内のスマートフォンやタブレット
 ### B. ソースコードから実行・ビルドする場合
 
 #### 前提条件
-- **Node.js:** 
+- **Node.js:** v18以上
 
 #### 1. インストール
 
