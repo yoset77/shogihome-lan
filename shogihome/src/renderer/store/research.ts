@@ -91,7 +91,7 @@ export class ResearchManager {
 
         if (uri.startsWith("lan-engine:")) {
           engineId = uri.split(":")[1];
-          engineName = usi!.name || `LAN:${engineId}`;
+          engineName = usi!.name || engineId;
         } else if (uri === "lan-engine") {
           // legacy
           engineId = "research";

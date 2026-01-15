@@ -143,7 +143,7 @@ const listItems = computed(() => {
     // Check status or list availability
     if (lanStore.status.value === "connecting") {
       items.push({
-        label: `LAN: ${t.connecting}`,
+        label: t.connecting,
         value: "",
         tags: [tag],
         disabled: true,
@@ -158,7 +158,7 @@ const listItems = computed(() => {
         }
 
         items.push({
-          label: `LAN: ${info.name}`,
+          label: info.name,
           value: `lan-engine:${info.id}`,
           tags: [tag],
         });

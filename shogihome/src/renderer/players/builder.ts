@@ -29,7 +29,7 @@ export function defaultPlayerBuilder(engineTimeoutSeconds?: number): PlayerBuild
         let engineName = "LAN Engine";
         if (playerSettings.uri.startsWith("lan-engine:")) {
           engineId = playerSettings.uri.split(":")[1];
-          engineName = playerSettings.name || `LAN:${engineId}`;
+          engineName = playerSettings.name || engineId;
         }
         const player = new LanPlayer(sessionKey || "default", engineId, engineName, onSearchInfo);
         await player.launch();

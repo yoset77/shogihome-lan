@@ -197,4 +197,12 @@ input.number {
   text-align: right;
   width: 80px;
 }
+@media (max-width: 600px) {
+  .root {
+    width: 80vw;
+  }
+  :deep(.form-item-label-wide) {
+    width: 120px;
+  }
+}
 </style>
