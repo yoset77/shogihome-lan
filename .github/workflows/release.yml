@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build-and-release:
@@ -92,6 +94,11 @@ jobs:
 
           # Zip it
           Compress-Archive -Path "$pkgName" -DestinationPath "$pkgName.zip"
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: shogihome-lan-*.zip
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
