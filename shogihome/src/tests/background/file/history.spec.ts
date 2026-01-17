@@ -7,19 +7,32 @@ import {
   loadBackup,
   saveBackup,
 } from "@/background/file/history.js";
-import { getAppPath } from "@/background/proc/path-electron.js";
+import { getUserDataPath } from "@/background/proc/path.js";
 import {
   BackupEntryV2,
   HistoryClass,
   RecordFileHistory,
   UserFileEntry,
 } from "@/common/file/history.js";
+import { getTempPathForTesting } from "@/background/proc/env.js";
 
-const userDir = getAppPath("userData");
-const historyPath = path.join(userDir, "record_file_history.json");
-const backupDir = path.join(userDir, "backup/kifu");
+vi.mock("@/background/proc/path.js");
+
+const mockUserDataPath = path.join(getTempPathForTesting(), "userData");
+const historyPath = path.join(mockUserDataPath, "record_file_history.json");
+const backupDir = path.join(mockUserDataPath, "backup/kifu");
+
+vi.mocked(getUserDataPath).mockReturnValue(mockUserDataPath);
 
 describe("history", () => {
+  beforeEach(() => {
+    fs.mkdirSync(mockUserDataPath, { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(mockUserDataPath, { recursive: true, force: true });
+  });
+
   it("v2", async () => {
     let history = await getHistory();
     expect(history.entries).toHaveLength(0);

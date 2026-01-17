@@ -29,7 +29,7 @@ enum STORAGE_KEY {
 
 const fileCache = new Map<string, ArrayBuffer>();
 
-// Electron を使わずにシンプルな Web アプリケーションとして実行した場合に使用します。
+// Web/LAN アプリケーションとして実行した場合に使用します。
 export const webAPI: Bridge = {
   // Core
   updateAppState(): void {

@@ -142,20 +142,11 @@ export interface API {
   getPathForFile(file: File): string;
 }
 
-interface ExtendedWindow extends Window {
-  electronShogi?: AppInfo;
-  electronShogiAPI?: Bridge;
-}
-
-function getWindowObject(): ExtendedWindow {
-  return window as unknown as ExtendedWindow;
-}
-
-export const appInfo: AppInfo = getWindowObject().electronShogi || {
+export const appInfo: AppInfo = {
   appVersion: __APP_VERSION__,
 };
 
-export const bridge: Bridge = getWindowObject().electronShogiAPI || webAPI;
+export const bridge: Bridge = webAPI;
 
 const api: API = {
   ...bridge,
@@ -300,7 +291,7 @@ const api: API = {
 export default api;
 
 export function isNative(): boolean {
-  return !!getWindowObject().electronShogiAPI;
+  return false;
 }
 
 export function isMobileWebApp(): boolean {

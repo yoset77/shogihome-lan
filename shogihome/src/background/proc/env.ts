@@ -3,11 +3,11 @@ import os from "node:os";
 import path from "node:path";
 
 export function isDevelopment(): boolean {
-  return process.env.npm_lifecycle_event === "electron:serve" && !isTest();
+  return process.env.npm_lifecycle_event === "serve" && !isTest();
 }
 
 export function isPreview(): boolean {
-  return process.env.npm_lifecycle_event === "electron:preview";
+  return process.env.npm_lifecycle_event === "preview";
 }
 
 export function isTest(): boolean {

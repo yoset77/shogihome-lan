@@ -13,6 +13,7 @@ __pycache__
 .env
 .env.local
 .env.*.local
+shogihome/data/
 engine-wrapper/engines.json
 
 # Log files

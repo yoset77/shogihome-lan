@@ -52,36 +52,6 @@ module.exports = [
     optimization,
   },
   {
-    name: "background",
-    mode: "production",
-    entry: "./dist/src/background/index.js",
-    target: "electron-main",
-    output: {
-      filename: "background.js",
-      path: __dirname + "/dist/packed",
-    },
-    externals: ["electron"],
-    experiments: {
-      outputModule: true,
-    },
-    optimization,
-  },
-  {
-    name: "preload",
-    mode: "production",
-    entry: "./src/renderer/ipc/preload.ts",
-    target: "electron-preload",
-    output: {
-      filename: "preload.js",
-      path: __dirname + "/dist/packed",
-      libraryTarget: "commonjs2",
-    },
-    module: moduleForCJS,
-    resolve: resolveForCJS,
-    externals: ["electron"],
-    optimization,
-  },
-  {
     name: "command:usi-csa-bridge",
     mode: "production",
     entry: "./src/command/usi-csa-bridge/index.ts",

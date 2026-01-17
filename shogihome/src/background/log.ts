@@ -4,20 +4,17 @@ import log4js from "log4js";
 import { getDateTimeString } from "@/common/helpers/datetime.js";
 import { isTest } from "./proc/env.js";
 import { LogLevel, LogType } from "@/common/log.js";
-import { openPath } from "./helpers/electron.js";
-import { getAppPath } from "./proc/path-electron.js";
+import { getUserDataPath } from "./proc/path.js";
 
-const rootDir = getAppPath("logs");
+function getLogPath(name: string): string {
+  return path.join(getUserDataPath(), "logs", name);
+}
 
 export function openLogsDirectory(): Promise<void> {
-  return openPath(rootDir);
+  return Promise.resolve(); // Not supported in server mode
 }
 
 const datetime = getDateTimeString().replaceAll(" ", "_").replaceAll("/", "").replaceAll(":", "");
-
-const appLogPath = path.join(rootDir, `app-${datetime}.log`);
-const usiLogPath = path.join(rootDir, `usi-${datetime}.log`);
-const csaLogPath = path.join(rootDir, `csa-${datetime}.log`);
 
 const config: log4js.Configuration = {
   appenders: {
@@ -32,11 +29,11 @@ const config: log4js.Configuration = {
 function getFilePath(type: LogType): string {
   switch (type) {
     case LogType.APP:
-      return appLogPath;
+      return getLogPath(`app-${datetime}.log`);
     case LogType.USI:
-      return usiLogPath;
+      return getLogPath(`usi-${datetime}.log`);
     case LogType.CSA:
-      return csaLogPath;
+      return getLogPath(`csa-${datetime}.log`);
   }
 }
 
@@ -109,8 +106,9 @@ export function shutdownLoggers(): void {
   });
 }
 
-export function openLogFile(logType: LogType): Promise<void> {
-  return openPath(getFilePath(logType));
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function openLogFile(_logType: LogType): Promise<void> {
+  return Promise.resolve();
 }
 
 export function getTailCommand(logType: LogType): string {

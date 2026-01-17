@@ -11,7 +11,9 @@ function getSessionId(sessionKey: string): string {
   const localStorageKey = `shogihome-lan-session-id-${sessionKey}`;
   let id = localStorage.getItem(localStorageKey);
   if (!id) {
-    id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    id = array[0].toString(36) + array[1].toString(36) + Date.now().toString(36);
     localStorage.setItem(localStorageKey, id);
   }
   return id;
@@ -47,7 +49,9 @@ export class LanPlayer implements Player {
     this.engineName = engineName;
     this.onSearchInfo = onSearchInfo;
     this.onErrorCallback = onError;
-    this._sessionID = Math.floor(Math.random() * 100000);
+    const randomBuffer = new Uint32Array(1);
+    window.crypto.getRandomValues(randomBuffer);
+    this._sessionID = randomBuffer[0] % 100000;
     this.lanEngine = new LanEngine(getSessionId(sessionKey));
   }
 

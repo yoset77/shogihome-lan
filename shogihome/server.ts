@@ -8,6 +8,8 @@ import { fileURLToPath } from "url";
 import readline from "readline";
 import dotenv from "dotenv";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
 const getBasePath = () => {
   // SEA (Single Executable Application) environment check
   if (path.basename(process.execPath) === "shogihome-server.exe") {
@@ -117,6 +119,13 @@ const REMOTE_ENGINE_HOST = process.env.REMOTE_ENGINE_HOST || "localhost";
 const REMOTE_ENGINE_PORT = parseInt(process.env.REMOTE_ENGINE_PORT || "4082", 10);
 const CONNECTION_PROTECTION_TIMEOUT =
   parseInt(process.env.ENGINE_CONNECTION_PROTECTION_TIMEOUT || "60", 10) * 1000;
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3000, // Limit each IP to 3000 requests per windowMs
+});
+
+app.use(limiter);
 
 app.use(express.static(shogiHomePath));
 
