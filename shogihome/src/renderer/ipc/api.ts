@@ -301,3 +301,9 @@ export function isMobileWebApp(): boolean {
   const urlParams = new URL(window.location.toString()).searchParams;
   return urlParams.has("mobile");
 }
+
+export function isIOS(): boolean {
+  const isOldiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isNewiPadOS = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  return isOldiOS || isNewiPadOS;
+}

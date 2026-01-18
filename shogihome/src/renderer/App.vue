@@ -60,6 +60,8 @@
       :multi-pv="store.pvPreview.multiPV"
       :depth="store.pvPreview.depth"
       :selective-depth="store.pvPreview.selectiveDepth"
+      :time-ms="store.pvPreview.timeMs"
+      :nodes="store.pvPreview.nodes"
       :score="store.pvPreview.score"
       :mate="store.pvPreview.mate"
       :lower-bound="store.pvPreview.lowerBound"

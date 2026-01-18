@@ -75,7 +75,7 @@
           />
         </div>
         <!-- 背景画像 -->
-        <div v-if="!isMobileWebApp()" class="form-item">
+        <div v-if="isNative()" class="form-item">
           <div class="form-item-label-wide">{{ t.backgroundImage }}</div>
           <HorizontalSelector
             v-model:value="update.backgroundImageType"
@@ -126,7 +126,7 @@
                   value: PieceImageType.HITOMOJI_GOTHIC_DARK,
                 },
                 { label: t.customImage, value: PieceImageType.CUSTOM_IMAGE },
-              ].filter((item) => !isMobileWebApp() || item.value !== PieceImageType.CUSTOM_IMAGE)
+              ].filter((item) => isNative() || item.value !== PieceImageType.CUSTOM_IMAGE)
             "
           />
           <div
@@ -172,7 +172,7 @@
                 { label: t.darkGreen, value: BoardImageType.DARK_GREEN },
                 { label: t.dark, value: BoardImageType.DARK },
                 { label: t.customImage, value: BoardImageType.CUSTOM_IMAGE },
-              ].filter((item) => !isMobileWebApp() || item.value !== BoardImageType.CUSTOM_IMAGE)
+              ].filter((item) => isNative() || item.value !== BoardImageType.CUSTOM_IMAGE)
             "
           />
         </div>
@@ -217,9 +217,7 @@
                 { label: t.darkGreen, value: PieceStandImageType.DARK_GREEN },
                 { label: t.dark, value: PieceStandImageType.DARK },
                 { label: t.customImage, value: PieceStandImageType.CUSTOM_IMAGE },
-              ].filter(
-                (item) => !isMobileWebApp() || item.value !== PieceStandImageType.CUSTOM_IMAGE,
-              )
+              ].filter((item) => isNative() || item.value !== PieceStandImageType.CUSTOM_IMAGE)
             "
           />
         </div>
@@ -415,7 +413,7 @@
       <div class="section">
         <div class="section-title">{{ t.file }}</div>
         <!-- デフォルトの保存形式 -->
-        <div v-if="!isMobileWebApp()" class="form-item">
+        <div v-if="isNative()" class="form-item">
           <div class="form-item-label-wide">
             {{ t.defaultRecordFileFormat }}
           </div>
@@ -462,7 +460,7 @@
           />
         </div>
         <!-- 自動保存先 -->
-        <div v-if="!isMobileWebApp()" class="form-item row">
+        <div v-if="isNative()" class="form-item row">
           <div class="form-item-label-wide">
             {{ t.autoSavingDirectory }}
           </div>
@@ -475,7 +473,7 @@
           </button>
         </div>
         <!-- 棋譜ファイル名-->
-        <div class="form-item row">
+        <div v-if="!isMobileWebApp()" class="form-item row">
           <div class="form-item-label-wide">
             {{ t.recordFileName }}
           </div>
@@ -541,12 +539,12 @@
           <div class="form-item-small-label">MB ({{ t.between(0, 4096) }})</div>
         </div>
       </div>
-      <hr v-if="!isMobileWebApp()" />
+      <hr />
       <!-- USI プロトコル -->
-      <div v-if="!isMobileWebApp()" class="section">
+      <div class="section">
         <div class="section-title">{{ t.usiProtocol }}</div>
         <!-- オプション名を翻訳 -->
-        <div class="form-item">
+        <div v-if="false" class="form-item">
           <div class="form-item-label-wide">
             {{ t.translateOptionName }}
           </div>
@@ -554,7 +552,7 @@
           <div class="form-item-small-label">({{ t.functionalOnJapaneseOnly }})</div>
         </div>
         <!-- 最大起動待ち時間 -->
-        <div class="form-item">
+        <div v-if="false" class="form-item">
           <div class="form-item-label-wide">
             {{ t.maxStartupTime }}
           </div>
@@ -576,7 +574,7 @@
           />
         </div>
       </div>
-      <hr v-if="!isMobileWebApp()" />
+      <hr />
       <!-- 評価値・期待勝率・読み筋 -->
       <div class="section">
         <div class="section-title">{{ t.evaluationAndEstimatedWinRateAndPV }}</div>
@@ -686,9 +684,9 @@
           />
         </div>
       </div>
-      <hr v-if="!isMobileWebApp()" />
+      <hr v-if="isNative()" />
       <!-- アプリバージョン -->
-      <div v-if="!isMobileWebApp()" class="section">
+      <div v-if="isNative()" class="section">
         <div class="section-title">{{ t.appVersion }}</div>
         <div class="form-item">
           <div class="form-item-label-wide">{{ t.installed }}</div>
@@ -714,9 +712,9 @@
           </div>
         </div>
       </div>
-      <hr v-if="!isMobileWebApp()" />
+      <hr v-if="isNative()" />
       <!-- 開発者向け -->
-      <div v-if="!isMobileWebApp()" class="section">
+      <div v-if="isNative()" class="section">
         <div class="section-title">{{ t.forDevelopers }}</div>
         <div class="form-group warning">
           <div v-if="!isNative()" class="note">

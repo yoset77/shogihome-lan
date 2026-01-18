@@ -172,10 +172,12 @@ dialog.menu .group {
 
 dialog.menu button {
   width: 150px;
+  height: 75px;
   margin: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 dialog.menu button:enabled {

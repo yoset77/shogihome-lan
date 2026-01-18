@@ -195,13 +195,18 @@ import PuzzlePane from "@/renderer/view/tab/PuzzlePane.vue";
 import { useAppSettings } from "@/renderer/store/settings";
 import { useStore } from "@/renderer/store";
 import { AppState } from "@/common/control/state";
+import { isIOS } from "@/renderer/ipc/api";
 
 const lazyUpdateDelay = 80;
 const selectorHeight = 30;
 const minRecordViewWidth = 250;
 const minRecordViewHeight = 130;
 
-const windowSize = reactive(new RectSize(window.innerWidth, window.innerHeight));
+// iOS の多くのバージョンでは safe-area-inset-bottom が 21px になる。
+// それ以外の環境もドロップシャドウの高さを考慮してマージンを持たせる。
+const safeAreaMarginY = isIOS() ? 21 : 10;
+
+const windowSize = reactive(new RectSize(window.innerWidth, window.innerHeight - safeAreaMarginY));
 const bottomUIType = ref(BottomUIType.RECORD);
 const sideUIType = ref(SideUIType.RECORD);
 const appSettings = useAppSettings();
@@ -211,7 +216,7 @@ const windowLazyUpdate = new Lazy();
 const updateSize = () => {
   windowLazyUpdate.after(() => {
     windowSize.width = window.innerWidth;
-    windowSize.height = window.innerHeight;
+    windowSize.height = window.innerHeight - safeAreaMarginY;
   }, lazyUpdateDelay);
 };
 

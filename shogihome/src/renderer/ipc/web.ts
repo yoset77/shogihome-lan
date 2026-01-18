@@ -209,14 +209,29 @@ export const webAPI: Bridge = {
     return Promise.reject(new Error("invalid URI"));
   },
   async saveRecord(path: string, data: Uint8Array): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!(this as any).fileSystem) {
-      throw new Error("File system is not available.");
+    // パスからファイル名を抽出
+    const filename = path.split(/[/\\]/).pop() || "record.kif";
+
+    // 拡張子からMIMEタイプを決定
+    let mimeType = "application/octet-stream";
+    if (/\.(kif|ki2|csa|sfen)$/i.test(filename)) {
+      mimeType = "text/plain";
+    } else if (/\.jkf$/i.test(filename)) {
+      mimeType = "application/json";
     }
+
+    // <a> タグによるダウンロード
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const blob = new Blob([data as any], { type: "application/octet-stream" });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (this as any).fileSystem.saveFile(path, blob);
+    const blob = new Blob([data as any], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   },
   async loadRecordFileHistory(): Promise<string> {
     return JSON.stringify(getEmptyHistory());

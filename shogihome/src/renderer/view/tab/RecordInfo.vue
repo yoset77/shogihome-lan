@@ -4,7 +4,7 @@
       <div
         ref="root"
         class="full column main"
-        :style="{ height: `${size.height - 25}px` }"
+        :style="{ height: `${size.height - 28}px` }"
         @copy.stop
         @paste.stop
       >
