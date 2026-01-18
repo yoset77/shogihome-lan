@@ -356,7 +356,8 @@ class EngineSession {
       case "gameover":
         return parts.length === 2 && ["win", "lose", "draw"].includes(parts[1]);
       case "setoption":
-        return /^setoption name \S+( value .+)?$/.test(cmd);
+        // Restrict to MultiPV to prevent path traversal or resource exhaustion
+        return /^setoption name MultiPV value \d+$/.test(cmd);
       case "position":
         if (parts[1] === "startpos") {
           if (parts.length === 2) return true;
