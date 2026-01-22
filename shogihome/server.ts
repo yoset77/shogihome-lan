@@ -382,7 +382,7 @@ class EngineSession {
           const t = args[i];
           if (["ponder", "infinite"].includes(t)) continue;
           if (["btime", "wtime", "byoyomi", "binc", "winc"].includes(t)) {
-            if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return false;
+            if (i + 1 >= args.length || !/^-?\d+$/.test(args[i + 1])) return false;
             i++;
           } else if (t === "mate") {
             if (i + 1 >= args.length || !/^(\d+|infinite)$/.test(args[i + 1])) return false;
