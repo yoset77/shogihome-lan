@@ -179,8 +179,6 @@ graph LR
 
 レンダラープロセスで使用しているライブラリは [THIRD PARTY LICENSES](https://sunfish-shogi.github.io/shogihome/third-party-licenses.html) を参照してください。
 
-Electron と Chromium については electron-builder によって成果物にバンドルされます。
-
 ---
 
 ## AI-Powered Development

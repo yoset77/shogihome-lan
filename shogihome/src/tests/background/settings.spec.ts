@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
-import { getAppPath } from "@/background/proc/path-electron.js";
+import { getUserDataPath } from "@/background/proc/path.js";
 import {
   loadAnalysisSettings,
   loadAppSettings,
@@ -37,8 +37,14 @@ import { defaultBookImportSettings } from "@/common/settings/book.js";
 import { USIEngines } from "@/common/settings/usi.js";
 import { testUSIEngine } from "@/tests/mock/usi.js";
 import { defaultResearchSettings } from "@/common/settings/research.js";
+import { getTempPathForTesting } from "@/background/proc/env.js";
 
-const userDir = getAppPath("userData");
+vi.mock("@/background/proc/path.js");
+
+const mockUserDataPath = path.join(getTempPathForTesting(), "userData");
+const userDir = mockUserDataPath;
+
+vi.mocked(getUserDataPath).mockReturnValue(mockUserDataPath);
 
 describe("background/settings", () => {
   beforeEach(() => {
@@ -64,7 +70,7 @@ describe("background/settings", () => {
     expect(appSettings).toEqual(
       defaultAppSettings({
         returnCode: process.platform === "win32" ? "\r\n" : "\n",
-        autoSaveDirectory: path.join(getAppPath("documents"), "ShogiHome"),
+        autoSaveDirectory: path.join(mockUserDataPath, "Documents", "ShogiHome"),
       }),
     );
     expect(batchConversionSettings).toEqual(defaultBatchConversionSettings());

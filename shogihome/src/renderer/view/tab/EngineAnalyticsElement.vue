@@ -44,7 +44,7 @@
       <div
         v-if="!mobileLayout"
         class="list-area"
-        :style="{ height: `${height - (showHeader ? 22 : 0)}px` }"
+        :style="{ height: `${height - (showHeader ? 22 : 0) - 2}px` }"
       >
         <table class="list">
           <thead>
@@ -155,7 +155,7 @@
       <div
         v-else
         class="mobile-list-area"
-        :style="{ height: `${height - (showHeader ? 22 : 0)}px` }"
+        :style="{ height: `${height - (showHeader ? 22 : 0) - 2}px` }"
       >
         <div v-for="info in monitor.latestInfo" :key="info.id" class="mobile-pv-card">
           <div class="mobile-pv-header">
@@ -347,6 +347,8 @@ const showPreview = (ite: USIInfo) => {
     multiPV: ite.multiPV,
     depth: ite.depth,
     selectiveDepth: ite.selectiveDepth,
+    timeMs: ite.timeMs,
+    nodes: ite.nodes,
     score: ite.score,
     mate: ite.scoreMate,
     lowerBound: ite.lowerBound,

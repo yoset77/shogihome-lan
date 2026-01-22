@@ -4,9 +4,11 @@ import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import { getAppLogger } from "@/background/log.js";
 import { Jimp } from "jimp";
-import { imageCacheDir } from "./cache.js";
 import { exists } from "@/background/helpers/file.js";
 import { getPieceImageAssetNameByIndex } from "@/common/assets/pieces.js";
+import { getUserDataPath } from "@/background/proc/path.js";
+
+const imageCacheDir = path.join(getUserDataPath(), "image_cache");
 
 const marginRatio = 0.05;
 

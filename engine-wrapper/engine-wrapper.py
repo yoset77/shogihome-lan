@@ -85,10 +85,35 @@ async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
 
             writer.write(data)
             await writer.drain()
-    except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+    except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError, ConnectionAbortedError):
         pass
+    except Exception as e:
+        logging.error(f"Unexpected error in {log_prefix}: {e}", exc_info=True)
     finally:
         pass
+
+async def apply_engine_options(stdin: asyncio.StreamWriter, options: dict):
+    """Apply engine options from engines.json configuration."""
+    if not options or not isinstance(options, dict):
+        return
+    
+    for name, value in options.items():
+        # Normalize boolean values to lowercase 'true'/'false' for USI compatibility
+        if isinstance(value, bool):
+            value = str(value).lower()
+
+        command = f"setoption name {name} value {value}\n"
+        logging.info(f"Applying option: {command.strip()}")
+        
+        try:
+            stdin.write(command.encode())
+            await stdin.drain()
+        except (BrokenPipeError, ConnectionResetError) as e:
+            logging.error(f"Failed to write option '{name}': {e}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error writing option '{name}': {e}", exc_info=True)
+            raise
 
 async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyncio.StreamWriter):
     peername = client_writer.get_extra_info('peername')
@@ -177,9 +202,32 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
 
         logging.info(f"Started engine process: {engine_path} (PID: {engine_process.pid})")
 
-        client_to_engine_task = asyncio.create_task(
-            pipe_stream(client_reader, engine_process.stdin, "[Client -> Engine]")
-        )
+        options_applied = False  # Track if options have been applied
+
+        async def client_to_engine():
+            nonlocal options_applied
+            try:
+                while True:
+                    line_bytes = await client_reader.readline()
+                    if not line_bytes:
+                        break
+                    command = line_bytes.decode().strip()
+                    
+                    # Inject options immediately BEFORE 'isready' command (only once)
+                    if command == 'isready' and not options_applied:
+                        options = engine_def.get('options')
+                        if options:
+                            logging.info(f"Detected 'isready', applying engine options for '{engine_id}'...")
+                            await apply_engine_options(engine_process.stdin, options)
+                            options_applied = True
+
+                    logging.info(f"[Client -> Engine] {command}")
+                    engine_process.stdin.write(line_bytes)
+                    await engine_process.stdin.drain()
+            except Exception as e:
+                logging.debug(f"Client to engine pipe closed: {e}")
+
+        client_to_engine_task = asyncio.create_task(client_to_engine())
         engine_stdout_to_client_task = asyncio.create_task(
             pipe_stream(engine_process.stdout, client_writer, "[Engine -> Client]")
         )
@@ -238,7 +286,7 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                                 if engine_process.returncode is None:
                                     engine_process.kill()
                                     await engine_process.wait()
-                except (BrokenPipeError, ConnectionResetError):
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                     logging.warning("Engine stdin pipe already closed, could not send 'quit'.")
                 except ProcessLookupError:
                     pass

@@ -71,7 +71,11 @@ import Icon from "@/renderer/view/primitive/Icon.vue";
 import { RectSize } from "@/common/assets/geometry.js";
 import { IconType } from "@/renderer/assets/icons";
 import { useAppSettings } from "@/renderer/store/settings";
-import { EvaluationViewFrom, getPieceImageURLTemplate } from "@/common/settings/app";
+import {
+  EvaluationViewFrom,
+  getPieceImageURLTemplate,
+  NodeCountFormat,
+} from "@/common/settings/app";
 import { t } from "@/common/i18n";
 import { useStore } from "@/renderer/store";
 import { SearchInfoSenderType } from "@/renderer/store/record";
@@ -103,6 +107,16 @@ const props = defineProps({
     default: undefined,
   },
   selectiveDepth: {
+    type: Number,
+    required: false,
+    default: undefined,
+  },
+  timeMs: {
+    type: Number,
+    required: false,
+    default: undefined,
+  },
+  nodes: {
     type: Number,
     required: false,
     default: undefined,
@@ -199,16 +213,35 @@ const getDisplayScore = (score: number, color: Color, evaluationViewFrom: Evalua
   return evaluationViewFrom === EvaluationViewFrom.EACH || color == Color.BLACK ? score : -score;
 };
 
+const formatNodeCount = computed(() => {
+  switch (appSettings.nodeCountFormat) {
+    case NodeCountFormat.COMMA_SEPARATED:
+      return (count: number) => count.toLocaleString();
+    case NodeCountFormat.COMPACT:
+      return Intl.NumberFormat("en-US", { notation: "compact" }).format;
+    case NodeCountFormat.JAPANESE:
+      return Intl.NumberFormat("ja-JP", { notation: "compact" }).format;
+    default:
+      return (count: number) => count.toString();
+  }
+});
+
 const info = computed(() => {
   const elements = [];
   if (props.name) {
     elements.push(`${props.name}`);
+  }
+  if (props.timeMs !== undefined) {
+    elements.push(`時間=${(props.timeMs / 1e3).toFixed(1)}s`);
   }
   if (props.depth !== undefined) {
     elements.push(`深さ=${props.depth}`);
   }
   if (props.selectiveDepth !== undefined) {
     elements.push(`選択的深さ=${props.selectiveDepth}`);
+  }
+  if (props.nodes !== undefined) {
+    elements.push(`ノード数=${formatNodeCount.value(props.nodes)}`);
   }
   if (props.score !== undefined) {
     elements.push(

@@ -72,7 +72,7 @@
           <Icon :icon="IconType.SAVE_AS" />
           <div class="label">{{ t.saveAs }}</div>
         </button>
-        <div
+        <template
           v-for="format of [
             RecordFileFormat.KIF,
             RecordFileFormat.KIFU,
@@ -83,11 +83,15 @@
           ]"
           :key="format"
         >
-          <button v-if="!isNative()" :disabled="!states.saveAs" @click="onSaveForWeb(format)">
+          <button
+            v-if="!isNative() && !isMobileWebApp()"
+            :disabled="!states.saveAs"
+            @click="onSaveForWeb(format)"
+          >
             <Icon :icon="IconType.SAVE" />
             <div class="label">{{ format }}</div>
           </button>
-        </div>
+        </template>
         <button v-if="isNative()" :disabled="!states.history" @click="onHistory">
           <Icon :icon="IconType.HISTORY" />
           <div class="label">{{ t.history }}</div>

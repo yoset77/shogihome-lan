@@ -143,6 +143,8 @@ export type PVPreview = {
   multiPV?: number;
   depth?: number;
   selectiveDepth?: number;
+  timeMs?: number;
+  nodes?: number;
   score?: number;
   mate?: number;
   lowerBound?: boolean;
@@ -1437,12 +1439,34 @@ class Store {
     return false;
   }
 
+  private async copyTextToClipboard(text: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      useMessageStore().enqueue({ text: "クリップボードにコピーしました。" }); // TODO: i18n
+    } catch (e) {
+      // クリップボードへのアクセスに失敗した場合 (HTTP環境など)
+      // Web Share API によるテキスト共有を試みる
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (shareError) {
+          // 共有キャンセルの場合はエラーを出さない
+          if (shareError instanceof Error && shareError.name === "AbortError") {
+            return;
+          }
+        }
+      }
+      useErrorStore().add("コピーに失敗しました。HTTPS環境が必要です。"); // TODO: i18n
+    }
+  }
+
   copyRecordKIF(): void {
     const appSettings = useAppSettings();
     const str = exportKIF(this.recordManager.record, {
       returnCode: appSettings.returnCode,
     });
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordKI2(): void {
@@ -1450,7 +1474,7 @@ class Store {
     const str = exportKI2(this.recordManager.record, {
       returnCode: appSettings.returnCode,
     });
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordCSA(): void {
@@ -1459,7 +1483,7 @@ class Store {
       returnCode: appSettings.returnCode,
       v3: appSettings.useCSAV3 ? { milliseconds: true } : undefined,
     });
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordUSIBefore(): void {
@@ -1468,7 +1492,7 @@ class Store {
       startpos: appSettings.enableUSIFileStartpos,
       resign: appSettings.enableUSIFileResign,
     });
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordUSIAll(): void {
@@ -1478,27 +1502,27 @@ class Store {
       resign: appSettings.enableUSIFileResign,
       allMoves: true,
     });
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyBoardSFEN(): void {
     const str = this.recordManager.record.sfen;
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyBoardBOD(): void {
     const str = exportBOD(this.recordManager.record);
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordJKF(): void {
     const str = exportJKFString(this.recordManager.record);
-    navigator.clipboard.writeText(str);
+    this.copyTextToClipboard(str);
   }
 
   copyRecordUSEN(): void {
     const [usen] = this.recordManager.record.usen;
-    navigator.clipboard.writeText(usen);
+    this.copyTextToClipboard(usen);
   }
 
   pasteRecord(data: string): void {

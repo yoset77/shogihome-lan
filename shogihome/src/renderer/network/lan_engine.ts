@@ -314,6 +314,13 @@ export class LanEngine {
   }
 }
 
-export const lanDiscoveryEngine = new LanEngine(
-  "discovery-" + Math.random().toString(36).substring(2),
-);
+const getDiscoveryId = () => {
+  if (typeof window !== "undefined" && window.crypto) {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0].toString(36);
+  }
+  return Date.now().toString(36);
+};
+
+export const lanDiscoveryEngine = new LanEngine("discovery-" + getDiscoveryId());

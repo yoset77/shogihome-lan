@@ -5,7 +5,13 @@ import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
   resolve: {
-    alias: [{ find: "@", replacement: "/src" }],
+    alias: [
+      { find: "@", replacement: "/src" },
+      {
+        find: "electron",
+        replacement: resolve(__dirname, "src/tests/mock/electron.ts"),
+      },
+    ],
   },
   define: {
     __APP_VERSION__: JSON.stringify("1.24.0"),

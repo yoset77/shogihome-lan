@@ -1,6 +1,6 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { getAppPath } from "@/background/proc/path-electron.js";
+import { getUserDataPath } from "@/background/proc/path.js";
 import {
   BackupEntryV2,
   HistoryClass,
@@ -17,17 +17,21 @@ import { getRecordTitleFromMetadata } from "@/common/helpers/metadata.js";
 
 const historyMaxLength = 20;
 
-const userDir = getAppPath("userData");
-const historyPath = path.join(userDir, "record_file_history.json");
+function getHistoryPath() {
+  return path.join(getUserDataPath(), "record_file_history.json");
+}
 
 // 現在はこのディレクトリに書き出していないが、
 // 古いバージョンで作られたファイルが残っている可能性があるので参照や削除の実装は残しておく
-const backupDir = path.join(userDir, "backup/kifu");
+function getBackupDir() {
+  return path.join(getUserDataPath(), "backup/kifu");
+}
 
 const lock = new AsyncLock();
 
 export async function getHistoryWithoutLock(): Promise<RecordFileHistory> {
   try {
+    const historyPath = getHistoryPath();
     if (!(await exists(historyPath))) {
       return { entries: [] };
     }
@@ -42,7 +46,7 @@ export async function getHistoryWithoutLock(): Promise<RecordFileHistory> {
 }
 
 async function saveHistories(history: RecordFileHistory): Promise<void> {
-  await writeFileAtomic(historyPath, JSON.stringify(history, undefined, 2), "utf8");
+  await writeFileAtomic(getHistoryPath(), JSON.stringify(history, undefined, 2), "utf8");
 }
 
 function issueEntryID(): string {
@@ -50,7 +54,7 @@ function issueEntryID(): string {
 }
 
 function removeBackupFile(fileName: string): void {
-  const filePath = path.join(backupDir, fileName);
+  const filePath = path.join(getBackupDir(), fileName);
   fs.rm(filePath).catch((e) => {
     getAppLogger().error("failed to remove backup: [%s]: %s", filePath, e);
   });
@@ -131,6 +135,6 @@ export function saveBackup(kif: string): Promise<void> {
 }
 
 export async function loadBackup(fileName: string): Promise<string> {
-  const filePath = path.join(backupDir, fileName);
+  const filePath = path.join(getBackupDir(), fileName);
   return await fs.readFile(filePath, "utf8");
 }

@@ -2,19 +2,29 @@
   {
     "id": "yaneuraou",
     "name": "YaneuraOu",
-    "type": "both",
-    "path": "/path/to/yaneuraou-executable"
+    "type": "research",
+    "path": "/path/to/yaneuraou-executable",
+    "options": {
+      "USI_Hash": 4096,
+      "Threads": 8,
+      "USI_OwnBook": true,
+      "BookFile": "user_book1.db"
+    }
   },
   {
     "id": "fukauraou",
     "name": "FukauraOu",
-    "type": "game",
-    "path": "engines/fukauraou/yaneuraou-deep.exe"
+    "type": "both",
+    "path": "engines/fukauraou/yaneuraou-deep.exe",
+    "options": {
+      "DNN_Model1": "my_model.onnx",
+      "DNN_Batch_Size1": 256
+    }
   },
   {
     "id": "suisho",
     "name": "Suisho",
-    "type": "research",
+    "type": "game",
     "path": "engines/suisho/yaneuraou.exe"
   }
 ]

@@ -35,10 +35,40 @@ function getEngineList() {
   return engines;
 }
 
+/**
+ * Apply engine options from engines.json configuration.
+ * Sends setoption commands before 'isready'.
+ */
+function applyEngineOptions(engineProcess, options) {
+  if (!options || typeof options !== 'object') {
+    return;
+  }
+
+  for (const [name, value] of Object.entries(options)) {
+    const command = `setoption name ${name} value ${value}`;
+    console.log(`[${new Date().toISOString()}] Applying option: ${command}`);
+    
+    if (engineProcess && engineProcess.stdin && engineProcess.stdin.writable) {
+      try {
+        engineProcess.stdin.write(command + '\n', (err) => {
+          if (err) {
+            console.error(`[${new Date().toISOString()}] Failed to write option '${name}': ${err.message}`);
+          }
+        });
+      } catch (e) {
+        console.error(`[${new Date().toISOString()}] Exception writing option '${name}': ${e.message}`);
+      }
+    } else {
+      console.warn(`[${new Date().toISOString()}] Cannot apply option '${name}': stdin not writable`);
+    }
+  }
+}
+
 const server = net.createServer((socket) => {
   console.log(`[${new Date().toISOString()}] Client connected.`);
   let engineProcess = null;
   let isCleaningUp = false;
+  let optionsApplied = false; // Track if options have been applied
 
   const cleanup = () => {
     if (isCleaningUp) {
@@ -166,23 +196,37 @@ const server = net.createServer((socket) => {
     // Forward all subsequent lines from client to engine
     rl.on('line', (command) => {
       if (engineProcess && engineProcess.stdin.writable) {
-        console.log(`[Client -> Engine] ${command}`);
-        engineProcess.stdin.write(command + '\n');
+        const cmd = command.trim();
+
+        // Inject options immediately BEFORE 'isready' command (only once)
+        if (cmd === 'isready' && engineDef.options && !optionsApplied) {
+          console.log(`[${new Date().toISOString()}] Detected 'isready', applying engine options for '${engineId}'...`);
+          applyEngineOptions(engineProcess, engineDef.options);
+          optionsApplied = true;
+        }
+
+        console.log(`[Client -> Engine] ${cmd}`);
+        engineProcess.stdin.write(cmd + '\n');
       }
     });
 
     // Pipe all output from engine back to client
     engineProcess.stdout.on('data', (data) => {
       const output = data.toString().trim();
+      
       // Reduce logging noise: Skip 'info' commands
       if (!output.startsWith("info")) {
         console.log(`[Engine -> Client] ${output}`);
       }
-      socket.write(data);
+      if (socket.writable) {
+        socket.write(data);
+      }
     });
     engineProcess.stderr.on('data', (data) => {
       console.error(`[Engine ERROR] ${data.toString().trim()}`);
-      socket.write(data);
+      if (socket.writable) {
+        socket.write(data);
+      }
     });
 
     engineProcess.on('close', (code) => {

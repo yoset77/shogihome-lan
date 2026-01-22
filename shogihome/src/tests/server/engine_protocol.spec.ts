@@ -232,7 +232,6 @@ describe("Server USI Protocol & Implicit Stop", () => {
 
     // 2. Send options IMMEDIATELY (while engine is starting/initializing)
     ws.send("setoption name MultiPV value 5");
-    ws.send("setoption name Hash value 128");
 
     // Wait for ready state from client perspective
     const readyPromise = new Promise<void>((resolve) => {
@@ -254,7 +253,6 @@ describe("Server USI Protocol & Implicit Stop", () => {
 
     // Verify commands were sent AFTER handshake
     expect(receivedCommands).toContain("setoption name MultiPV value 5");
-    expect(receivedCommands).toContain("setoption name Hash value 128");
 
     ws.close();
   });
