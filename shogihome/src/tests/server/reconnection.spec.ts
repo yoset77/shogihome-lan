@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import { spawn, ChildProcess } from "child_process";
 import path from "path";
 
-const SERVER_PORT = 8090 + Math.floor(Math.random() * 100); // Avoid conflict
+const SERVER_PORT = 8090 + Math.floor(Math.random() * 1000); // Avoid conflict
 const SERVER_URL = `ws://localhost:${SERVER_PORT}`;
 
 describe("Server Session Reconnection", () => {
@@ -19,6 +19,7 @@ describe("Server Session Reconnection", () => {
         PORT: SERVER_PORT.toString(),
         REMOTE_ENGINE_PORT: "9999",
         ALLOWED_ORIGINS: `http://localhost:${SERVER_PORT}`,
+        WRAPPER_ACCESS_TOKEN: "", // Disable auth for tests
       }, // Dummy engine port
       stdio: "pipe",
       shell: true,

@@ -4,6 +4,7 @@ import readline from 'readline';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 // Find .env file in the same directory as this script
@@ -13,6 +14,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const HOST = process.env.BIND_ADDRESS || '127.0.0.1';
 const PORT = parseInt(process.env.LISTEN_PORT || '4082', 10);
+const ACCESS_TOKEN = process.env.WRAPPER_ACCESS_TOKEN;
 
 /**
  * Load engine list from engines.json.
@@ -69,24 +71,32 @@ const server = net.createServer((socket) => {
   let engineProcess = null;
   let isCleaningUp = false;
   let optionsApplied = false; // Track if options have been applied
+  let authenticated = !ACCESS_TOKEN; // If no token set, auth is not required
+  let engineStarted = false; // Track if engine process is running
+  let authNonce = null;
 
   const cleanup = () => {
     if (isCleaningUp) {
-      console.log(`[${new Date().toISOString()}] Cleanup already in progress.`);
       return;
     }
-
-    if (!engineProcess || engineProcess.exitCode !== null) {
-      if (engineProcess) {
-        engineProcess = null;
-      }
-      if (!socket.destroyed) {
-        socket.end();
-      }
-      return;
-    }
-
     isCleaningUp = true;
+
+    // Stop reading from the socket
+    if (rl) {
+      rl.close();
+    }
+
+    // If engine process is already gone or exited
+    if (!engineProcess || engineProcess.exitCode !== null) {
+      engineProcess = null;
+      engineStarted = false;
+      if (!socket.destroyed) {
+        console.log(`[${new Date().toISOString()}] Closing client socket.`);
+        socket.destroy();
+      }
+      return;
+    }
+
     console.log(`[${new Date().toISOString()}] Cleaning up engine process (PID: ${engineProcess.pid}).`);
 
     let termTimeout;
@@ -107,7 +117,7 @@ const server = net.createServer((socket) => {
       engineProcess = null;
       // Do not reset isCleaningUp to false, as this connection scope is done.
       if (!socket.destroyed) {
-        socket.end();
+        socket.destroy();
       }
     });
 
@@ -122,10 +132,73 @@ const server = net.createServer((socket) => {
     }
   };
 
+  if (!authenticated) {
+    authNonce = crypto.randomBytes(16).toString('hex');
+    socket.write(`auth_cram_sha256 ${authNonce}\n`);
+  }
+
   const rl = readline.createInterface({ input: socket });
 
-  rl.once('line', (line) => {
+  rl.on('line', (line) => {
+    // If engine is started, forward everything to it
+    if (engineStarted) {
+      if (engineProcess && engineProcess.stdin.writable) {
+        const command = line; 
+        const cmd = command.trim();
+
+        // Inject options immediately BEFORE 'isready' command (only once)
+        if (cmd === 'isready' && !optionsApplied && socket.engineOptions) {
+          console.log(`[${new Date().toISOString()}] Detected 'isready', applying engine options...`);
+          applyEngineOptions(engineProcess, socket.engineOptions);
+          optionsApplied = true;
+        }
+        
+        console.log(`[Client -> Engine] ${cmd}`);
+        engineProcess.stdin.write(cmd + '\n');
+      }
+      return;
+    }
+
     const input = line.trim();
+
+    if (!authenticated) {
+      if (input.startsWith('auth ')) {
+        const digest = input.substring(5).trim();
+        const expectedDigest = crypto.createHmac('sha256', ACCESS_TOKEN).update(authNonce).digest('hex');
+        const digestBuffer = Buffer.from(digest, 'hex');
+        const expectedDigestBuffer = Buffer.from(expectedDigest, 'hex');
+
+        // Check length first to avoid RangeError in timingSafeEqual (DoS protection)
+        // Then use timing-safe comparison to prevent timing attacks
+        if (digestBuffer.length === expectedDigestBuffer.length && 
+            crypto.timingSafeEqual(digestBuffer, expectedDigestBuffer)) {
+          console.log(`[${new Date().toISOString()}] Client authenticated successfully.`);
+          authenticated = true;
+          socket.write('auth_ok\n');
+          return;
+        } else {
+          console.warn(`[${new Date().toISOString()}] Authentication failed.`);
+          socket.write('WRAPPER_ERROR: Authentication failed\n', () => socket.destroy());
+        }
+      } else {
+        console.warn(`[${new Date().toISOString()}] Unauthenticated command attempt: ${input}`);
+        socket.write('WRAPPER_ERROR: Authentication required\n', () => socket.destroy());
+      }
+      
+      // Stop processing any further input immediately
+      if (rl) {
+        rl.close();
+        rl.removeAllListeners();
+      }
+      return;
+    }
+    
+    // Engine started check again just in case (though we checked at top)
+    if (engineStarted) {
+       // Logic moved to top of listener
+       return;
+    }
+
     console.log(`[${new Date().toISOString()}] Received command: '${input}'`);
 
     const engines = getEngineList();
@@ -172,7 +245,18 @@ const server = net.createServer((socket) => {
     }
 
     const engineDirectory = path.dirname(enginePath);
-    engineProcess = spawn(enginePath, [], { cwd: engineDirectory });
+
+    // On Windows, batch files (.bat, .cmd) must be spawned with shell: true
+    const isBatchFile = process.platform === 'win32' && /\.(bat|cmd)$/i.test(enginePath);
+    const spawnOptions = { cwd: engineDirectory };
+    let command = enginePath;
+    if (isBatchFile) {
+      spawnOptions.shell = true;
+      // Quote the path to handle spaces when shell: true is used
+      command = `"${enginePath}"`;
+    }
+
+    engineProcess = spawn(command, [], spawnOptions);
 
     engineProcess.on('error', (err) => {
       console.error(`[${new Date().toISOString()}] Failed to start engine process. ${err.message}`);
@@ -190,25 +274,12 @@ const server = net.createServer((socket) => {
     if (engineProcess.pid === undefined) {
         return;
     }
+    
+    // Store options for the upper scope listener to use
+    socket.engineOptions = engineDef.options;
 
     console.log(`[${new Date().toISOString()}] Started engine process: ${enginePath} (PID: ${engineProcess.pid})`);
-
-    // Forward all subsequent lines from client to engine
-    rl.on('line', (command) => {
-      if (engineProcess && engineProcess.stdin.writable) {
-        const cmd = command.trim();
-
-        // Inject options immediately BEFORE 'isready' command (only once)
-        if (cmd === 'isready' && engineDef.options && !optionsApplied) {
-          console.log(`[${new Date().toISOString()}] Detected 'isready', applying engine options for '${engineId}'...`);
-          applyEngineOptions(engineProcess, engineDef.options);
-          optionsApplied = true;
-        }
-
-        console.log(`[Client -> Engine] ${cmd}`);
-        engineProcess.stdin.write(cmd + '\n');
-      }
-    });
+    engineStarted = true;
 
     // Pipe all output from engine back to client
     engineProcess.stdout.on('data', (data) => {
@@ -230,10 +301,10 @@ const server = net.createServer((socket) => {
     });
 
     engineProcess.on('close', (code) => {
-      if (!isCleaningUp) {
-        console.log(`[${new Date().toISOString()}] Engine process exited unexpectedly with code ${code}.`);
-        cleanup();
-      }
+      console.log(`[${new Date().toISOString()}] Engine process exited with code ${code}.`);
+      engineStarted = false;
+      // Ensure socket is closed when engine exits
+      cleanup();
     });
   });
 

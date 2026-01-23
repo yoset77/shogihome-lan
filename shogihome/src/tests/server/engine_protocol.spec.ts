@@ -4,8 +4,8 @@ import net from "net";
 import { spawn, ChildProcess } from "child_process";
 import path from "path";
 
-const SERVER_PORT = 8100 + Math.floor(Math.random() * 100);
-const WRAPPER_PORT = 9990 + Math.floor(Math.random() * 100);
+const SERVER_PORT = 8100 + Math.floor(Math.random() * 1000);
+const WRAPPER_PORT = 9990 + Math.floor(Math.random() * 1000);
 const SERVER_URL = `ws://localhost:${SERVER_PORT}`;
 
 describe("Server USI Protocol & Implicit Stop", () => {
@@ -42,6 +42,7 @@ describe("Server USI Protocol & Implicit Stop", () => {
         PORT: SERVER_PORT.toString(),
         REMOTE_ENGINE_PORT: WRAPPER_PORT.toString(),
         ALLOWED_ORIGINS: `http://localhost:${SERVER_PORT}`,
+        WRAPPER_ACCESS_TOKEN: "", // Disable auth for tests
       },
       stdio: "pipe",
       shell: true,
