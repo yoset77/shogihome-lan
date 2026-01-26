@@ -16,31 +16,23 @@ LAN内でのリモートエンジン利用機能を追加した派生版です�
 
 1.  このフォルダ一式（解凍済み）
 2.  使いたい将棋エンジン
-    ※ 後述する「engine_options.txt」の設定のため、YaneuraOuまたはFukauraOuを推奨します。
 
 ■ 2. 最初の設定
 
 1.  将棋エンジンの配置
     エンジンの実行ファイルと評価関数を任意のフォルダに用意してください。
-    ※ すでに使用しているエンジンに「engine_options.txt」を追加すると動作が変わる場合があるため、できれば専用のフォルダを作成してください。
 
-2.  エンジンの設定
-    スレッド数やハッシュサイズといったエンジンオプションを設定ファイルに記述します。
-    
-    1. 各エンジンフォルダに「engine_options.txt」というファイルを作成し、エンジンの設定（USIオプション）を記述して保存します。
-       具体的な記述方法は、やねうら王wiki(https://github.com/yaneurao/YaneuraOu/wiki/%E9%9A%A0%E3%81%97%E6%A9%9F%E8%83%BD)を参照してください。
-     
-       【重要】
-       「MultiPV」の設定は、ShogiHomeアプリから行うため、
-       このファイルには記述しないことを推奨します。
+2.  設定ファイルの編集
 
-3.  「engines.json」ファイルの編集
     1. 「engine-wrapper」フォルダの中にある「engines.json」ファイルを、テキストエディタで開いて編集します。
 
        "id": 識別子です。
        "name": UI上に表示される名前です。
        "type": "research" "game" "both" のいずれかを指定してください。
        "path": エンジンのパスを記述してください。
+       "options": エンジン起動時に送信するオプション名と設定値を記述します。デフォルト値のままでよいオプションは記述不要です。
+
+       ※ 検討エンジンの「MultiPV」はUIから設定できます。
 
        ※ Windowsのパス（¥マークやバックスラッシュ）は、JSONファイル内では
           2つ重ねて記述するか（例: C:\\Shogi\\Engine.exe）、
@@ -138,7 +130,7 @@ A. まず、サーバーを起動したPCのブラウザで「http://localhost:8
 2.  HTTPS化とPWA化 (Tailscale Serve)
     tailscale serve を使うと、HTTPS化されたURLが発行され、PWAとしてホーム画面に追加できます。
 
-    1.  Tailscale の AdminConsole で、「MaicDNS」と「HTTPS Certificates」を有効にします。
+    1.  Tailscale の AdminConsole で、「MagicDNS」と「HTTPS Certificates」を有効にします。
 
     2.  サーバーPCのターミナルで、以下のコマンドを実行します。
         --------------------------------------------------
