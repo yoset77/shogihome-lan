@@ -135,6 +135,13 @@ graph LR
 5.  **リアルタイム更新**: サーバーはエンジン出力に SFEN を付与して返却。フロントエンドは `dispatchUSIInfoUpdate` を通じて `usiMonitor` を更新し、読み筋タブへ反映。
 6.  **コマンドバリデーションと暗黙の停止**: サーバーは受信したUSIコマンドを厳格にバリデーションし、不正なコマンドを破棄します。また、思考中に `position` 等のコマンドを受信した場合は、自動的に `stop` を発行して `bestmove` を待機する「暗黙の停止」処理を行い、状態の不整合を防ぎます。
 7.  **統一された状態管理**: `server.ts` 内の `EngineSession` は、接続から思考・停止・終了に至るすべてのフェーズを `EngineState` で一元管理します。これにより、思考中に停止処理が走っている状態 (`STOPPING_SEARCH`) などを明確に区別し、競合状態を防止しています。
+8.  **簡易認証 (Simple Auth)**: `engine-wrapper` と `server.ts` 間にトークンベースの認証(HMAC-SHA256 CRAM)を導入しました。
+    - 双方の `.env` に `WRAPPER_ACCESS_TOKEN` を設定することで有効化されます。
+    - **CRAM方式**: 平文のトークン送信を避け、リプレイ攻撃を防ぐため、Challenge-Response認証を採用しています。
+        1. Wrapper -> Server: `auth_cram_sha256 <nonce>` (16進数32文字のランダムなナンス)
+        2. Server -> Wrapper: `auth <digest>` (トークンを鍵、ナンスをメッセージとしたHMAC-SHA256ハッシュ)
+        3. Wrapper -> Server: 検証成功なら `auth_ok`、失敗ならエラーメッセージを送信して切断。
+    - トークンが未設定の場合は、従来通り認証なしで動作します（後方互換性あり）。
 
 #### 接続の回復力 (Resilience)
 - **セッション再接続**: ネットワーク瞬断やリロードに対し、`localStorage` に保存された `sessionId` を用いた再接続機能を備えています。

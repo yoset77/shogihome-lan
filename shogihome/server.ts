@@ -9,6 +9,7 @@ import readline from "readline";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import crypto from "crypto";
 
 const getBasePath = () => {
   // SEA (Single Executable Application) environment check
@@ -553,24 +554,52 @@ class EngineSession {
       clearTimeout(connectionTimeout);
       this.connectingSocket = null;
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
-      socket.write(`run ${engineId}\n`);
 
-      this.engineState = EngineState.WAITING_USIOK;
-      this.engineHandle = {
-        write: (cmd) => socket.write(cmd),
-        close: () => socket.end(),
-        on: (e, l) => socket.on(e, l),
-        off: (e, l) => socket.off(e, l),
-        removeAllListeners: (e) => socket.removeAllListeners(e),
+      const accessToken = process.env.WRAPPER_ACCESS_TOKEN;
+
+      const setup = () => {
+        socket.write(`run ${engineId}\n`);
+
+        this.engineState = EngineState.WAITING_USIOK;
+        this.engineHandle = {
+          write: (cmd) => socket.write(cmd),
+          close: () => socket.end(),
+          on: (e, l) => socket.on(e, l),
+          off: (e, l) => socket.off(e, l),
+          removeAllListeners: (e) => socket.removeAllListeners(e),
+        };
+        this.setupEngineHandlers(socket);
+        this.engineHandle.on("close", () => this.onEngineClose());
+        this.engineHandle.on("error", (err) => {
+          console.error("Remote engine connection error:", err);
+          this.sendError("remote engine connection failed");
+          this.onEngineClose();
+        });
+        this.sendToEngine("usi");
       };
-      this.setupEngineHandlers(socket);
-      this.engineHandle.on("close", () => this.onEngineClose());
-      this.engineHandle.on("error", (err) => {
-        console.error("Remote engine connection error:", err);
-        this.sendError("remote engine connection failed");
-        this.onEngineClose();
-      });
-      this.sendToEngine("usi");
+
+      if (accessToken) {
+        const onData = (data: Buffer) => {
+          const msg = data.toString().trim();
+          if (msg.startsWith("auth_cram_sha256 ")) {
+            const nonce = msg.substring("auth_cram_sha256 ".length).trim();
+            const digest = crypto.createHmac("sha256", accessToken).update(nonce).digest("hex");
+            socket.write(`auth ${digest}\n`);
+          } else if (msg === "auth_ok") {
+            socket.off("data", onData);
+            setup();
+          } else if (msg.includes("WRAPPER_ERROR:")) {
+            console.error(`Authentication failed: ${msg}`);
+            this.sendError(msg);
+            socket.destroy();
+          } else {
+            console.warn("Unexpected message during auth:", msg);
+          }
+        };
+        socket.on("data", onData);
+      } else {
+        setup();
+      }
     });
 
     socket.on("close", () => {
@@ -738,6 +767,8 @@ const getEngineList = (ws: WebSocket) => {
   console.log(`Fetching engine list from ${REMOTE_ENGINE_HOST}:${REMOTE_ENGINE_PORT}`);
   const socket = new net.Socket();
   let data = "";
+  const accessToken = process.env.WRAPPER_ACCESS_TOKEN;
+  let authenticated = !accessToken;
 
   const connectionTimeout = setTimeout(() => {
     socket.destroy(new Error("Connection timed out"));
@@ -745,11 +776,30 @@ const getEngineList = (ws: WebSocket) => {
 
   socket.on("connect", () => {
     clearTimeout(connectionTimeout);
-    socket.write("list\n");
+    if (authenticated) {
+      socket.write("list\n");
+    }
   });
 
   socket.on("data", (chunk) => {
-    data += chunk.toString();
+    const str = chunk.toString();
+    if (!authenticated) {
+      if (str.startsWith("auth_cram_sha256 ")) {
+        const nonce = str.substring("auth_cram_sha256 ".length).trim();
+        const digest = crypto.createHmac("sha256", accessToken!).update(nonce).digest("hex");
+        socket.write(`auth ${digest}\n`);
+        return;
+      } else if (str.trim() === "auth_ok") {
+        authenticated = true;
+        socket.write("list\n");
+        return;
+      } else if (str.includes("WRAPPER_ERROR:")) {
+        console.error(`Engine wrapper authentication failed: ${str}`);
+        socket.destroy();
+        return;
+      }
+    }
+    data += str;
   });
 
   socket.on("end", () => {

@@ -4,6 +4,9 @@ import sys
 import logging
 import subprocess
 import json
+import hmac
+import hashlib
+import secrets
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -120,8 +123,50 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
     logging.info(f"Client connected from {peername}")
     engine_process = None
     tasks_to_cancel = []
+    
+    ACCESS_TOKEN = os.getenv('WRAPPER_ACCESS_TOKEN')
 
     try:
+        if ACCESS_TOKEN:
+            nonce = secrets.token_hex(16)
+            client_writer.write(f"auth_cram_sha256 {nonce}\n".encode())
+            await client_writer.drain()
+            
+            # Wait for auth command
+            auth_line = await client_reader.readline()
+            if not auth_line:
+                logging.warning("Client disconnected during auth.")
+                return
+            
+            auth_cmd = auth_line.decode().strip()
+            if auth_cmd.startswith("auth "):
+                digest = auth_cmd[5:].strip()
+                expected_digest = hmac.new(
+                    ACCESS_TOKEN.encode(),
+                    nonce.encode(),
+                    hashlib.sha256
+                ).hexdigest()
+
+                # Use timing-safe comparison to prevent timing attacks
+                if hmac.compare_digest(digest, expected_digest):
+                    logging.info(f"Client authenticated successfully from {peername}")
+                    client_writer.write(b"auth_ok\n")
+                    await client_writer.drain()
+                else:
+                    logging.warning(f"Authentication failed from {peername}")
+                    client_writer.write(b"WRAPPER_ERROR: Authentication failed\n")
+                    await client_writer.drain()
+                    client_writer.close()
+                    await client_writer.wait_closed()
+                    return
+            else:
+                logging.warning(f"Unexpected command during auth from {peername}: {auth_cmd}")
+                client_writer.write(b"WRAPPER_ERROR: Authentication required\n")
+                await client_writer.drain()
+                client_writer.close()
+                await client_writer.wait_closed()
+                return
+
         first_line = await client_reader.readline()
         if not first_line:
             logging.warning("Client disconnected before sending command.")
