@@ -2,8 +2,14 @@ import { createStore } from "@/renderer/store/index.js";
 import { Move } from "tsshogi";
 
 describe("store/webapp", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it("withUSENParam", () => {
@@ -12,6 +18,8 @@ describe("store/webapp", () => {
         toString: () =>
           "http://localhost/?usen=~0.7ku2jm6y20e45t2.&branch=0&ply=2&bname=bbb&wname=www",
       },
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
     });
     const store = createStore();
     expect(store.isRecordFileUnsaved).toBeFalsy();
@@ -22,7 +30,7 @@ describe("store/webapp", () => {
     expect(store.record.current.ply).toBe(2);
   });
 
-  it("pcWeb/withoutLocalStorage", () => {
+  it("pcWeb/withLocalStorage", () => {
     vi.stubGlobal("window", {
       location: {
         toString: () => "http://localhost/",
@@ -30,11 +38,14 @@ describe("store/webapp", () => {
       history: {
         replaceState: vi.fn(),
       },
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
     });
     const store = createStore();
     store.doMove(store.record.position.createMoveByUSI("5g5f") as Move);
+    vi.runAllTimers();
     const store2 = createStore();
-    expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos");
+    expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos moves 5g5f");
   });
 
   it("mobileWeb/localStorage", () => {
@@ -45,9 +56,12 @@ describe("store/webapp", () => {
       history: {
         replaceState: vi.fn(),
       },
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
     });
     const store = createStore();
     store.doMove(store.record.position.createMoveByUSI("5g5f") as Move);
+    vi.runAllTimers();
     const store2 = createStore();
     expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos moves 5g5f");
   });

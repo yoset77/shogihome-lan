@@ -137,6 +137,7 @@ const sampleBranchKIF = `
 
 describe("store/index", () => {
   beforeEach(() => {
+    localStorage.clear();
     mockGameManager.prototype.on.mockReturnThis();
     mockCSAGameManager.prototype.on.mockReturnThis();
     mockAnalysisManager.prototype.on.mockReturnThis();

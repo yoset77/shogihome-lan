@@ -1,9 +1,12 @@
-import { exportKIF, ImmutableRecord, importKIF, Record, RecordMetadataKey } from "tsshogi";
+import { ImmutableRecord, importKIF, Record, RecordMetadataKey } from "tsshogi";
 import { useErrorStore } from "./error.js";
 import { isMobileWebApp, isNative } from "@/renderer/ipc/api.js";
 
 const mobileRecordStorageKey = "mobile:record";
 const mobilePlyStorageKey = "mobile:ply";
+const webAppUsenStorageKey = "webapp:usen";
+const webAppBranchStorageKey = "webapp:branch";
+const webAppPlyStorageKey = "webapp:ply";
 
 export function loadRecordForWebApp(): Record | undefined {
   if (isNative()) {
@@ -25,6 +28,16 @@ export function loadRecordForWebApp(): Record | undefined {
     record.metadata.setStandardMetadata(RecordMetadataKey.BLACK_NAME, bname);
     record.metadata.setStandardMetadata(RecordMetadataKey.WHITE_NAME, wname);
     return record;
+  }
+
+  const storedUsen = localStorage.getItem(webAppUsenStorageKey);
+  if (storedUsen) {
+    const branch = parseInt(localStorage.getItem(webAppBranchStorageKey) || "0", 10);
+    const ply = parseInt(localStorage.getItem(webAppPlyStorageKey) || "0", 10);
+    const record = Record.newByUSEN(storedUsen, branch, ply);
+    if (!(record instanceof Error)) {
+      return record;
+    }
   }
 
   if (!isMobileWebApp()) {
@@ -49,16 +62,24 @@ function hasUSENParam(): boolean {
   return !!urlParams.get("usen");
 }
 
+let saveTimeout: number | undefined;
+
 export function saveRecordForWebApp(record: ImmutableRecord): void {
-  if (!isMobileWebApp()) {
+  if (isNative()) {
     return;
   }
   if (hasUSENParam()) {
     return;
   }
-  const data = exportKIF(record);
-  localStorage.setItem(mobileRecordStorageKey, data);
-  localStorage.setItem(mobilePlyStorageKey, record.current.ply.toString());
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  saveTimeout = window.setTimeout(() => {
+    const [usen, branch] = record.usen;
+    localStorage.setItem(webAppUsenStorageKey, usen);
+    localStorage.setItem(webAppBranchStorageKey, (branch || 0).toString());
+    localStorage.setItem(webAppPlyStorageKey, record.current.ply.toString());
+  }, 300);
 }
 
 export function clearURLParams(): void {
