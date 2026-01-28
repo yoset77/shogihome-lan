@@ -3,6 +3,7 @@ import { Texts } from "@/common/i18n/text_template.js";
 
 export const en: Texts = {
   shogiHome: "ShogiHome",
+  shogiHomeLAN: "ShogiHome LAN",
   clear: "Clear",
   open: "Open",
   openNewInstance: "Open New ShogiHome Instance",

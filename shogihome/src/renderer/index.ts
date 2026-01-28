@@ -49,7 +49,7 @@ function updateTitle(path: string | undefined, unsaved: boolean) {
   if (!document) {
     return;
   }
-  const appName = t.shogiHome;
+  const appName = t.shogiHomeLAN;
   const appVersion = appInfo.appVersion;
   if (isMobileWebApp()) {
     document.title = `${appName} Version ${appVersion} for Mobile Web Browser`;
