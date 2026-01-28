@@ -39,23 +39,24 @@ export function loadRecordForWebApp(): Record | undefined {
   }
 
   const storedJKF = localStorage.getItem(webAppJKFStorageKey);
-  if (storedJKF) {
-    const branch = parseInt(localStorage.getItem(webAppBranchStorageKey) || "0", 10);
-    const ply = parseInt(localStorage.getItem(webAppPlyStorageKey) || "0", 10);
-    const record = importJKFString(storedJKF);
-    if (!(record instanceof Error)) {
-      record.switchBranchByIndex(branch);
-      record.goto(ply);
+  const storedUsen = localStorage.getItem(webAppUsenStorageKey);
+  const branch = parseInt(localStorage.getItem(webAppBranchStorageKey) || "0", 10);
+  const ply = parseInt(localStorage.getItem(webAppPlyStorageKey) || "0", 10);
+
+  if (storedJKF && storedUsen) {
+    const record = Record.newByUSEN(storedUsen, branch, ply);
+    const dataRecord = importJKFString(storedJKF);
+    if (!(record instanceof Error) && !(dataRecord instanceof Error)) {
+      record.merge(dataRecord);
       return record;
     }
   }
 
-  const storedUsen = localStorage.getItem(webAppUsenStorageKey);
-  if (storedUsen) {
-    const branch = parseInt(localStorage.getItem(webAppBranchStorageKey) || "0", 10);
-    const ply = parseInt(localStorage.getItem(webAppPlyStorageKey) || "0", 10);
-    const record = Record.newByUSEN(storedUsen, branch, ply);
+  if (storedJKF) {
+    const record = importJKFString(storedJKF);
     if (!(record instanceof Error)) {
+      record.switchBranchByIndex(branch);
+      record.goto(ply);
       return record;
     }
   }
@@ -72,8 +73,8 @@ export function loadRecordForWebApp(): Record | undefined {
   if (record instanceof Error) {
     return;
   }
-  const ply = Number.parseInt(localStorage.getItem(mobilePlyStorageKey) || "0");
-  record.goto(ply);
+  const mobilePly = Number.parseInt(localStorage.getItem(mobilePlyStorageKey) || "0");
+  record.goto(mobilePly);
   return record;
 }
 
@@ -96,16 +97,11 @@ export function saveRecordForWebApp(record: ImmutableRecord): void {
   }
   saveTimeout = window.setTimeout(() => {
     const jkf = exportJKFString(record);
-    const [, branch] = record.usen;
+    const [usen, branch] = record.usen;
     localStorage.setItem(webAppJKFStorageKey, jkf);
+    localStorage.setItem(webAppUsenStorageKey, usen);
     localStorage.setItem(webAppBranchStorageKey, (branch || 0).toString());
     localStorage.setItem(webAppPlyStorageKey, record.current.ply.toString());
-    // USEN is kept for backward compatibility or removed?
-    // User requested to preserve metadata, so JKF is primary.
-    // Removing USEN key to avoid confusion or keep it as fallback?
-    // Let's remove USEN key to clean up, or just overwrite it if we want dual support.
-    // For now, let's just save JKF.
-    localStorage.removeItem(webAppUsenStorageKey);
   }, 300);
 }
 
