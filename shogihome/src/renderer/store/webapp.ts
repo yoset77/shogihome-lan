@@ -1,10 +1,18 @@
-import { ImmutableRecord, importKIF, Record, RecordMetadataKey } from "tsshogi";
+import {
+  ImmutableRecord,
+  importKIF,
+  Record,
+  RecordMetadataKey,
+  exportJKFString,
+  importJKFString,
+} from "tsshogi";
 import { useErrorStore } from "./error.js";
 import { isMobileWebApp, isNative } from "@/renderer/ipc/api.js";
 
 const mobileRecordStorageKey = "mobile:record";
 const mobilePlyStorageKey = "mobile:ply";
 const webAppUsenStorageKey = "webapp:usen";
+const webAppJKFStorageKey = "webapp:jkf";
 const webAppBranchStorageKey = "webapp:branch";
 const webAppPlyStorageKey = "webapp:ply";
 
@@ -28,6 +36,18 @@ export function loadRecordForWebApp(): Record | undefined {
     record.metadata.setStandardMetadata(RecordMetadataKey.BLACK_NAME, bname);
     record.metadata.setStandardMetadata(RecordMetadataKey.WHITE_NAME, wname);
     return record;
+  }
+
+  const storedJKF = localStorage.getItem(webAppJKFStorageKey);
+  if (storedJKF) {
+    const branch = parseInt(localStorage.getItem(webAppBranchStorageKey) || "0", 10);
+    const ply = parseInt(localStorage.getItem(webAppPlyStorageKey) || "0", 10);
+    const record = importJKFString(storedJKF);
+    if (!(record instanceof Error)) {
+      record.switchBranchByIndex(branch);
+      record.goto(ply);
+      return record;
+    }
   }
 
   const storedUsen = localStorage.getItem(webAppUsenStorageKey);
@@ -75,10 +95,17 @@ export function saveRecordForWebApp(record: ImmutableRecord): void {
     clearTimeout(saveTimeout);
   }
   saveTimeout = window.setTimeout(() => {
-    const [usen, branch] = record.usen;
-    localStorage.setItem(webAppUsenStorageKey, usen);
+    const jkf = exportJKFString(record);
+    const [, branch] = record.usen;
+    localStorage.setItem(webAppJKFStorageKey, jkf);
     localStorage.setItem(webAppBranchStorageKey, (branch || 0).toString());
     localStorage.setItem(webAppPlyStorageKey, record.current.ply.toString());
+    // USEN is kept for backward compatibility or removed?
+    // User requested to preserve metadata, so JKF is primary.
+    // Removing USEN key to avoid confusion or keep it as fallback?
+    // Let's remove USEN key to clean up, or just overwrite it if we want dual support.
+    // For now, let's just save JKF.
+    localStorage.removeItem(webAppUsenStorageKey);
   }, 300);
 }
 

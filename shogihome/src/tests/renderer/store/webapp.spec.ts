@@ -1,5 +1,5 @@
 import { createStore } from "@/renderer/store/index.js";
-import { Move } from "tsshogi";
+import { exportJKFString, importJKFString, Move } from "tsshogi";
 
 describe("store/webapp", () => {
   beforeEach(() => {
@@ -46,6 +46,69 @@ describe("store/webapp", () => {
     vi.runAllTimers();
     const store2 = createStore();
     expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos moves 5g5f");
+  });
+
+  it("saveOnNavigate", () => {
+    vi.stubGlobal("window", {
+      location: {
+        toString: () => "http://localhost/",
+      },
+      history: {
+        replaceState: vi.fn(),
+      },
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
+    });
+    const store = createStore();
+    store.doMove(store.record.position.createMoveByUSI("7g7f") as Move);
+    store.doMove(store.record.position.createMoveByUSI("3c3d") as Move);
+    vi.runAllTimers();
+
+    store.goBack();
+    vi.runAllTimers();
+
+    const store2 = createStore();
+    // Should be at 1st move (7g7f)
+    expect(store2.record.current.ply).toBe(1);
+    expect(store2.record.moves).toHaveLength(3); // Record itself has 2 moves + startpos
+
+    store.goForward();
+    vi.runAllTimers();
+
+    const store3 = createStore();
+    // Should be at 2nd move (3c3d)
+    expect(store3.record.current.ply).toBe(2);
+  });
+
+  it("jkf/branch-consistency", () => {
+    const store = createStore();
+    // 1. Setup a record with branches
+    store.doMove(store.record.position.createMoveByUSI("7g7f") as Move);
+    store.doMove(store.record.position.createMoveByUSI("3c3d") as Move);
+
+    store.goBack(); // Back to 7g7f
+    store.doMove(store.record.position.createMoveByUSI("8c8d") as Move);
+
+    // 3. Export to JKF
+    const jkf = exportJKFString(store.record);
+
+    // 4. Import from JKF
+    const restoredRecord = importJKFString(jkf);
+    if (restoredRecord instanceof Error) {
+      throw restoredRecord;
+    }
+
+    // 6. Verify Branch Structure
+    restoredRecord.goto(2); // 7g7f -> 3c3d
+    expect((restoredRecord.current.move as Move).usi).toBe("3c3d");
+
+    restoredRecord.goto(1);
+    // Check if branch exists linked from the next node (main branch node)
+    const nextNode = restoredRecord.current.next;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const branchNode = (nextNode as any).branch;
+    expect(branchNode).toBeDefined();
+    expect(branchNode.move.usi).toBe("8c8d");
   });
 
   it("mobileWeb/localStorage", () => {
