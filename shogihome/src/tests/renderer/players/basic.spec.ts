@@ -18,10 +18,12 @@ const timeStates = {
 describe("players/basic", () => {
   beforeAll(() => {
     vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
   });
 
   afterAll(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("randomPlayer", () => {
