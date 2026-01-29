@@ -1,5 +1,5 @@
 import { createStore } from "@/renderer/store/index.js";
-import { exportJKFString, importJKFString, Move, Record } from "tsshogi";
+import { exportJKFString, importJKFString, Move, Record, RecordMetadataKey } from "tsshogi";
 
 describe("store/webapp", () => {
   beforeEach(() => {
@@ -46,6 +46,47 @@ describe("store/webapp", () => {
     vi.runAllTimers();
     const store2 = createStore();
     expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos moves 5g5f");
+  });
+
+  it("pcWeb/metadataRestoration", () => {
+    vi.stubGlobal("window", {
+      location: {
+        toString: () => "http://localhost/",
+      },
+      history: {
+        replaceState: vi.fn(),
+      },
+      setTimeout: setTimeout,
+      clearTimeout: clearTimeout,
+    });
+    const store = createStore();
+    store.doMove(store.record.position.createMoveByUSI("7g7f") as Move);
+
+    // Set Metadata
+    store.updateStandardRecordMetadata({
+      key: RecordMetadataKey.BLACK_NAME,
+      value: "BlackPlayer",
+    });
+    store.updateStandardRecordMetadata({
+      key: RecordMetadataKey.WHITE_NAME,
+      value: "WhitePlayer",
+    });
+    store.updateStandardRecordMetadata({
+      key: RecordMetadataKey.TITLE,
+      value: "TestMatch",
+    });
+
+    vi.runAllTimers();
+
+    const store2 = createStore();
+    expect(store2.record.getUSI({ allMoves: true })).toBe("position startpos moves 7g7f");
+    expect(store2.record.metadata.getStandardMetadata(RecordMetadataKey.BLACK_NAME)).toBe(
+      "BlackPlayer",
+    );
+    expect(store2.record.metadata.getStandardMetadata(RecordMetadataKey.WHITE_NAME)).toBe(
+      "WhitePlayer",
+    );
+    expect(store2.record.metadata.getStandardMetadata(RecordMetadataKey.TITLE)).toBe("TestMatch");
   });
 
   it("saveOnNavigate", () => {

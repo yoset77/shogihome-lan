@@ -47,8 +47,10 @@ export function loadRecordForWebApp(): Record | undefined {
     const record = Record.newByUSEN(storedUsen, branch, ply);
     const dataRecord = importJKFString(storedJKF);
     if (!(record instanceof Error) && !(dataRecord instanceof Error)) {
-      record.merge(dataRecord);
-      return record;
+      dataRecord.merge(record);
+      dataRecord.switchBranchByIndex(branch);
+      dataRecord.goto(ply);
+      return dataRecord;
     }
   }
 
