@@ -1,7 +1,10 @@
 /// <reference types="vitest" />
 import { resolve } from "node:path";
+import fs from "node:fs";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+
+const pkg = JSON.parse(fs.readFileSync(resolve(__dirname, "package.json"), "utf-8"));
 
 export default defineConfig({
   resolve: {
@@ -14,7 +17,7 @@ export default defineConfig({
     ],
   },
   define: {
-    __APP_VERSION__: JSON.stringify("1.24.0"),
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [vue()],
   base: "./",

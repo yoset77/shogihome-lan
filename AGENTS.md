@@ -39,7 +39,7 @@
     - 例: `feat: add LAN engine reconnection logic`, `fix: board rendering on mobile`
 - **Versioning Strategy**:
     - **Single Versioning**: リポジトリ全体で単一のバージョン番号(`vX.Y.Z`)を使用する。`shogihome/` と `engine-wrapper/` の `package.json` は常に同期させる。
-    - **App Display Version**: アプリ内（`About`画面等）での表示バージョンは、フォーク元のバージョン体系を維持するため `shogihome/vite.config.mts` 内で `__APP_VERSION__` 定数として固定値（例: `"1.24.0"`）で管理する。`package.json` のバージョンとは一致しない。
+    - **App Display Version**: アプリ内（`About`画面等）での表示バージョンは、`shogihome/vite.config.mts` において `package.json` の `version` プロパティを自動的に読み込むことで管理する。フォーク元のバージョン体系とは独立した、本プロジェクト独自のバージョン（例: `1.4.0`）が表示される。
 
 ## 4. アーキテクチャ概要
 
