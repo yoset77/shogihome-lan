@@ -1,11 +1,5 @@
 # ShogiHome LAN Engine
 
-> [!WARNING]
-> **試験運用中 (Experimental)**
->
-> 本プロジェクトは現在、個人的な検証および限定的なテスト運用を目的として公開されています。
-> 予期せぬ不具合が含まれる可能性があり、将来的に仕様が変更される場合があります。
-
 [![Built with Gemini](https://img.shields.io/badge/Built%20with-Gemini-4E86F8?style=flat-square&logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![CI](https://github.com/yoset77/shogihome-lan/actions/workflows/test.yml/badge.svg)](https://github.com/yoset77/shogihome-lan/actions/workflows/test.yml)
 
@@ -141,6 +135,7 @@ graph LR
 - **USIコマンドバリデーション:** サーバー側でコマンドを検証し、コマンドインジェクションを防ぎます。
 - **オリジン制限:** WebSocket接続時にオリジンを検証し、許可されたオリジン以外からの接続を拒否します。
 - **HTTPヘッダー保護:** Helmetを使用し、適切なCSP (Content Security Policy) 等を設定しています。
+- **エンジン接続認証:** 環境変数 (`WRAPPER_ACCESS_TOKEN`) を設定することで、Webサーバーとエンジンラッパー間の通信を認証（HMAC-SHA256）し、不正な接続を防ぐことができます。
 
 ---
 
@@ -156,7 +151,7 @@ graph LR
 
 ---
 
-## コントリビューション
+## Contribution
 
 本プロジェクトは個人の趣味として開発されており、メンテナンスのリソースが限られています。  
 そのため、**Issue や Pull Request をいただいても、対応できない場合や返信が遅れる場合があります。**
@@ -164,20 +159,27 @@ graph LR
 
 ---
 
+## Acknowledgements
+
+ShogiHome LAN Engine は、[Kubo Ryosuke (sunfish-shogi)](https://github.com/sunfish-shogi) 氏によって開発された [ShogiHome](https://github.com/sunfish-shogi/shogihome) をベースにしたハードフォークです。  
+オリジナルの作者に深く感謝いたします。
+
+---
+
 ## Licences
 
-### ShogiHome
+### ShogiHome LAN Engine
 
 [MIT License](LICENSE)
 
 ### Icon Images
 
-[/public/icon](https://github.com/sunfish-shogi/shogihome/tree/main/public/icon) 配下のアイコン画像は [Material Icons](https://google.github.io/material-design-icons/) を使用しています。
+[/shogihome/public/icon](https://github.com/yoset77/shogihome-lan/tree/main/shogihome/public/icon) 配下のアイコン画像は [Material Icons](https://google.github.io/material-design-icons/) を使用しています。
 これには [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt) が適用されます。
 
 ### Dependencies
 
-レンダラープロセスで使用しているライブラリは [THIRD PARTY LICENSES](https://sunfish-shogi.github.io/shogihome/third-party-licenses.html) を参照してください。
+本ソフトウェアは多数のオープンソースソフトウェアを使用しています。詳細はアプリ内の「Third Party Libraries」画面でご確認ください。
 
 ---
 
