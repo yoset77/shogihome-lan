@@ -1,76 +1,70 @@
 import asyncio
-import os
-import sys
-import logging
-import subprocess
-import json
-import hmac
 import hashlib
+import hmac
+import json
+import logging
+import os
 import secrets
-from logging.handlers import RotatingFileHandler
+import subprocess
+import sys
 from datetime import datetime, timezone
-from dotenv import load_dotenv
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-# Determine if running as a compiled executable (Nuitka or PyInstaller)
-is_compiled_or_frozen = getattr(sys, 'frozen', False) or '__compiled__' in globals()
+from dotenv import load_dotenv
 
-if is_compiled_or_frozen:
-    # Running as compiled executable
-    # Nuitka --onefile might set sys.executable to temp dir, so use sys.argv[0]
-    script_dir = Path(sys.argv[0]).resolve().parent
-else:
-    # Running as a script
-    script_dir = Path(__file__).resolve().parent
+from common import BASE_DIR
+from common import is_frozen as is_compiled_or_frozen
 
 # Configure logging
 log_handlers = []
-# If running as a compiled executable, always log to file to ensure stability in non-interactive environments
-# (e.g. Task Scheduler, Services) where sys.stderr might be invalid or cause crashes (0x80070001).
-if is_compiled_or_frozen:
-    log_file = script_dir / 'engine-wrapper.log'
-    log_handlers.append(RotatingFileHandler(
-        log_file, 
-        maxBytes=1*1024*1024, 
-        backupCount=2, 
-        encoding='utf-8'
-    ))
+
+# Check if standard streams are available (Launcher connects pipes, so they should be)
+if sys.stderr is not None:
+    # Primary: Log to standard stream (captured by Launcher or Console)
+    log_handlers.append(logging.StreamHandler())
+elif is_compiled_or_frozen:
+    # Fallback: Only log to file if running as frozen AND no console is attached
+    log_file = BASE_DIR / "engine-wrapper.log"
+    log_handlers.append(RotatingFileHandler(log_file, maxBytes=1 * 1024 * 1024, backupCount=2, encoding="utf-8"))
 else:
-    # Development mode: Log to console
+    # Fallback for dev mode if stderr is missing (rare)
     log_handlers.append(logging.StreamHandler())
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s.%(msecs)03dZ] %(message)s',
-    datefmt='%Y-%m-%dT%H:%M:%S',
-    handlers=log_handlers
+    format="[%(asctime)s.%(msecs)03dZ] %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+    handlers=log_handlers,
 )
 logging.Formatter.converter = lambda *args: datetime.now(timezone.utc).timetuple()
 
 logging.debug(f"is_compiled_or_frozen: {is_compiled_or_frozen}")
 logging.debug(f"sys.executable: {sys.executable}")
 logging.debug(f"sys.argv[0]: {sys.argv[0]}")
-logging.debug(f"Resolved script_dir: {script_dir}")
+logging.debug(f"Resolved BASE_DIR: {BASE_DIR}")
 
-load_dotenv(dotenv_path=script_dir / '.env')
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
-HOST = os.getenv('BIND_ADDRESS', '127.0.0.1')
-PORT = int(os.getenv('LISTEN_PORT', '4082'))
+HOST = os.getenv("BIND_ADDRESS", "127.0.0.1")
+PORT = int(os.getenv("LISTEN_PORT", "4082"))
+
 
 def get_engine_list():
-    engines_json_path = script_dir / 'engines.json'
+    engines_json_path = BASE_DIR / "engines.json"
     engines = []
-    
+
     if engines_json_path.exists():
         try:
-            with open(engines_json_path, 'r', encoding='utf-8') as f:
+            with open(engines_json_path, "r", encoding="utf-8") as f:
                 engines = json.load(f)
         except Exception as e:
             logging.error(f"Failed to parse engines.json: {e}")
     else:
         logging.error(f"engines.json not found at {engines_json_path}. No engines available.")
-        
+
     return engines
+
 
 async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, log_prefix: str):
     try:
@@ -78,8 +72,8 @@ async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
             data = await reader.read(1024)
             if not data:
                 break
-            
-            text = data.decode(errors='ignore').strip()
+
+            text = data.decode(errors="ignore").strip()
             # Reduce logging noise: Skip 'info' commands unless debugging
             if text.startswith("info"):
                 logging.debug(f"{log_prefix} {text}")
@@ -95,11 +89,12 @@ async def pipe_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     finally:
         pass
 
+
 async def apply_engine_options(stdin: asyncio.StreamWriter, options: dict):
     """Apply engine options from engines.json configuration."""
     if not options or not isinstance(options, dict):
         return
-    
+
     for name, value in options.items():
         # Normalize boolean values to lowercase 'true'/'false' for USI compatibility
         if isinstance(value, bool):
@@ -107,7 +102,7 @@ async def apply_engine_options(stdin: asyncio.StreamWriter, options: dict):
 
         command = f"setoption name {name} value {value}\n"
         logging.info(f"Applying option: {command.strip()}")
-        
+
         try:
             stdin.write(command.encode())
             await stdin.drain()
@@ -118,34 +113,31 @@ async def apply_engine_options(stdin: asyncio.StreamWriter, options: dict):
             logging.error(f"Unexpected error writing option '{name}': {e}", exc_info=True)
             raise
 
+
 async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyncio.StreamWriter):
-    peername = client_writer.get_extra_info('peername')
+    peername = client_writer.get_extra_info("peername")
     logging.info(f"Client connected from {peername}")
     engine_process = None
     tasks_to_cancel = []
-    
-    ACCESS_TOKEN = os.getenv('WRAPPER_ACCESS_TOKEN')
+
+    access_token = os.getenv("WRAPPER_ACCESS_TOKEN")
 
     try:
-        if ACCESS_TOKEN:
+        if access_token:
             nonce = secrets.token_hex(16)
             client_writer.write(f"auth_cram_sha256 {nonce}\n".encode())
             await client_writer.drain()
-            
+
             # Wait for auth command
             auth_line = await client_reader.readline()
             if not auth_line:
                 logging.warning("Client disconnected during auth.")
                 return
-            
+
             auth_cmd = auth_line.decode().strip()
             if auth_cmd.startswith("auth "):
                 digest = auth_cmd[5:].strip()
-                expected_digest = hmac.new(
-                    ACCESS_TOKEN.encode(),
-                    nonce.encode(),
-                    hashlib.sha256
-                ).hexdigest()
+                expected_digest = hmac.new(access_token.encode(), nonce.encode(), hashlib.sha256).hexdigest()
 
                 # Use timing-safe comparison to prevent timing attacks
                 if hmac.compare_digest(digest, expected_digest):
@@ -177,18 +169,18 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
 
         engines = get_engine_list()
 
-        if command_line == 'list':
+        if command_line == "list":
             list_response = json.dumps(engines)
-            client_writer.write(list_response.encode() + b'\n')
+            client_writer.write(list_response.encode() + b"\n")
             await client_writer.drain()
             client_writer.close()
             await client_writer.wait_closed()
             return
 
-        engine_id = ''
-        if command_line.startswith('run '):
+        engine_id = ""
+        if command_line.startswith("run "):
             engine_id = command_line[4:].strip()
-        elif command_line == 'research' or command_line == 'game':
+        elif command_line == "research" or command_line == "game":
             # Backward compatibility
             engine_id = command_line
         else:
@@ -197,24 +189,24 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
             await client_writer.drain()
             return
 
-        engine_def = next((e for e in engines if e['id'] == engine_id), None)
+        engine_def = next((e for e in engines if e["id"] == engine_id), None)
         if not engine_def:
             logging.error(f"Engine ID '{engine_id}' not found.")
             client_writer.write(f"WRAPPER_ERROR: Engine ID '{engine_id}' not found.\n".encode())
             await client_writer.drain()
             return
 
-        engine_path_str = engine_def.get('path')
+        engine_path_str = engine_def.get("path")
         if not engine_path_str:
             logging.error(f"Engine path for ID '{engine_id}' is not set.")
             client_writer.write(b"WRAPPER_ERROR: Engine path configuration error.\n")
             await client_writer.drain()
             return
-        
+
         engine_path = Path(engine_path_str)
         # Resolve relative paths relative to the script directory
         if not engine_path.is_absolute():
-            engine_path = (script_dir / engine_path).resolve()
+            engine_path = (BASE_DIR / engine_path).resolve()
 
         engine_directory = engine_path.parent
 
@@ -230,22 +222,24 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=engine_directory,
-                creationflags=creationflags
+                creationflags=creationflags,
             )
         except FileNotFoundError:
             logging.error(f"Engine executable not found at '{engine_path}'")
             error_message = "WRAPPER_ERROR: Engine executable not found."
-            client_writer.write(error_message.encode() + b'\n')
+            client_writer.write(error_message.encode() + b"\n")
             await client_writer.drain()
             return
         except Exception as e:
             logging.error(f"Failed to start engine process: {e}", exc_info=True)
             error_message = "WRAPPER_ERROR: Failed to start engine process."
-            client_writer.write(error_message.encode() + b'\n')
+            client_writer.write(error_message.encode() + b"\n")
             await client_writer.drain()
             return
 
-        logging.info(f"Started engine process: {engine_path} (PID: {engine_process.pid})")
+        engine_name = engine_def.get("name", "Unknown")
+        short_id = engine_id[:5]
+        logging.info(f"Started engine: {engine_name} (ID: {short_id}...) Path: {engine_path} (PID: {engine_process.pid})")
 
         options_applied = False  # Track if options have been applied
 
@@ -257,10 +251,10 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                     if not line_bytes:
                         break
                     command = line_bytes.decode().strip()
-                    
+
                     # Inject options immediately BEFORE 'isready' command (only once)
-                    if command == 'isready' and not options_applied:
-                        options = engine_def.get('options')
+                    if command == "isready" and not options_applied:
+                        options = engine_def.get("options")
                         if options:
                             logging.info(f"Detected 'isready', applying engine options for '{engine_id}'...")
                             await apply_engine_options(engine_process.stdin, options)
@@ -273,25 +267,18 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                 logging.debug(f"Client to engine pipe closed: {e}")
 
         client_to_engine_task = asyncio.create_task(client_to_engine())
-        engine_stdout_to_client_task = asyncio.create_task(
-            pipe_stream(engine_process.stdout, client_writer, "[Engine -> Client]")
-        )
-        engine_stderr_to_client_task = asyncio.create_task(
-            pipe_stream(engine_process.stderr, client_writer, "[Engine ERROR]")
-        )
+        engine_stdout_to_client_task = asyncio.create_task(pipe_stream(engine_process.stdout, client_writer, "[Engine -> Client]"))
+        engine_stderr_to_client_task = asyncio.create_task(pipe_stream(engine_process.stderr, client_writer, "[Engine ERROR]"))
         engine_wait_task = asyncio.create_task(engine_process.wait())
-        
+
         tasks_to_cancel = [
-            client_to_engine_task, 
-            engine_stdout_to_client_task, 
-            engine_stderr_to_client_task, 
-            engine_wait_task
+            client_to_engine_task,
+            engine_stdout_to_client_task,
+            engine_stderr_to_client_task,
+            engine_wait_task,
         ]
 
-        done, pending = await asyncio.wait(
-            tasks_to_cancel,
-            return_when=asyncio.FIRST_COMPLETED
-        )
+        done, pending = await asyncio.wait(tasks_to_cancel, return_when=asyncio.FIRST_COMPLETED)
 
         for task in pending:
             task.cancel()
@@ -312,16 +299,16 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                     # Send 'quit' command
                     if engine_process.stdin and not engine_process.stdin.is_closing():
                         logging.info("Sending 'quit' command to engine.")
-                        engine_process.stdin.write(b'quit\n')
+                        engine_process.stdin.write(b"quit\n")
                         await engine_process.stdin.drain()
                         engine_process.stdin.close()
-                    
+
                     # Wait for engine to exit
                     try:
                         await asyncio.wait_for(engine_process.wait(), timeout=5.0)
                         logging.info(f"Engine process (PID: {engine_process.pid}) exited gracefully.")
                     except asyncio.TimeoutError:
-                        logging.warning(f"Engine did not exit after 'quit' command. Terminating.")
+                        logging.warning("Engine did not exit after 'quit' command. Terminating.")
                         if engine_process.returncode is None:
                             engine_process.terminate()
                             try:
@@ -343,20 +330,20 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
                 await client_writer.wait_closed()
             except Exception:
                 pass
-        
+
         logging.info(f"Client disconnected from {peername}.")
 
 
 async def main():
     server = await asyncio.start_server(handle_client, HOST, PORT)
-    addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
+    addrs = ", ".join(str(sock.getsockname()) for sock in server.sockets)
     logging.info(f"Single-port engine wrapper server listening on {addrs}")
-    
-    engines_json_path = script_dir / 'engines.json'
+
+    engines_json_path = BASE_DIR / "engines.json"
     if engines_json_path.exists():
         logging.info(f"engines.json found at {engines_json_path}")
         try:
-            with open(engines_json_path, 'r', encoding='utf-8') as f:
+            with open(engines_json_path, "r", encoding="utf-8") as f:
                 engines = json.load(f)
             logging.info(f"Loaded {len(engines)} engines from engines.json:")
             for e in engines:
@@ -364,10 +351,11 @@ async def main():
         except Exception as e:
             logging.error(f"Failed to parse engines.json: {e}")
     else:
-        logging.error(f"engines.json not found. Please create one based on engines.json.example.")
+        logging.error("engines.json not found. Please create one based on engines.json.example.")
 
     async with server:
         await server.serve_forever()
+
 
 if __name__ == "__main__":
     try:
