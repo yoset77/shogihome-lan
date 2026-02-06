@@ -136,7 +136,7 @@ class ConfigEditorHandler(http.server.SimpleHTTPRequestHandler):
                 with open(HTML_PATH, "rb") as f:
                     self.wfile.write(f.read())
             else:
-                self.wfile.write(b"Error: config-editor.html not found.")
+                self.wfile.write(b"Error: config_editor.html not found.")
             return
 
         if parsed.path == "/api/load":

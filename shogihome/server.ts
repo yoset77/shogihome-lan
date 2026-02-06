@@ -26,7 +26,7 @@ dotenv.config({ path: path.join(getBasePath(), ".env") });
 const app = express();
 const server = http.createServer(app);
 
-const PORT = parseInt(process.env.PORT || "8080", 10);
+const PORT = parseInt(process.env.PORT || "8140", 10);
 const DISABLE_AUTO_ALLOWED_ORIGINS = process.env.DISABLE_AUTO_ALLOWED_ORIGINS === "true";
 
 // Build ALLOWED_ORIGINS

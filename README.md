@@ -41,7 +41,7 @@ PC上のUSI将棋エンジンをLAN内のスマートフォンやタブレット
 本リポジトリは、以下の2つの主要なモジュールで構成されています。
 
 - **`shogihome/`**: Webサーバーおよびフロントエンド（TypeScript/Vue.js）。
-- **`engine-wrapper/`**: 将棋エンジンを制御するエンジンラッパー（Node.js/Python）。`engines.json` で複数のエンジンを管理します。
+- **`engine-wrapper/`**: 将棋エンジンを制御するエンジンラッパー（Python/Node.js）。`engines.json` で複数のエンジンを管理します。
 
 ---
 
@@ -51,16 +51,17 @@ PC上のUSI将棋エンジンをLAN内のスマートフォンやタブレット
 
 [Releases](https://github.com/yoset77/shogihome-lan/releases) からWindows用のビルド済みファイルをダウンロードできます。
 
-詳細なセットアップ手順やトラブルシューティングについては、同梱の **[ユーザーガイド (README.txt)](./assets/release/README.txt)** を参照してください。
+1. ダウンロードしたファイルを展開し、ルートディレクトリの **`ShogiHomeLAN.exe`**（ランチャー）を実行すると、Webサーバーとエンジンラッパーがバックグラウンドで起動します。
+2. ランチャーの「Engine Settings」をクリックして、エンジンの登録を行ってください。
+3. 表示されているQRコードをスマホで読み取るか、ブラウザで `http://localhost:8140` にアクセスしてください。
 
-1.  ダウンロードしたファイルを展開します。
-2.  `README.txt` を参考にセットアップを行ってください。
-3.  Node.js や Python などのインストールは不要です。
+詳細なセットアップ手順やトラブルシューティングについては、同梱の **[ユーザーガイド (README.txt)](./assets/release/README.txt)** を参照してください。
 
 ### B. ソースコードから実行・ビルドする場合
 
 #### 前提条件
 - **Node.js:** v20以上
+- **Python:** 3.10以上
 
 #### 1. インストール
 
@@ -77,20 +78,22 @@ npm ci
 
 # 設定ファイルの作成
 cp .env.example .env
-# .env を編集して PORT=8080 等を設定
+# .env を編集して PORT=8140 等を設定
+
+# フロントエンドのビルド
+npm run build
 ```
 
 #### 3. エンジンラッパー (engine-wrapper) のセットアップ
 
 ```shell
 cd engine-wrapper
-
-# Node.js版を使う場合
-npm install 
+uv sync
 cp .env.example .env
-# engines.json の作成
-cp engines.json.example engines.json
-# エンジンパス等を設定
+
+# 設定ツールの起動
+uv run config_editor.py
+# エンジンの登録と設定
 ```
 
 #### 4. サーバーの起動
@@ -98,15 +101,27 @@ cp engines.json.example engines.json
 **Webサーバー:**
 ```shell
 cd shogihome
-npm run build
 npm run server:start
 ```
 
 **エンジンラッパー:**
 ```shell
 cd engine-wrapper
-npm run start
+uv run engine_wrapper.py
 ```
+
+### C. Docker を利用する場合 (Webサーバーのみ)
+
+`shogihome/` (Webサーバー) は Docker コンテナとして実行することも可能です。
+
+```shell
+cd shogihome
+cp .env.example .env
+# .env の編集 (REMOTE_ENGINE_HOST 等)
+docker compose up -d --build
+```
+※ エンジンラッパー (`engine-wrapper/`) は別途ホストマシン等で起動する必要があります。
+
 ---
 
 ## アーキテクチャ概要
@@ -125,7 +140,7 @@ graph LR
   - フロントエンドからのリクエストに応じてエンジンを起動・操作します。
 
 - **Webサーバー (`shogihome`):**
-  - ブラウザ向けにShogiHomeのアプリ画面（HTML/JS）を配信します(8080番)。
+  - ブラウザ向けにShogiHomeのアプリ画面（HTML/JS）を配信します(8140番)。
   - ブラウザからのWebSocket通信を、TCP通信に変換してエンジンラッパーに中継します。
 
 ### セキュリティ機能
@@ -146,7 +161,7 @@ graph LR
 [Tailscale](https://tailscale.com/) などのVPNサービスを利用することで、外出先からもアクセスすることができます。
 
 1.  **VPN接続:** PCとスマホをVPN（Tailscale等）で接続します。
-2.  **アクセス:** スマホのブラウザから `http://[PCのIPアドレス]:8080` にアクセスします。
+2.  **アクセス:** スマホのブラウザから `http://[PCのIPアドレス]:8140` にアクセスします。
 3.  **HTTPS化 (オプション):** `tailscale serve` などを使うことで、HTTPS化してPWAとしてインストールすることも可能です。
 
 ---

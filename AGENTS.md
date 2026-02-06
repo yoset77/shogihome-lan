@@ -15,6 +15,12 @@
 3.  **Implement (実装)**: コーディング規約に従い、小さく変更を行う。
 4.  **Verify (検証)**: `npm run lint` および `npm run test` を実行し、エラーがないことを確認する。変更がUIに関わる場合は、関連コンポーネントの動作確認手順を提示する。
 
+### D. Python Project Maintenance
+- **Common Logic**: `engine-wrapper/` 内の Python スクリプト (`launcher.py`, `config_editor.py`, `engine_wrapper.py`) の共通ロジック（パス解決、`.env` 読み込み、プロセス終了処理）は、必ず `common.py` に集約すること。これにより、配布用バイナリのビルド時やフォルダ構成変更時の整合性を維持する。
+- **Testing**: 新機能の追加やリファクタリング時は、`pytest` を使用してテストコードを作成すること。
+- **Linting/Formatting**: `ruff` を使用して静的解析とコードフォーマットを行うこと。`uv run ruff check .` および `uv run ruff format .` で実行可能。
+- **Naming Conventions**: Python ファイル名はモジュールとしてインポート可能なように、ハイフンではなくアンダースコアを使用すること（例: `engine_wrapper.py`）。
+
 ## 3. Critical Rules (遵守すべきルール)
 
 ### A. Coding Standards
@@ -38,7 +44,7 @@
 - **Commit Message**: **必ずプレフィックス (`feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`) を付与すること。**
     - 例: `feat: add LAN engine reconnection logic`, `fix: board rendering on mobile`
 - **Versioning Strategy**:
-    - **Single Versioning**: リポジトリ全体で単一のバージョン番号(`vX.Y.Z`)を使用する。`shogihome/` と `engine-wrapper/` の `package.json` は常に同期させる。
+    - **Single Versioning**: リポジトリ全体で単一のバージョン番号(`vX.Y.Z`)を使用する。`shogihome/package.json` と `engine-wrapper/pyproject.toml` は常に同期させる。`engine-wrapper/package.json` のバージョンは非公式とし、同期の必要はない。
     - **App Display Version**: アプリ内（`About`画面等）での表示バージョンは、`shogihome/vite.config.mts` において `package.json` の `version` プロパティを自動的に読み込むことで管理する。フォーク元のバージョン体系とは独立した、本プロジェクト独自のバージョン（例: `1.4.0`）が表示される。
 
 ## 4. アーキテクチャ概要
@@ -83,9 +89,12 @@ graph LR
     - **起動**: `npm run start`
 - **Python版 (Releases推奨)**:
     - **依存関係インストール**: `uv sync`
-    - **起動**: `uv run engine-wrapper.py`
+    - **起動**: `uv run engine_wrapper.py`
+    - **テスト**: `uv run pytest`
+    - **静的解析**: `uv run ruff check .`
+    - **フォーマット**: `uv run ruff format .`
     - **ライセンス生成**: `npm run py:license` (または `uv run python scripts/generate_licenses.py`)
-    - **配布用ビルド (Windows)**: `uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 engine-wrapper.py`
+    - **配布用ビルド (Windows)**: `uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 engine_wrapper.py`
 
 ### CI/CD (GitHub Actions)
 - **自動リリース**: `v*` タグをプッシュすると `.github/workflows/release.yml` が起動し、ビルド済みのZIPパッケージがドラフトとして作成されます。
@@ -113,17 +122,21 @@ graph LR
 
 | パス | 説明 |
 | :--- | :--- |
-| `engine-wrapper.py` | **推奨ラッパー (バイナリ配布用)**。Python製。Nuitkaで実行ファイル化されます。 |
+| `engine_wrapper.py` | **推奨ラッパー (バイナリ配布用)**。Python製。Nuitkaで実行ファイル化されます。 |
 | `engine-wrapper.mjs` | **開発用ラッパー**。Node.js製。セットアップが容易。 |
+| `config_editor.py` | **設定エディタ (Backend)**。`config_editor.html` と連携し、ブラウザ上で `engines.json` を編集するためのサーバー。 |
+| `config_editor.html` | **設定エディタ (Frontend)**。単独でファイル編集ツールとしても、`config_editor.py` のUIとしても動作するハイブリッド設計。 |
 | `scripts/generate_licenses.py` | Python依存ライブラリのライセンスを生成。 |
-| `engines.json` | エンジン設定ファイル (Git管理対象外)。ID、表示名、実行パスのリストを定義。原本として `engines.json.example` を参照。 |
+| `engines.json` | エンジン設定ファイル (Git管理対象外)。ID、表示名、実行パスのリストを定義。原本として `engines.json.default` (空) または `engines.json.example` (設定例) を参照。 |
+| `engines.json.default` | リリース用テンプレート (空のリスト `[]`)。 |
+| `engines.json.example` | 開発者向け設定例。 |
 | `.env` | 環境設定 (Git管理対象外)。ポート番号等を設定。原本として `.env.example` を参照。 |
 
 ### C. Release Assets
 
 | パス | 説明 |
 | :--- | :--- |
-| `assets/release/` | 配布用パッケージに同梱される `README.txt` や `start.bat` の原本。 |
+| `assets/release/` | 配布用パッケージに同梱される `README.txt` の原本。 |
 
 ## 8. 機能実装の詳細仕様
 
@@ -149,6 +162,14 @@ graph LR
 - **切断保護 (Disconnect Protection)**: 意図しない切断（`stop_engine` コマンドなしの切断）が発生した場合、サーバー側でエンジンプロセスを一定期間（デフォルト60秒、`.env` の `ENGINE_CONNECTION_PROTECTION_TIMEOUT` で設定可能）維持します。
 - **自動復旧とバッファリング**: クライアントは WebSocket 切断時に指数バックオフを用いて自動的に再接続を試みます。また、切断中に送信しようとしたコマンドはクライアント側の `commandQueue` に保持され、再接続時に自動的に再送されます。バックグラウンドから復帰した際 (`visibilitychange`) には待機時間を待たずに即座に再接続を試みることで、UXを向上させています。サーバー側は切断中のエンジン出力（`info` や `bestmove`）をバッファリング（`info` は最新10件のみ保持）し、再接続時にリプレイすることで状態を完全復元します。これにより、思考中の回線断でもエラーにならずに継続可能です。
 - **意図的な終了**: クライアントから `stop_engine` コマンドが送出された後の切断は「意図的な終了」とみなされ、サーバーは即座にエンジンプロセスを終了しリソースを解放します。
+
+### 統合ランチャー (ShogiHome LAN Launcher)
+一般ユーザーの利便性向上のため、CustomTkinter 製の GUI ランチャー (`engine-wrapper/launcher.py`) を導入しました。
+- **プロセス一括管理**: Webサーバーとエンジンラッパーをバックグラウンドで一括起動・終了。
+- **タスクトレイ常駐**: ウィンドウを閉じてもトレイに常駐し、右クリックメニューから操作（Dashboard表示、設定、再起動、終了）が可能。
+- **QRコード表示**: LAN内アクセス用の URL を自動生成し、スマホ等から即座にアクセスできるよう QR コードを表示。
+- **ヘルスチェック**: 2秒ごとにプロセスの死活監視を行い、異常終了（クラッシュ等）時にステータスを更新。
+- **ログビューア**: バックグラウンド実行中のサーバーおよびラッパーの標準出力をファイルに保存し、GUI 上で確認可能。
 
 ### エンジン設定 (`engines.json`)
 - **Type**: `game` / `research` / `both` を指定可能。フロントエンドはこれに基づき、対局・検討ダイアログで表示するエンジンをフィルタリングする。

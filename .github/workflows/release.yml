@@ -57,7 +57,15 @@ jobs:
       - name: Build Python Wrapper (Nuitka)
         working-directory: engine-wrapper
         # Build standalone executable in current directory
-        run: uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 --assume-yes-for-downloads engine-wrapper.py
+        run: uv run nuitka --standalone --onefile --windows-console-mode=disable --msvc=14.3 --assume-yes-for-downloads engine_wrapper.py
+
+      - name: Build Config Editor (Nuitka)
+        working-directory: engine-wrapper
+        run: uv run nuitka --standalone --onefile --windows-console-mode=disable --enable-plugin=tk-inter --msvc=14.3 --assume-yes-for-downloads config_editor.py
+
+      - name: Build Launcher (Nuitka)
+        working-directory: engine-wrapper
+        run: uv run nuitka --standalone --onefile --windows-console-mode=disable --enable-plugin=tk-inter --msvc=14.3 --assume-yes-for-downloads launcher.py
 
       - name: Debug List Files
         run: |
@@ -72,6 +80,11 @@ jobs:
           $pkgName = "shogihome-lan-$tagName"
           New-Item -ItemType Directory -Path $pkgName -Force
 
+          # 0. Launcher & Root
+          Copy-Item "engine-wrapper/launcher.exe" -Destination "$pkgName/ShogiHomeLAN.exe"
+          Copy-Item "shogihome/docs/icon.png" -Destination "$pkgName/"
+          Copy-Item "assets/release/README.txt" -Destination "$pkgName/"
+
           # 1. Server & Webapp
           New-Item -ItemType Directory -Path "$pkgName/shogihome" -Force
           Copy-Item "shogihome/dist/bin/shogihome-server.exe" -Destination "$pkgName/shogihome/"
@@ -80,17 +93,15 @@ jobs:
 
           # 2. Engine Wrapper
           New-Item -ItemType Directory -Path "$pkgName/engine-wrapper" -Force
-          Copy-Item "engine-wrapper/engine-wrapper.exe" -Destination "$pkgName/engine-wrapper/"
-          Copy-Item "engine-wrapper/engines.json.example" -Destination "$pkgName/engine-wrapper/engines.json"
+          Copy-Item "engine-wrapper/engine_wrapper.exe" -Destination "$pkgName/engine-wrapper/"
+          Copy-Item "engine-wrapper/engines.json.default" -Destination "$pkgName/engine-wrapper/engines.json"
           Copy-Item "engine-wrapper/.env.example" -Destination "$pkgName/engine-wrapper/.env"
+          Copy-Item "engine-wrapper/config_editor.html" -Destination "$pkgName/engine-wrapper/"
+          Copy-Item "engine-wrapper/config_editor.exe" -Destination "$pkgName/engine-wrapper/"
           
           # Wrapper Licenses
           New-Item -ItemType Directory -Path "$pkgName/engine-wrapper/licenses" -Force
           Copy-Item "engine-wrapper/licenses/*" -Destination "$pkgName/engine-wrapper/licenses/"
-
-          # 3. Root Assets (README, start.bat)
-          Copy-Item "assets/release/README.txt" -Destination "$pkgName/"
-          Copy-Item "assets/release/start.bat" -Destination "$pkgName/"
 
           # Zip it
           Compress-Archive -Path "$pkgName" -DestinationPath "$pkgName.zip"

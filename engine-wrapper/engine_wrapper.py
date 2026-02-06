@@ -25,7 +25,7 @@ if sys.stderr is not None:
     log_handlers.append(logging.StreamHandler())
 elif is_compiled_or_frozen:
     # Fallback: Only log to file if running as frozen AND no console is attached
-    log_file = BASE_DIR / "engine-wrapper.log"
+    log_file = BASE_DIR / "engine_wrapper.log"
     log_handlers.append(RotatingFileHandler(log_file, maxBytes=1 * 1024 * 1024, backupCount=2, encoding="utf-8"))
 else:
     # Fallback for dev mode if stderr is missing (rare)
