@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
+import { getLocalIpAddresses } from "./src/background/helpers/ip";
 
 const getBasePath = () => {
   // SEA (Single Executable Application) environment check
@@ -26,14 +27,51 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = parseInt(process.env.PORT || "8080", 10);
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
+const DISABLE_AUTO_ALLOWED_ORIGINS = process.env.DISABLE_AUTO_ALLOWED_ORIGINS === "true";
+
+// Build ALLOWED_ORIGINS
+const rawAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter((origin) => origin.length > 0);
 
-if (ALLOWED_ORIGINS.length === 0) {
-  ALLOWED_ORIGINS.push(`http://localhost:${PORT}`);
+const ALLOWED_ORIGINS: string[] = [];
+const ALLOWED_HOSTS = new Set<string>();
+
+if (DISABLE_AUTO_ALLOWED_ORIGINS) {
+  // Strict mode: Only use user-defined origins
+  rawAllowedOrigins.forEach((origin) => ALLOWED_ORIGINS.push(origin));
+} else {
+  // Default mode: Add User defined + Localhost + Auto-detected IPs
+  const defaults = [...rawAllowedOrigins, `http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`];
+
+  // Deduplicate
+  defaults.forEach((origin) => {
+    if (!ALLOWED_ORIGINS.includes(origin)) ALLOWED_ORIGINS.push(origin);
+  });
+
+  const localIps = getLocalIpAddresses();
+  console.log("Auto-detected local IPs:", localIps);
+
+  localIps.forEach((ip) => {
+    const origin = `http://${ip}:${PORT}`;
+    if (!ALLOWED_ORIGINS.includes(origin)) {
+      ALLOWED_ORIGINS.push(origin);
+    }
+  });
 }
+
+// Populate ALLOWED_HOSTS based on final ALLOWED_ORIGINS
+ALLOWED_ORIGINS.forEach((origin) => {
+  try {
+    const url = new URL(origin);
+    ALLOWED_HOSTS.add(url.host);
+  } catch (e) {
+    // ignore invalid URLs
+  }
+});
+
+console.log("Allowed Origins:", ALLOWED_ORIGINS);
 
 const shogiHomePath = path.join(getBasePath(), "docs", "webapp");
 console.log(`Serving static files from: ${shogiHomePath}`);
@@ -76,6 +114,22 @@ const updatePuzzlesManifest = () => {
 
 updatePuzzlesManifest();
 
+// Verify Host header to prevent DNS Rebinding attacks
+const isValidHost = (req: http.IncomingMessage) => {
+  const host = req.headers.host;
+  return host && ALLOWED_HOSTS.has(host);
+};
+
+// Middleware to enforce Host header validation for HTTP requests
+app.use((req, res, next) => {
+  if (!isValidHost(req)) {
+    console.warn(`Blocked HTTP request with invalid Host header: ${req.headers.host}`);
+    res.status(403).send("Forbidden (Invalid Host)");
+    return;
+  }
+  next();
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -105,13 +159,22 @@ const wss = new WebSocketServer({
   perMessageDeflate: false,
   verifyClient: (info, cb) => {
     const origin = info.origin;
+    const req = info.req;
 
+    // Check Origin
     if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
       console.warn(`Blocked connection from unauthorized origin: ${origin}`);
-      console.warn(`Allowed origins are: ${JSON.stringify(ALLOWED_ORIGINS)}`);
       cb(false, 403, "Forbidden");
       return;
     }
+
+    // Check Host header (DNS Rebinding protection)
+    if (!isValidHost(req)) {
+      console.warn(`Blocked connection with invalid Host header: ${req.headers.host}`);
+      cb(false, 403, "Forbidden (Invalid Host)");
+      return;
+    }
+
     cb(true);
   },
 });
