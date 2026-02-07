@@ -1,6 +1,5 @@
 import io
 import os
-import socket
 import subprocess
 import sys
 import threading
@@ -13,7 +12,7 @@ import qrcode
 from PIL import Image
 from pystray import MenuItem
 
-from common import BASE_DIR, is_frozen, kill_proc_tree, load_env_value
+from common import BASE_DIR, get_local_ip, get_pc_url_config, is_frozen, kill_proc_tree, load_env_value
 
 # --- Configuration ---
 APP_NAME = "ShogiHome LAN"
@@ -38,6 +37,16 @@ else:
 SERVER_PORT = load_env_value(SERVER_ENV_PATH, "PORT", 8140)
 WRAPPER_PORT = load_env_value(WRAPPER_ENV_PATH, "LISTEN_PORT", 4082)
 
+
+# LAN access configuration
+BIND_ADDRESS = load_env_value(SERVER_ENV_PATH, "BIND_ADDRESS", "0.0.0.0")
+DISABLE_AUTO_ALLOWED_ORIGINS = str(load_env_value(SERVER_ENV_PATH, "DISABLE_AUTO_ALLOWED_ORIGINS", "false")).lower() == "true"
+ALLOWED_ORIGINS_RAW = load_env_value(SERVER_ENV_PATH, "ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in ALLOWED_ORIGINS_RAW.split(",") if o.strip()]
+
+# Determine best URL for PC access and if it's allowed
+PC_URL, is_pc_access_allowed = get_pc_url_config(BIND_ADDRESS, SERVER_PORT, DISABLE_AUTO_ALLOWED_ORIGINS, ALLOWED_ORIGINS, get_local_ip())
+
 # Paths to executables/scripts
 if IS_FROZEN:
     SERVER_EXE = BASE_DIR / "shogihome" / "shogihome-server.exe"
@@ -57,16 +66,6 @@ window = None
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
-
-
-def get_local_ip():
-    try:
-        # Connect to a public DNS server to determine the most likely LAN IP
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8", 80))
-            return s.getsockname()[0]
-    except Exception:
-        return "127.0.0.1"
 
 
 class LauncherApp(ctk.CTk):
@@ -106,36 +105,64 @@ class LauncherApp(ctk.CTk):
         self.qr_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.qr_frame.pack(pady=10)
 
-        local_ip = get_local_ip()
-        lan_url = f"http://{local_ip}:{SERVER_PORT}"
+        # Show QR code only if LAN access is enabled and secure
+        show_qr = (BIND_ADDRESS != "127.0.0.1") and (not DISABLE_AUTO_ALLOWED_ORIGINS)
 
-        qr = qrcode.QRCode(box_size=4, border=2)
-        qr.add_data(lan_url)
-        qr.make(fit=True)
-        qr_img_wrapper = qr.make_image(fill_color="black", back_color="white")
+        if show_qr:
+            local_ip = get_local_ip()
+            lan_url = f"http://{local_ip}:{SERVER_PORT}"
 
-        # Convert to standard PIL Image to satisfy CTkImage type check
-        # qrcode returns a wrapper, we need to extract or convert it.
-        # Saving to buffer and reloading is the most robust way.
-        buf = io.BytesIO()
-        qr_img_wrapper.save(buf, format="PNG")
-        buf.seek(0)
-        qr_img = Image.open(buf)
+            qr = qrcode.QRCode(box_size=4, border=2)
+            qr.add_data(lan_url)
+            qr.make(fit=True)
+            qr_img_wrapper = qr.make_image(fill_color="black", back_color="white")
 
-        # Convert to CTkImage
-        self.qr_image = ctk.CTkImage(light_image=qr_img, dark_image=qr_img, size=(180, 180))
-        self.qr_label = ctk.CTkLabel(self.qr_frame, image=self.qr_image, text="")
-        self.qr_label.pack()
+            # Convert to standard PIL Image to satisfy CTkImage type check
+            buf = io.BytesIO()
+            qr_img_wrapper.save(buf, format="PNG")
+            buf.seek(0)
+            qr_img = Image.open(buf)
 
-        self.lan_link = ctk.CTkLabel(
-            self.qr_frame,
-            text=lan_url,
-            font=("Roboto", 14),
-            text_color=("#0d6efd", "#4dabf7"),
-            cursor="hand2",
-        )
-        self.lan_link.pack(pady=5)
-        self.lan_link.bind("<Button-1>", lambda e: webbrowser.open(lan_url))
+            # Convert to CTkImage
+            self.qr_image = ctk.CTkImage(light_image=qr_img, dark_image=qr_img, size=(180, 180))
+            self.qr_label = ctk.CTkLabel(self.qr_frame, image=self.qr_image, text="")
+            self.qr_label.pack()
+
+            self.lan_link = ctk.CTkLabel(
+                self.qr_frame,
+                text=lan_url,
+                font=("Roboto", 14),
+                text_color=("#0d6efd", "#4dabf7"),
+                cursor="hand2",
+            )
+            self.lan_link.pack(pady=5)
+            self.lan_link.bind("<Button-1>", lambda e: webbrowser.open(lan_url))
+        else:
+            # Display a styled info card instead of a bare placeholder
+            self.info_card = ctk.CTkFrame(self.qr_frame, corner_radius=10, border_width=1, border_color=("#dbdbdb", "#2b2b2b"))
+            self.info_card.pack(padx=20, pady=10)
+
+            self.info_title = ctk.CTkLabel(
+                self.info_card,
+                text="Custom Network Active",
+                font=("Roboto", 14, "bold"),
+            )
+            self.info_title.pack(pady=(15, 5), padx=20)
+
+            self.info_text = ctk.CTkLabel(
+                self.info_card,
+                text=(
+                    f"Binding: {BIND_ADDRESS}\n"
+                    f"Auto-Origins: {'Disabled' if DISABLE_AUTO_ALLOWED_ORIGINS else 'Enabled'}\n\n"
+                    "Please use your manually\n"
+                    "configured URL or proxy\n"
+                    "to access from other devices."
+                ),
+                font=("Roboto", 12),
+                text_color=("#3b3b3b", "#bbbbbb"),
+                justify="center",
+            )
+            self.info_text.pack(pady=(0, 15), padx=20)
 
         # Main Actions
         self.action_frame = ctk.CTkFrame(self)
@@ -151,6 +178,7 @@ class LauncherApp(ctk.CTk):
             font=("Roboto", 14),
             fg_color="#1161C9",
             hover_color="#124BC5",
+            state="normal" if is_pc_access_allowed else "disabled",
         )
         self.btn_open.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -195,22 +223,34 @@ class LauncherApp(ctk.CTk):
         self.withdraw()
 
     def show_window(self):
-        self.deiconify()
-        self.lift()
+        self.after(0, self._handle_show_window)
+
+    def _handle_show_window(self):
+        try:
+            self.deiconify()
+            self.lift()
+            self.focus_force()
+        except Exception:
+            pass
 
     def update_status(self, running):
         global is_running
         is_running = running
-        if running:
-            self.status_indicator.configure(text="● Running", text_color="#4caf50")  # Green
-            self.btn_open.configure(state="normal")
-            self.btn_restart.configure(state="normal")
-            self.btn_settings.configure(state="normal")
-        else:
-            self.status_indicator.configure(text="● Stopped", text_color="#f44336")  # Red
-            self.btn_open.configure(state="disabled")
-            self.btn_restart.configure(state="normal")
-            self.btn_settings.configure(state="normal")
+
+        def _update():
+            if running:
+                self.status_indicator.configure(text="● Running", text_color="#4caf50")  # Green
+                if is_pc_access_allowed:
+                    self.btn_open.configure(state="normal")
+                self.btn_restart.configure(state="normal")
+                self.btn_settings.configure(state="normal")
+            else:
+                self.status_indicator.configure(text="● Stopped", text_color="#f44336")  # Red
+                self.btn_open.configure(state="disabled")
+                self.btn_restart.configure(state="normal")
+                self.btn_settings.configure(state="normal")
+
+        self.after(0, _update)
 
     def check_processes(self):
         global server_process, wrapper_process, is_running
@@ -222,7 +262,7 @@ class LauncherApp(ctk.CTk):
 
             if server_dead or wrapper_dead:
                 self.update_status(False)
-                self.status_indicator.configure(text="● Error", text_color="#f44336")
+                self.after(0, lambda: self.status_indicator.configure(text="● Error", text_color="#f44336"))
 
         # Schedule next check
         self.after(2000, self.check_processes)
@@ -245,13 +285,30 @@ class LauncherApp(ctk.CTk):
         log_dir = BASE_DIR / "logs"
         log_dir.mkdir(exist_ok=True)
 
-        # Use line buffering or flush manually? Standard is fine.
-        # We use "a" (append) to avoid losing logs on quick restarts during debug
-        server_log = open(log_dir / "server.log", "a", encoding="utf-8")
-        wrapper_log = open(log_dir / "wrapper.log", "a", encoding="utf-8")
+        # Rotate logs: move .log to .log.old to prevent indefinite growth
+        for log_name in ["server.log", "wrapper.log"]:
+            log_path = log_dir / log_name
+            if log_path.exists():
+                old_path = log_path.with_suffix(".log.old")
+                try:
+                    if old_path.exists():
+                        old_path.unlink()
+                    log_path.rename(old_path)
+                except Exception:
+                    # Might be locked by another process
+                    pass
 
-        server_log.write(f"\n--- {time.ctime()} Starting Server ---\n")
-        wrapper_log.write(f"\n--- {time.ctime()} Starting Wrapper ---\n")
+        # Use "w" (write) because we just rotated.
+        # Open in context managers or close explicitly after Popen/flush.
+        try:
+            server_log = open(log_dir / "server.log", "w", encoding="utf-8")
+            wrapper_log = open(log_dir / "wrapper.log", "w", encoding="utf-8")
+        except Exception:
+            self.after(0, lambda: self.status_indicator.configure(text="● Log Error", text_color="#f44336"))
+            return
+
+        server_log.write(f"--- {time.ctime()} Starting Server ---\n")
+        wrapper_log.write(f"--- {time.ctime()} Starting Wrapper ---\n")
 
         startup_info = None
         if os.name == "nt":
@@ -312,16 +369,18 @@ class LauncherApp(ctk.CTk):
         # Wait a fixed time to avoid port scan detection
         time.sleep(2.0)
 
-        # Flush to ensure log viewer can read early output
+        # Flush and close the parent's handles
         server_log.flush()
         wrapper_log.flush()
+        server_log.close()
+        wrapper_log.close()
 
-        self.after(0, lambda: self.update_status(True))
+        self.update_status(True)
 
     def stop_services(self):
         global server_process, wrapper_process
 
-        self.status_indicator.configure(text="Stopping...", text_color="#f44336")
+        self.after(0, lambda: self.status_indicator.configure(text="Stopping...", text_color="#f44336"))
 
         if server_process:
             self._kill_proc_tree(server_process)
@@ -364,19 +423,29 @@ class LauncherApp(ctk.CTk):
 
         def refresh_logs():
             log_dir = BASE_DIR / "logs"
-            try:
-                if (log_dir / "server.log").exists():
-                    with open(log_dir / "server.log", "r", encoding="utf-8", errors="ignore") as f:
-                        text_server.delete("1.0", "end")
-                        text_server.insert("1.0", f.read())
-                        text_server.see("end")
-                if (log_dir / "wrapper.log").exists():
-                    with open(log_dir / "wrapper.log", "r", encoding="utf-8", errors="ignore") as f:
-                        text_wrapper.delete("1.0", "end")
-                        text_wrapper.insert("1.0", f.read())
-                        text_wrapper.see("end")
-            except Exception as e:
-                text_server.insert("end", f"\nError reading logs: {e}")
+
+            def _read_last_mb(path, textbox):
+                if not path.exists():
+                    return
+                try:
+                    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                        f.seek(0, 2)
+                        size = f.tell()
+                        limit = 1024 * 1024  # 1MB limit for viewer
+                        if size > limit:
+                            f.seek(size - limit)
+                            content = "... (truncated) ...\n" + f.read()
+                        else:
+                            f.seek(0)
+                            content = f.read()
+                        textbox.delete("1.0", "end")
+                        textbox.insert("1.0", content)
+                        textbox.see("end")
+                except Exception as e:
+                    textbox.insert("end", f"\nError reading log: {e}")
+
+            _read_last_mb(log_dir / "server.log", text_server)
+            _read_last_mb(log_dir / "wrapper.log", text_wrapper)
 
         btn_refresh = ctk.CTkButton(log_window, text="Refresh", command=refresh_logs)
         btn_refresh.pack(pady=10)
@@ -384,8 +453,8 @@ class LauncherApp(ctk.CTk):
         refresh_logs()
 
     def open_browser(self, auto=False):
-        # Open Localhost on PC
-        webbrowser.open(f"http://127.0.0.1:{SERVER_PORT}")
+        # Open the allowed URL on PC
+        webbrowser.open(PC_URL)
 
     def open_settings(self):
         # In frozen mode, we might want to launch config_editor.exe if not running?
@@ -400,22 +469,32 @@ class LauncherApp(ctk.CTk):
             subprocess.Popen(["uv", "run", "config_editor.py"], cwd=str(cwd))
 
     def quit_app(self):
+        # Always use after(0) to ensure UI operations run on the main thread,
+        # especially when called from the system tray thread.
+        self.after(0, self._handle_quit)
+
+    def _handle_quit(self):
         global tray_icon
 
-        # UI Feedback
-        self.btn_stop.configure(text="Stopping...", state="disabled")
-        self.btn_restart.configure(state="disabled")
-        self.btn_open.configure(state="disabled")
-        self.btn_settings.configure(state="disabled")
-        self.update()  # Force UI update
+        try:
+            # UI Feedback
+            self.btn_stop.configure(text="Stopping...", state="disabled")
+            self.btn_restart.configure(state="disabled")
+            self.btn_open.configure(state="disabled")
+            self.btn_settings.configure(state="disabled")
+            self.update()  # Force UI update
+        except Exception:
+            # Window might already be destroyed
+            pass
 
         self.stop_services()
 
         if tray_icon:
             tray_icon.stop()
 
-        # Ensure we quit the mainloop from the main thread
-        self.after(0, self.quit)
+        # Wait 200ms before quitting the mainloop to allow tray icon cleanup to finish.
+        # This prevents the icon from lingering in the Windows taskbar until hovered.
+        self.after(200, self.quit)
 
     def _kill_proc_tree(self, proc):
         # Force kill using common utility

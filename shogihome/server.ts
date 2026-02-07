@@ -32,7 +32,7 @@ const DISABLE_AUTO_ALLOWED_ORIGINS = process.env.DISABLE_AUTO_ALLOWED_ORIGINS ==
 // Build ALLOWED_ORIGINS
 const rawAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter((origin) => origin.length > 0);
 
 const ALLOWED_ORIGINS: string[] = [];

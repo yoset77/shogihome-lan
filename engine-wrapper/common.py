@@ -1,4 +1,5 @@
 import os
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -38,6 +39,61 @@ def load_env_value(env_path, key, default):
         except Exception:
             pass
     return default
+
+
+def get_local_ip():
+    """Determine the local LAN IP address."""
+    try:
+        # Connect to a public DNS server to determine the most likely LAN IP
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except Exception:
+        return "127.0.0.1"
+
+
+def get_pc_url_config(bind_address, server_port, disable_auto_origins, allowed_origins, local_ip):
+    """
+    Determine the best PC_URL and whether access should be allowed based on configuration.
+    Returns: (pc_url: str, is_allowed: bool)
+    """
+    # Step 1: Define possible local endpoints based on BIND_ADDRESS
+    if bind_address == "0.0.0.0":
+        local_endpoints = [
+            f"http://127.0.0.1:{server_port}",
+            f"http://localhost:{server_port}",
+            f"http://{local_ip}:{server_port}",
+        ]
+    elif bind_address == "127.0.0.1":
+        local_endpoints = [
+            f"http://127.0.0.1:{server_port}",
+            f"http://localhost:{server_port}",
+        ]
+    else:
+        # Specific IP binding
+        local_endpoints = [f"http://{bind_address}:{server_port}"]
+
+    candidate_pc_url = local_endpoints[0]
+
+    if not disable_auto_origins:
+        # Default mode: Everything in local_endpoints is automatically allowed by server.ts
+        return candidate_pc_url, True
+    elif allowed_origins:
+        # Strict mode: Check intersection of local_endpoints and ALLOWED_ORIGINS
+        # Normalize origins (remove trailing slashes) to match browser 'Origin' header format
+        normalized_allowed = [o.rstrip("/") for o in allowed_origins]
+        allowed_local_endpoints = [e for e in local_endpoints if e.rstrip("/") in normalized_allowed]
+
+        if allowed_local_endpoints:
+            return allowed_local_endpoints[0], True
+        else:
+            # No local endpoint is explicitly allowed.
+            # However, the user might be using a proxy domain or a custom hostname.
+            # We'll allow clicking with the first allowed origin as a best-effort.
+            return allowed_origins[0], True
+    else:
+        # Strict mode and no origins defined -> Nothing will work
+        return candidate_pc_url, False
 
 
 def kill_proc_tree(pid):
