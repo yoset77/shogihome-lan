@@ -375,15 +375,16 @@ class ConfigEditorHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps({"error": message}).encode("utf-8"))
 
 
-def run_server():
+def run_server(port=0, no_browser=False):
     # Bind to localhost only for security
-    with socketserver.TCPServer((BIND_ADDRESS, PORT), ConfigEditorHandler) as httpd:
-        port = httpd.server_address[1]
-        url = f"http://{BIND_ADDRESS}:{port}"
+    with socketserver.TCPServer((BIND_ADDRESS, port), ConfigEditorHandler) as httpd:
+        actual_port = httpd.server_address[1]
+        url = f"http://{BIND_ADDRESS}:{actual_port}"
         print(f"Serving Config Editor at {url}")
 
-        # Open browser
-        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+        if not no_browser:
+            # Open browser
+            threading.Timer(0.5, lambda: webbrowser.open(url)).start()
 
         try:
             httpd.serve_forever()
@@ -392,4 +393,11 @@ def run_server():
 
 
 if __name__ == "__main__":
-    run_server()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="ShogiHome Engine Config Editor")
+    parser.add_argument("--port", type=int, default=0, help="Port to bind to")
+    parser.add_argument("--no-browser", action="store_true", help="Do not open the browser automatically")
+    args = parser.parse_args()
+
+    run_server(port=args.port, no_browser=args.no_browser)

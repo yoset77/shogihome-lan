@@ -60,6 +60,8 @@ else:
 # Global state
 server_process = None
 wrapper_process = None
+config_editor_process = None
+config_editor_url = None
 is_running = False
 tray_icon = None
 window = None
@@ -253,7 +255,7 @@ class LauncherApp(ctk.CTk):
         self.after(0, _update)
 
     def check_processes(self):
-        global server_process, wrapper_process, is_running
+        global server_process, wrapper_process, config_editor_process, is_running
 
         if is_running:
             # Check if any process died
@@ -263,6 +265,11 @@ class LauncherApp(ctk.CTk):
             if server_dead or wrapper_dead:
                 self.update_status(False)
                 self.after(0, lambda: self.status_indicator.configure(text="● Error", text_color="#f44336"))
+
+        # Monitor config editor process
+        if config_editor_process and config_editor_process.poll() is not None:
+            config_editor_process = None
+            self.after(0, lambda: self.btn_settings.configure(text="Engine Settings"))
 
         # Schedule next check
         self.after(2000, self.check_processes)
@@ -378,7 +385,7 @@ class LauncherApp(ctk.CTk):
         self.update_status(True)
 
     def stop_services(self):
-        global server_process, wrapper_process
+        global server_process, wrapper_process, config_editor_process
 
         self.after(0, lambda: self.status_indicator.configure(text="Stopping...", text_color="#f44336"))
 
@@ -388,6 +395,13 @@ class LauncherApp(ctk.CTk):
         if wrapper_process:
             self._kill_proc_tree(wrapper_process)
             wrapper_process = None
+        if config_editor_process:
+            self._kill_proc_tree(config_editor_process)
+            config_editor_process = None
+            try:
+                self.btn_settings.configure(text="Engine Settings")
+            except Exception:
+                pass
 
         self.update_status(False)
 
@@ -457,16 +471,50 @@ class LauncherApp(ctk.CTk):
         webbrowser.open(PC_URL)
 
     def open_settings(self):
-        # In frozen mode, we might want to launch config_editor.exe if not running?
-        # But config_editor.py is designed to run standalone.
-        # Actually, config_editor.py acts as a server.
-        # Ideally, we should launch config_editor.exe and let it open browser.
+        global config_editor_process, config_editor_url
+
+        if config_editor_process and config_editor_process.poll() is None:
+            if config_editor_url:
+                import webbrowser
+
+                webbrowser.open(config_editor_url)
+            return
+
+        # Find an available port for config editor
+        import socket
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("127.0.0.1", 0))
+                port = s.getsockname()[1]
+        except Exception:
+            port = 5500  # Fallback
+
+        config_editor_url = f"http://127.0.0.1:{port}"
+
+        startup_info = None
+        if os.name == "nt":
+            startup_info = subprocess.STARTUPINFO()
+            startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
         if IS_FROZEN:
-            subprocess.Popen([str(CONFIG_EXE)], cwd=str(CONFIG_EXE.parent))
+            cmd = [str(CONFIG_EXE), "--port", str(port)]
+            cwd = CONFIG_EXE.parent
         else:
             cwd = WRAPPER_DIR
-            subprocess.Popen(["uv", "run", "config_editor.py"], cwd=str(cwd))
+            cmd = ["uv", "run", "config_editor.py", "--port", str(port)]
+
+        try:
+            config_editor_process = subprocess.Popen(
+                cmd,
+                cwd=str(cwd),
+                startupinfo=startup_info,
+            )
+            # Update button text to indicate it's already running
+            self.btn_settings.configure(text="Open Settings")
+        except Exception as e:
+            # Fallback to simple alert or log if subprocess fails
+            print(f"Failed to start config editor: {e}")
 
     def quit_app(self):
         # Always use after(0) to ensure UI operations run on the main thread,
