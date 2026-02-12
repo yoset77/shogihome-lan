@@ -244,13 +244,22 @@ class ConfigEditorHandler(http.server.SimpleHTTPRequestHandler):
             if not path_str:
                 raise ValueError("Path is required")
 
-            # Resolve path relative to BASE_DIR if it's relative
-            engine_path = Path(path_str)
-            if not engine_path.is_absolute():
-                engine_path = BASE_DIR / engine_path
+            # Resolve path and prevent path traversal
+            # Use resolve() to get absolute path and handle symlinks/..
+            try:
+                engine_path = Path(path_str).expanduser()
+                if not engine_path.is_absolute():
+                    engine_path = (BASE_DIR / engine_path).resolve()
+                else:
+                    engine_path = engine_path.resolve()
+            except Exception as e:
+                raise ValueError(f"Invalid path format: {e}") from e
 
+            # Basic validation: must exist and be a file
             if not engine_path.exists():
                 raise FileNotFoundError(f"Engine not found at: {engine_path}")
+            if not engine_path.is_file():
+                raise ValueError(f"Path is not a file: {engine_path}")
 
             # Run engine and get USI options
             options = self.get_usi_options(engine_path)

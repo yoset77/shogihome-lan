@@ -581,55 +581,110 @@
         const list = document.getElementById('optionsList');
         const div = document.createElement('div');
         div.className = 'option-row';
-        div.dataset.type = type; 
+        div.dataset.type = type;
         // Store extra data for spin/combo
         if (extra) div.dataset.extra = JSON.stringify(extra);
 
-        let inputHtml = '';
-        let typeLabel = {string: '文字', number: '数値', boolean: '真偽', spin: '数値(範囲)', combo: '選択'}[type] || type;
+        let typeLabelText = {string: '文字', number: '数値', boolean: '真偽', spin: '数値(範囲)', combo: '選択'}[type] || type;
+
+        // Create Name input
+        const keyInput = document.createElement('input');
+        keyInput.type = 'text';
+        keyInput.placeholder = '名前';
+        keyInput.value = key;
+        keyInput.className = 'opt-key';
+        div.appendChild(keyInput);
+
+        // Container for Value input
+        const valContainer = document.createElement('div');
+        valContainer.className = 'opt-val-container';
 
         if (type === 'boolean') {
             const isChecked = val === true || String(val) === 'true';
-            inputHtml = `
-                <div class="opt-val-container" style="background: #fff; border: 1px solid var(--border); padding: 5px;">
-                    <input type="checkbox" class="opt-val" ${isChecked ? 'checked' : ''} style="width: auto;">
-                    <span class="bool-label">${isChecked ? 'true' : 'false'}</span>
-                </div>
-            `;
+            valContainer.style.background = '#fff';
+            valContainer.style.border = '1px solid var(--border)';
+            valContainer.style.padding = '5px';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'opt-val';
+            checkbox.checked = isChecked;
+            checkbox.style.width = 'auto';
+
+            const label = document.createElement('span');
+            label.className = 'bool-label';
+            label.textContent = isChecked ? 'true' : 'false';
+
+            checkbox.addEventListener('change', (e) => {
+                label.textContent = e.target.checked ? 'true' : 'false';
+            });
+
+            valContainer.appendChild(checkbox);
+            valContainer.appendChild(label);
         } else if (type === 'spin') {
             const min = extra.min !== undefined ? extra.min : 0;
             const max = extra.max !== undefined ? extra.max : 999999;
-            inputHtml = `
-                <div class="opt-val-container">
-                    <input type="number" class="opt-val" value="${val}" min="${min}" max="${max}">
-                    <span style="font-size:0.8rem; color:#666;">(${min}~${max})</span>
-                </div>
-            `;
+
+            const spinInput = document.createElement('input');
+            spinInput.type = 'number';
+            spinInput.className = 'opt-val';
+            spinInput.value = val;
+            spinInput.min = min;
+            spinInput.max = max;
+
+            const rangeLabel = document.createElement('span');
+            rangeLabel.style.fontSize = '0.8rem';
+            rangeLabel.style.color = '#666';
+            rangeLabel.textContent = `(${min}~${max})`;
+
+            valContainer.appendChild(spinInput);
+            valContainer.appendChild(rangeLabel);
         } else if (type === 'combo') {
+            const select = document.createElement('select');
+            select.className = 'opt-val';
             const vars = extra.vars || [];
-            // Ensure current val is in vars, or add it if missing (custom?)
-            const opts = vars.map(v => `<option value="${escapeHtml(v)}" ${v==val?'selected':''}>${escapeHtml(v)}</option>`).join('');
-            inputHtml = `
-                <select class="opt-val">${opts}</select>
-            `;
-        } else if (type === 'number') {
-             inputHtml = `<input type="number" value="${escapeHtml(String(val))}" class="opt-val">`;
-        } else {
-             inputHtml = `<input type="text" value="${escapeHtml(String(val))}" class="opt-val">`;
-        }
-
-        div.innerHTML = `
-            <input type="text" placeholder="名前" value="${escapeHtml(key)}" class="opt-key">
-            ${inputHtml}
-            <span style="font-size: 0.8rem; background: #eee; padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; min-width: 60px; text-align: center;">${typeLabel}</span>
-            <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>
-        `;
-
-        if (type === 'boolean') {
-            div.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
-                div.querySelector('.bool-label').innerText = e.target.checked ? 'true' : 'false';
+            vars.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v;
+                if (v == val) opt.selected = true;
+                select.appendChild(opt);
             });
+            valContainer.appendChild(select);
+        } else if (type === 'number') {
+            const numInput = document.createElement('input');
+            numInput.type = 'number';
+            numInput.className = 'opt-val';
+            numInput.value = val;
+            valContainer.appendChild(numInput);
+        } else {
+            const textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.className = 'opt-val';
+            textInput.value = val;
+            valContainer.appendChild(textInput);
         }
+        div.appendChild(valContainer);
+
+        // Type Label
+        const typeLabel = document.createElement('span');
+        typeLabel.style.fontSize = '0.8rem';
+        typeLabel.style.background = '#eee';
+        typeLabel.style.padding = '2px 6px';
+        typeLabel.style.borderRadius = '4px';
+        typeLabel.style.whiteSpace = 'nowrap';
+        typeLabel.style.flexShrink = '0';
+        typeLabel.style.minWidth = '60px';
+        typeLabel.style.textAlign = 'center';
+        typeLabel.textContent = typeLabelText;
+        div.appendChild(typeLabel);
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-sm btn-danger';
+        delBtn.textContent = '×';
+        delBtn.onclick = () => div.remove();
+        div.appendChild(delBtn);
 
         list.appendChild(div);
     }
