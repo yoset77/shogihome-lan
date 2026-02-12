@@ -12,7 +12,6 @@ export enum BoardLayoutType {
   STANDARD = "standard",
   COMPACT = "compact",
   PORTRAIT = "portrait",
-  H_PORTRAIT = "h_portrait",
 }
 
 type Board = {

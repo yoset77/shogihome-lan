@@ -97,16 +97,18 @@
           />
         </div>
         <!-- 盤レイアウト -->
-        <div v-if="!isMobileWebApp()" class="form-item">
+        <div class="form-item">
           <div class="form-item-label-wide">{{ t.boardLayout }}</div>
           <HorizontalSelector
             v-model:value="update.boardLayoutType"
             class="selector"
-            :items="[
-              { label: t.standard, value: BoardLayoutType.STANDARD },
-              { label: t.compact, value: BoardLayoutType.COMPACT },
-              { label: t.portrait, value: BoardLayoutType.PORTRAIT },
-            ]"
+            :items="
+              [
+                { label: t.standard, value: BoardLayoutType.STANDARD },
+                { label: t.compact, value: BoardLayoutType.COMPACT },
+                { label: t.portrait, value: BoardLayoutType.PORTRAIT },
+              ].filter((item) => !isMobileWebApp() || item.value !== BoardLayoutType.STANDARD)
+            "
           />
         </div>
         <!-- 駒画像 -->
@@ -843,7 +845,10 @@ const update = ref({
   thema: org.thema,
   backgroundImageType: org.backgroundImageType,
   backgroundImageFileURL: org.backgroundImageFileURL,
-  boardLayoutType: org.boardLayoutType,
+  boardLayoutType:
+    isMobileWebApp() && org.boardLayoutType === BoardLayoutType.STANDARD
+      ? BoardLayoutType.PORTRAIT
+      : org.boardLayoutType,
   pieceImage: org.pieceImage,
   pieceImageFileURL: org.pieceImageFileURL,
   deletePieceImageMargin: org.deletePieceImageMargin,

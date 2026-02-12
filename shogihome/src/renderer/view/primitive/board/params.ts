@@ -228,18 +228,6 @@ export const portraitHandParams = {
   topPiecePadding: 5.7,
 };
 
-export const hPortraitHandParams = {
-  width: 658,
-  height: 104,
-  highlight: {
-    selected: { "background-color": "#ff4800", opacity: "0.7" },
-  },
-  squareWidth: 94,
-  squareHeight: 52,
-  leftPiecePadding: 3.4,
-  topPiecePadding: 5.7,
-};
-
 export const portraitViewParams = {
   frame: {
     width: 878,
@@ -295,66 +283,6 @@ export const portraitViewParams = {
       y: 50,
     },
     width: 214,
-    height: 52,
-    fontSize: 30,
-  },
-};
-
-export const hPortraitViewParams = {
-  frame: {
-    width: 878,
-    height: 1172,
-  },
-  board: {
-    x: 0,
-    y: 104,
-  },
-  hand: {
-    black: {
-      x: 0,
-      y: 1064,
-    },
-    white: {
-      x: 220,
-      y: 0,
-    },
-  },
-  turn: {
-    black: {
-      x: 658,
-      y: 1116,
-    },
-    white: {
-      x: 0,
-      y: 52,
-    },
-    width: 220,
-    height: 52,
-    fontSize: 30,
-  },
-  playerName: {
-    black: {
-      x: 658,
-      y: 1116,
-    },
-    white: {
-      x: 0,
-      y: 0,
-    },
-    width: 220,
-    height: 52,
-    fontSize: 25,
-  },
-  clock: {
-    black: {
-      x: 658,
-      y: 1064,
-    },
-    white: {
-      x: 0,
-      y: 52,
-    },
-    width: 220,
     height: 52,
     fontSize: 30,
   },

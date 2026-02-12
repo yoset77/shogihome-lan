@@ -189,12 +189,10 @@ import { RectSize } from "@/common/assets/geometry";
 import { newConfig } from "./board/config";
 import { StandardLayoutBuilder } from "./board/standard";
 import { PortraitLayoutBuilder } from "./board/portrait";
-import { HPortraitLayoutBuilder } from "./board/h-portrait";
 import { BoardLayoutBuilder } from "./board/board";
 import {
   CompactHandLayoutBuilder,
   HandLayoutBuilder,
-  HPortraitHandLayoutBuilder,
   PortraitHandLayoutBuilder,
 } from "./board/hand";
 import { BoardLayoutType } from "@/common/settings/layout";
@@ -490,8 +488,6 @@ const layoutBuilder = computed(() => {
       return new CompactLayoutBuilder(config.value);
     case BoardLayoutType.PORTRAIT:
       return new PortraitLayoutBuilder(config.value);
-    case BoardLayoutType.H_PORTRAIT:
-      return new HPortraitLayoutBuilder(config.value);
   }
 });
 
@@ -526,8 +522,6 @@ const handLayoutBuilder = computed(() => {
       return new CompactHandLayoutBuilder(config.value, main.value.ratio);
     case BoardLayoutType.PORTRAIT:
       return new PortraitHandLayoutBuilder(config.value, main.value.ratio);
-    case BoardLayoutType.H_PORTRAIT:
-      return new HPortraitHandLayoutBuilder(config.value, main.value.ratio);
   }
 });
 
