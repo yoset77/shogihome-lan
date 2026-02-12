@@ -9,13 +9,7 @@ import {
 } from "tsshogi";
 import { Config } from "./config.js";
 import { PieceStandImageType } from "@/common/settings/app.js";
-import {
-  commonParams,
-  compactHandParams,
-  handParams,
-  hPortraitHandParams,
-  portraitHandParams,
-} from "./params.js";
+import { commonParams, compactHandParams, handParams, portraitHandParams } from "./params.js";
 import { Hand, HandNumber, HandPiece, HandPointer } from "./layout.js";
 import { Point } from "@/common/assets/geometry.js";
 
@@ -331,113 +325,6 @@ export class PortraitHandLayoutBuilder {
         backgroundStyle = {
           ...backgroundStyle,
           ...portraitHandParams.highlight.selected,
-        };
-      }
-      pointers.push({
-        id,
-        type,
-        style: squareStyle,
-        backgroundStyle,
-      });
-    });
-    return {
-      textureImagePath: this.config.pieceStandImage,
-      touchAreaStyle,
-      backgroundStyle,
-      pieces,
-      numbers,
-      pointers,
-    };
-  }
-}
-
-export class HPortraitHandLayoutBuilder extends PortraitHandLayoutBuilder {
-  centerOfPieceType(hand: ImmutableHand, color: Color, type: PieceType): Point {
-    const displayColor = this.config.flip ? reverseColor(color) : color;
-    let count = 0;
-    for (let i = 0; i < handPieceTypes.length; i++) {
-      if (handPieceTypes[i] !== type) {
-        if (hand.count(handPieceTypes[i]) > 0) {
-          count++;
-        }
-        continue;
-      }
-      const index = displayColor === Color.BLACK ? count : handPieceTypes.length - count - 1;
-      const x = hPortraitHandParams.squareWidth * (index + 0.5);
-      const y = hPortraitHandParams.squareHeight * 0.5;
-      return new Point(x, y).multiply(this.ratio);
-    }
-    return new Point(0, 0);
-  }
-
-  build(hand: ImmutableHand, color: Color, pointer?: Square | Piece | null): Hand {
-    const displayColor = this.config.flip ? reverseColor(color) : color;
-    const bgColor = pieceStandBackgroundColorMap[this.config.pieceStandImageType];
-    const standWidth = hPortraitHandParams.width * this.ratio;
-    const standHeight = hPortraitHandParams.height * this.ratio;
-    const touchAreaStyle = {
-      left: "0px",
-      top: "0px",
-      width: standWidth + "px",
-      height: standHeight + "px",
-    };
-    const backgroundStyle = {
-      left: "0px",
-      top: "0px",
-      width: standWidth + "px",
-      height: standHeight + "px",
-      "background-color": bgColor,
-      opacity: this.config.pieceStandImageOpacity.toString(),
-    };
-    const pieces: HandPiece[] = [];
-    const numbers: HandNumber[] = [];
-    const pointers: HandPointer[] = [];
-    handPieceTypes.forEach((type) => {
-      if (!hand.count(type)) {
-        return;
-      }
-      const index = displayColor === Color.BLACK ? pieces.length : 7 - pieces.length - 1;
-      const id = type;
-      const imagePath = this.config.pieceImages[displayColor][type];
-      const left = hPortraitHandParams.squareWidth * index * this.ratio;
-      pieces.push({
-        id,
-        imagePath,
-        style: {
-          left: left + hPortraitHandParams.leftPiecePadding * this.ratio + "px",
-          top: hPortraitHandParams.topPiecePadding * this.ratio + "px",
-          width: commonParams.piece.width * this.ratio + "px",
-          height: commonParams.piece.height * this.ratio + "px",
-        },
-      });
-      if (hand.count(type) > 1) {
-        const shadow = 2 * this.ratio;
-        const blur = 2 * this.ratio;
-        const x = hand.count(type) < 10 ? 0.6 : 0.3;
-        numbers.push({
-          id: type,
-          character: hand.count(type).toString(),
-          style: {
-            left: left + hPortraitHandParams.squareWidth * x * this.ratio + "px",
-            top: hPortraitHandParams.squareHeight * 0.5 * this.ratio + "px",
-            "font-size": 40 * this.ratio + "px",
-            "font-weight": "900",
-            color: "#fff",
-            "text-shadow": `${shadow}px ${shadow}px ${blur}px #000, ${-shadow}px ${shadow}px ${blur}px #000, ${shadow}px ${-shadow}px ${blur}px #000, ${-shadow}px ${-shadow}px ${blur}px #000`,
-          },
-        });
-      }
-      const squareStyle = {
-        left: left + "px",
-        top: "0px",
-        width: hPortraitHandParams.squareWidth * this.ratio + "px",
-        height: hPortraitHandParams.squareHeight * this.ratio + "px",
-      };
-      let backgroundStyle = squareStyle;
-      if (pointer && pointer instanceof Piece && pointer.color === color && pointer.type === type) {
-        backgroundStyle = {
-          ...backgroundStyle,
-          ...hPortraitHandParams.highlight.selected,
         };
       }
       pointers.push({

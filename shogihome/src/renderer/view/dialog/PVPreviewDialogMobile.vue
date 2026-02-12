@@ -2,7 +2,7 @@
   <DialogFrame @cancel="onClose">
     <BoardView
       class="board-view"
-      :layout-type="BoardLayoutType.H_PORTRAIT"
+      :layout-type="BoardLayoutType.PORTRAIT"
       :board-image-type="appSettings.boardImage"
       :custom-board-image-url="appSettings.boardImageFileURL"
       :board-grid-color="appSettings.boardGridColor || undefined"
