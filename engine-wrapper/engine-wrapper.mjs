@@ -278,7 +278,9 @@ const server = net.createServer((socket) => {
     // Store options for the upper scope listener to use
     socket.engineOptions = engineDef.options;
 
-    console.log(`[${new Date().toISOString()}] Started engine process: ${enginePath} (PID: ${engineProcess.pid})`);
+    const engineName = engineDef.name || 'Unknown';
+    const shortId = engineId.substring(0, 5);
+    console.log(`[${new Date().toISOString()}] Started engine: ${engineName} (ID: ${shortId}...) Path: ${enginePath} (PID: ${engineProcess.pid})`);
     engineStarted = true;
 
     // Pipe all output from engine back to client

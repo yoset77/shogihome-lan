@@ -51,8 +51,8 @@ RUN npm ci --omit=dev && \
 COPY --from=builder --chown=node:node /app/docs/webapp ./docs/webapp
 COPY --from=builder --chown=node:node /app/server.ts ./
 
-# ポート8080を公開
-EXPOSE 8080
+# ポート8140を公開
+EXPOSE 8140
 
 # コンテナ起動時にサーバーを実行
 CMD [ "npm", "run", "server:start" ]

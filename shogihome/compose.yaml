@@ -5,6 +5,6 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "${HOST_PORT}:8080"
+      - "${HOST_PORT}:8140"
     env_file:
       - .env

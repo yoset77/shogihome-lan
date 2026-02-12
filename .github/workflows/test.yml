@@ -40,4 +40,21 @@ jobs:
         working-directory: .
         run: |
           node --check engine-wrapper/engine-wrapper.mjs
-          python3 -m py_compile engine-wrapper/engine-wrapper.py
+          python3 -m py_compile engine-wrapper/engine_wrapper.py
+
+  test-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: engine-wrapper
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Set up Python
+        run: uv python install
+      - name: Install dependencies
+        run: uv sync --all-groups
+      - name: Run tests
+        run: uv run pytest
