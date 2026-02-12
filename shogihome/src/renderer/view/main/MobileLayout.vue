@@ -238,15 +238,9 @@ const boardPaneMaxSize = computed(() => {
   return maxSize;
 });
 const boardLayoutType = computed(() => {
-  if (showRecordViewOnBottom.value) {
-    return windowSize.width < windowSize.height * 0.57
-      ? BoardLayoutType.PORTRAIT
-      : BoardLayoutType.COMPACT;
-  } else {
-    return windowSize.width < windowSize.height * 1.77
-      ? BoardLayoutType.PORTRAIT
-      : BoardLayoutType.COMPACT;
-  }
+  return appSettings.boardLayoutType === BoardLayoutType.STANDARD
+    ? BoardLayoutType.PORTRAIT
+    : appSettings.boardLayoutType;
 });
 
 const boardPaneSize = ref(windowSize);
