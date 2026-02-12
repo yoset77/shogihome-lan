@@ -208,11 +208,11 @@ class ConfigEditorHandler(http.server.SimpleHTTPRequestHandler):
         try:
             if ENGINES_JSON_PATH.exists():
                 with open(ENGINES_JSON_PATH, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+                    engines_data = json.load(f)
             else:
-                data = []  # Return empty array if not exists
+                engines_data = []  # Return empty array if not exists
 
-            self.send_json(data)
+            self.send_json({"engines": engines_data, "os": os.name})
         except Exception as e:
             self.send_error_json(str(e))
 

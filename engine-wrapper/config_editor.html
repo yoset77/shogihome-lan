@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>ShogiHome LAN - Engine Config Editor</title>
     <style>
         :root {
@@ -217,8 +218,9 @@
                 <button id="analyzeBtn" class="btn btn-info" onclick="analyzeEngine()" style="display:none; white-space:nowrap;">オプション取得</button>
             </div>
             <div class="hint">
-                絶対パス、または engine-wrapper からの相対パス。<br>
-                <b>【ヒント】</b>参照ボタンを使うか、エクスプローラーでファイルを <b>Shift + 右クリック</b> して <b>「パスとしてコピー」</b> できます。
+                絶対パス、または engine-wrapper からの相対パス。
+                <span id="winHint"><br>
+                <b>【ヒント】</b>参照ボタンを使うか、エクスプローラーでファイルを <b>Shift + 右クリック</b> して <b>「パスとしてコピー」</b> できます。</span>
             </div>
         </div>
 
@@ -261,12 +263,29 @@
             if (res.ok) {
                 const data = await res.json();
                 isAppMode = true;
-                engines = data;
+
+                // Handle new response format {engines: [], os: 'nt'} or old format []
+                if (data && typeof data === 'object' && !Array.isArray(data)) {
+                    engines = data.engines || [];
+                    const os = data.os;
+
+                    // On non-Windows platforms, remove the Browse button and Windows-specific hints
+                    if (os && os !== 'nt') {
+                        const browseBtn = document.getElementById('browseBtn');
+                        if (browseBtn) browseBtn.remove();
+                        const winHint = document.getElementById('winHint');
+                        if (winHint) winHint.remove();
+                    }
+                } else {
+                    engines = data;
+                }
+
                 enableAppMode();
                 renderTable();
                 document.getElementById('editorSection').style.display = 'block';
             }
         } catch (e) {
+            console.error('Failed to initialize app mode:', e);
             console.log('Running in standalone file mode');
         }
     });
@@ -283,7 +302,8 @@
         
         // Enable Analyze and Browse buttons
         document.getElementById('analyzeBtn').style.display = 'block';
-        document.getElementById('browseBtn').style.display = 'block';
+        const browseBtn = document.getElementById('browseBtn');
+        if (browseBtn) browseBtn.style.display = 'block';
 
         // Add Shutdown button to header area
         const container = document.querySelector('.container');

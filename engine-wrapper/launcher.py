@@ -12,7 +12,7 @@ import qrcode
 from PIL import Image
 from pystray import MenuItem
 
-from common import BASE_DIR, get_local_ip, get_pc_url_config, is_frozen, kill_proc_tree, load_env_value
+from common import BASE_DIR, get_local_ip, get_pc_url_config, is_frozen, is_port_open, kill_proc_tree, load_env_value
 
 # --- Configuration ---
 APP_NAME = "ShogiHome LAN"
@@ -34,19 +34,6 @@ else:
     SERVER_ENV_PATH = BASE_DIR.parent / "shogihome" / ".env"
     WRAPPER_ENV_PATH = BASE_DIR / ".env"
 
-SERVER_PORT = load_env_value(SERVER_ENV_PATH, "PORT", 8140)
-WRAPPER_PORT = load_env_value(WRAPPER_ENV_PATH, "LISTEN_PORT", 4082)
-
-
-# LAN access configuration
-BIND_ADDRESS = load_env_value(SERVER_ENV_PATH, "BIND_ADDRESS", "0.0.0.0")
-DISABLE_AUTO_ALLOWED_ORIGINS = str(load_env_value(SERVER_ENV_PATH, "DISABLE_AUTO_ALLOWED_ORIGINS", "false")).lower() == "true"
-ALLOWED_ORIGINS_RAW = load_env_value(SERVER_ENV_PATH, "ALLOWED_ORIGINS", "")
-ALLOWED_ORIGINS = [o.strip() for o in ALLOWED_ORIGINS_RAW.split(",") if o.strip()]
-
-# Determine best URL for PC access and if it's allowed
-PC_URL, is_pc_access_allowed = get_pc_url_config(BIND_ADDRESS, SERVER_PORT, DISABLE_AUTO_ALLOWED_ORIGINS, ALLOWED_ORIGINS, get_local_ip())
-
 # Paths to executables/scripts
 if IS_FROZEN:
     SERVER_EXE = BASE_DIR / "shogihome" / "shogihome-server.exe"
@@ -57,15 +44,6 @@ else:
     SERVER_DIR = BASE_DIR.parent / "shogihome"
     WRAPPER_DIR = BASE_DIR
 
-# Global state
-server_process = None
-wrapper_process = None
-config_editor_process = None
-config_editor_url = None
-is_running = False
-tray_icon = None
-window = None
-
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
@@ -73,6 +51,17 @@ ctk.set_default_color_theme("blue")
 class LauncherApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        # State variables
+        self.server_process = None
+        self.wrapper_process = None
+        self.config_editor_process = None
+        self.config_editor_url = None
+        self.is_running = False
+        self.tray_icon = None
+
+        # Load initial config
+        self.load_config()
 
         self.title(APP_NAME)
         self.geometry("400x540")
@@ -88,7 +77,7 @@ class LauncherApp(ctk.CTk):
         self.title_label = ctk.CTkLabel(self.header_frame, text=APP_NAME, font=("Roboto", 20, "bold"))
         self.title_label.pack(side="left", padx=10)
 
-        self.status_indicator = ctk.CTkLabel(self.header_frame, text="● Stopped", text_color="red", font=("Roboto", 14))
+        self.status_indicator = ctk.CTkLabel(self.header_frame, text="● Stopped", text_color="#757575", font=("Roboto", 14))
         self.status_indicator.pack(side="right", padx=10)
 
         # Footer (Stop button) - Pack first to reserve bottom space
@@ -103,68 +92,14 @@ class LauncherApp(ctk.CTk):
         )
         self.btn_stop.pack(side="bottom", fill="x", padx=20, pady=20)
 
-        # QR Code Section
+        # QR Code and Info Section
         self.qr_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.qr_frame.pack(pady=10)
+        self.qr_label = None
+        self.lan_link = None
+        self.info_card = None
 
-        # Show QR code only if LAN access is enabled and secure
-        show_qr = (BIND_ADDRESS != "127.0.0.1") and (not DISABLE_AUTO_ALLOWED_ORIGINS)
-
-        if show_qr:
-            local_ip = get_local_ip()
-            lan_url = f"http://{local_ip}:{SERVER_PORT}"
-
-            qr = qrcode.QRCode(box_size=4, border=2)
-            qr.add_data(lan_url)
-            qr.make(fit=True)
-            qr_img_wrapper = qr.make_image(fill_color="black", back_color="white")
-
-            # Convert to standard PIL Image to satisfy CTkImage type check
-            buf = io.BytesIO()
-            qr_img_wrapper.save(buf, format="PNG")
-            buf.seek(0)
-            qr_img = Image.open(buf)
-
-            # Convert to CTkImage
-            self.qr_image = ctk.CTkImage(light_image=qr_img, dark_image=qr_img, size=(180, 180))
-            self.qr_label = ctk.CTkLabel(self.qr_frame, image=self.qr_image, text="")
-            self.qr_label.pack()
-
-            self.lan_link = ctk.CTkLabel(
-                self.qr_frame,
-                text=lan_url,
-                font=("Roboto", 14),
-                text_color=("#0d6efd", "#4dabf7"),
-                cursor="hand2",
-            )
-            self.lan_link.pack(pady=5)
-            self.lan_link.bind("<Button-1>", lambda e: webbrowser.open(lan_url))
-        else:
-            # Display a styled info card instead of a bare placeholder
-            self.info_card = ctk.CTkFrame(self.qr_frame, corner_radius=10, border_width=1, border_color=("#dbdbdb", "#2b2b2b"))
-            self.info_card.pack(padx=20, pady=10)
-
-            self.info_title = ctk.CTkLabel(
-                self.info_card,
-                text="Custom Network Active",
-                font=("Roboto", 14, "bold"),
-            )
-            self.info_title.pack(pady=(15, 5), padx=20)
-
-            self.info_text = ctk.CTkLabel(
-                self.info_card,
-                text=(
-                    f"Binding: {BIND_ADDRESS}\n"
-                    f"Auto-Origins: {'Disabled' if DISABLE_AUTO_ALLOWED_ORIGINS else 'Enabled'}\n\n"
-                    "Please use your manually\n"
-                    "configured URL or proxy\n"
-                    "to access from other devices."
-                ),
-                font=("Roboto", 12),
-                text_color=("#3b3b3b", "#bbbbbb"),
-                justify="center",
-            )
-            self.info_text.pack(pady=(0, 15), padx=20)
+        self.setup_info_panel()
 
         # Main Actions
         self.action_frame = ctk.CTkFrame(self)
@@ -180,7 +115,7 @@ class LauncherApp(ctk.CTk):
             font=("Roboto", 14),
             fg_color="#1161C9",
             hover_color="#124BC5",
-            state="normal" if is_pc_access_allowed else "disabled",
+            state="normal" if self.is_pc_access_allowed else "disabled",
         )
         self.btn_open.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -221,6 +156,96 @@ class LauncherApp(ctk.CTk):
         self.after(100, self.start_services)
         self.after(1000, self.check_processes)
 
+    def load_config(self):
+        """Load or reload configuration from .env files."""
+        self.server_port = load_env_value(SERVER_ENV_PATH, "PORT", 8140)
+        self.wrapper_port = load_env_value(WRAPPER_ENV_PATH, "LISTEN_PORT", 4082)
+
+        # LAN access configuration
+        self.bind_address = load_env_value(SERVER_ENV_PATH, "BIND_ADDRESS", "0.0.0.0")
+        self.disable_auto_allowed_origins = str(load_env_value(SERVER_ENV_PATH, "DISABLE_AUTO_ALLOWED_ORIGINS", "false")).lower() == "true"
+        allowed_origins_raw = load_env_value(SERVER_ENV_PATH, "ALLOWED_ORIGINS", "")
+        self.allowed_origins = [o.strip() for o in allowed_origins_raw.split(",") if o.strip()]
+
+        # Determine best URL for PC access and if it's allowed
+        self.pc_url, self.is_pc_access_allowed = get_pc_url_config(
+            self.bind_address,
+            self.server_port,
+            self.disable_auto_allowed_origins,
+            self.allowed_origins,
+            get_local_ip(),
+        )
+
+    def setup_info_panel(self):
+        """Setup or refresh the QR code / Info panel."""
+        # Clear existing widgets if any
+        if self.qr_label:
+            self.qr_label.destroy()
+            self.qr_label = None
+        if self.lan_link:
+            self.lan_link.destroy()
+            self.lan_link = None
+        if self.info_card:
+            self.info_card.destroy()
+            self.info_card = None
+
+        # Show QR code only if LAN access is enabled and secure (default mode)
+        show_qr = (self.bind_address == "0.0.0.0") and (not self.disable_auto_allowed_origins)
+
+        if show_qr:
+            local_ip = get_local_ip()
+            lan_url = f"http://{local_ip}:{self.server_port}"
+
+            qr = qrcode.QRCode(box_size=4, border=2)
+            qr.add_data(lan_url)
+            qr.make(fit=True)
+            qr_img_wrapper = qr.make_image(fill_color="black", back_color="white")
+
+            # Convert to standard PIL Image
+            buf = io.BytesIO()
+            qr_img_wrapper.save(buf, format="PNG")
+            buf.seek(0)
+            qr_img = Image.open(buf)
+
+            # Convert to CTkImage
+            self.qr_image = ctk.CTkImage(light_image=qr_img, dark_image=qr_img, size=(180, 180))
+            self.qr_label = ctk.CTkLabel(self.qr_frame, image=self.qr_image, text="")
+            self.qr_label.pack()
+
+            self.lan_link = ctk.CTkLabel(
+                self.qr_frame,
+                text=lan_url,
+                font=("Roboto", 14),
+                text_color=("#0d6efd", "#4dabf7"),
+                cursor="hand2",
+            )
+            self.lan_link.pack(pady=5)
+            self.lan_link.bind("<Button-1>", lambda e: webbrowser.open(lan_url))
+        else:
+            # Display a styled info card instead of a bare placeholder
+            self.info_card = ctk.CTkFrame(self.qr_frame, corner_radius=10, border_width=1, border_color=("#dbdbdb", "#2b2b2b"))
+            self.info_card.pack(padx=20, pady=10)
+
+            ctk.CTkLabel(
+                self.info_card,
+                text="Custom Network Active",
+                font=("Roboto", 14, "bold"),
+            ).pack(pady=(15, 5), padx=20)
+
+            ctk.CTkLabel(
+                self.info_card,
+                text=(
+                    f"Binding: {self.bind_address}\n"
+                    f"Auto-Origins: {'Disabled' if self.disable_auto_allowed_origins else 'Enabled'}\n\n"
+                    "Please use your manually\n"
+                    "configured URL or proxy\n"
+                    "to access from other devices."
+                ),
+                font=("Roboto", 12),
+                text_color=("#3b3b3b", "#bbbbbb"),
+                justify="center",
+            ).pack(pady=(0, 15), padx=20)
+
     def minimize_to_tray(self):
         self.withdraw()
 
@@ -236,18 +261,17 @@ class LauncherApp(ctk.CTk):
             pass
 
     def update_status(self, running):
-        global is_running
-        is_running = running
+        self.is_running = running
 
         def _update():
             if running:
                 self.status_indicator.configure(text="● Running", text_color="#4caf50")  # Green
-                if is_pc_access_allowed:
+                if self.is_pc_access_allowed:
                     self.btn_open.configure(state="normal")
                 self.btn_restart.configure(state="normal")
                 self.btn_settings.configure(state="normal")
             else:
-                self.status_indicator.configure(text="● Stopped", text_color="#f44336")  # Red
+                self.status_indicator.configure(text="● Stopped", text_color="#757575")  # Gray
                 self.btn_open.configure(state="disabled")
                 self.btn_restart.configure(state="normal")
                 self.btn_settings.configure(state="normal")
@@ -255,29 +279,25 @@ class LauncherApp(ctk.CTk):
         self.after(0, _update)
 
     def check_processes(self):
-        global server_process, wrapper_process, config_editor_process, is_running
-
-        if is_running:
+        if self.is_running:
             # Check if any process died
-            server_dead = server_process and server_process.poll() is not None
-            wrapper_dead = wrapper_process and wrapper_process.poll() is not None
+            server_dead = self.server_process and self.server_process.poll() is not None
+            wrapper_dead = self.wrapper_process and self.wrapper_process.poll() is not None
 
             if server_dead or wrapper_dead:
                 self.update_status(False)
                 self.after(0, lambda: self.status_indicator.configure(text="● Error", text_color="#f44336"))
 
         # Monitor config editor process
-        if config_editor_process and config_editor_process.poll() is not None:
-            config_editor_process = None
+        if self.config_editor_process and self.config_editor_process.poll() is not None:
+            self.config_editor_process = None
             self.after(0, lambda: self.btn_settings.configure(text="Engine Settings"))
 
         # Schedule next check
         self.after(2000, self.check_processes)
 
     def start_services(self):
-        global server_process, wrapper_process
-
-        if is_running:
+        if self.is_running:
             return
 
         self.status_indicator.configure(text="⟳ Starting...", text_color="#ff9800")  # Orange
@@ -286,13 +306,11 @@ class LauncherApp(ctk.CTk):
         threading.Thread(target=self._run_processes, daemon=True).start()
 
     def _run_processes(self):
-        global server_process, wrapper_process
-
         # Prepare logs
         log_dir = BASE_DIR / "logs"
         log_dir.mkdir(exist_ok=True)
 
-        # Rotate logs: move .log to .log.old to prevent indefinite growth
+        # Rotate logs
         for log_name in ["server.log", "wrapper.log"]:
             log_path = log_dir / log_name
             if log_path.exists():
@@ -302,11 +320,8 @@ class LauncherApp(ctk.CTk):
                         old_path.unlink()
                     log_path.rename(old_path)
                 except Exception:
-                    # Might be locked by another process
                     pass
 
-        # Use "w" (write) because we just rotated.
-        # Open in context managers or close explicitly after Popen/flush.
         try:
             server_log = open(log_dir / "server.log", "w", encoding="utf-8")
             wrapper_log = open(log_dir / "wrapper.log", "w", encoding="utf-8")
@@ -328,14 +343,13 @@ class LauncherApp(ctk.CTk):
                 wrapper_cmd = [str(WRAPPER_EXE)]
                 cwd = WRAPPER_EXE.parent
             else:
-                # Dev: use uv run
                 wrapper_cmd = ["uv", "run", "engine_wrapper.py"]
                 cwd = WRAPPER_DIR
 
             wrapper_log.write(f"Executing Wrapper: {wrapper_cmd}\nCWD: {cwd}\n")
             wrapper_log.flush()
 
-            wrapper_process = subprocess.Popen(
+            self.wrapper_process = subprocess.Popen(
                 wrapper_cmd,
                 cwd=str(cwd),
                 stdout=wrapper_log,
@@ -352,7 +366,6 @@ class LauncherApp(ctk.CTk):
                 server_cmd = [str(SERVER_EXE)]
                 cwd = SERVER_EXE.parent
             else:
-                # Dev: use npm run server:start
                 server_cmd = ["npm", "run", "server:start"]
                 cwd = SERVER_DIR
 
@@ -361,7 +374,7 @@ class LauncherApp(ctk.CTk):
             server_log.write(f"Executing Server: {server_cmd}\nCWD: {cwd}\n")
             server_log.flush()
 
-            server_process = subprocess.Popen(
+            self.server_process = subprocess.Popen(
                 server_cmd,
                 cwd=str(cwd),
                 stdout=server_log,
@@ -373,8 +386,28 @@ class LauncherApp(ctk.CTk):
             server_log.write(f"Failed to start server: {e}\n")
             server_log.flush()
 
-        # Wait a fixed time to avoid port scan detection
-        time.sleep(2.0)
+        # Wait for both ports to open (up to 10 seconds)
+        start_wait = time.time()
+        success = False
+        while time.time() - start_wait < 10:
+            # Check if ports are open
+            # Server might be bound to a specific IP. If 0.0.0.0, we check 127.0.0.1.
+            server_host = self.bind_address if self.bind_address != "0.0.0.0" else "127.0.0.1"
+            ports_ok = is_port_open(self.server_port, host=server_host) and is_port_open(self.wrapper_port, host="127.0.0.1")
+
+            # Check if our processes are still alive
+            server_alive = self.server_process and self.server_process.poll() is None
+            wrapper_alive = self.wrapper_process and self.wrapper_process.poll() is None
+
+            if ports_ok and server_alive and wrapper_alive:
+                success = True
+                break
+
+            # Early exit if any process has already crashed
+            if not server_alive or not wrapper_alive:
+                break
+
+            time.sleep(0.5)
 
         # Flush and close the parent's handles
         server_log.flush()
@@ -382,24 +415,26 @@ class LauncherApp(ctk.CTk):
         server_log.close()
         wrapper_log.close()
 
-        self.update_status(True)
+        if success:
+            self.update_status(True)
+        else:
+            self.after(0, lambda: self.status_indicator.configure(text="● Error", text_color="#f44336"))
+            self.update_status(False)
 
     def stop_services(self):
-        global server_process, wrapper_process, config_editor_process
-
         self.after(0, lambda: self.status_indicator.configure(text="Stopping...", text_color="#f44336"))
 
-        if server_process:
-            self._kill_proc_tree(server_process)
-            server_process = None
-        if wrapper_process:
-            self._kill_proc_tree(wrapper_process)
-            wrapper_process = None
-        if config_editor_process:
-            self._kill_proc_tree(config_editor_process)
-            config_editor_process = None
+        if self.server_process:
+            self._kill_proc_tree(self.server_process)
+            self.server_process = None
+        if self.wrapper_process:
+            self._kill_proc_tree(self.wrapper_process)
+            self.wrapper_process = None
+        if self.config_editor_process:
+            self._kill_proc_tree(self.config_editor_process)
+            self.config_editor_process = None
             try:
-                self.btn_settings.configure(text="Engine Settings")
+                self.after(0, lambda: self.btn_settings.configure(text="Engine Settings"))
             except Exception:
                 pass
 
@@ -412,6 +447,12 @@ class LauncherApp(ctk.CTk):
             self.stop_services()
             # Slight delay to ensure ports are freed
             time.sleep(1.0)
+            # Reload config before starting again
+            self.load_config()
+            # Refresh UI components (QR code, Open button state)
+            self.after(0, self.setup_info_panel)
+            self.after(0, lambda: self.btn_open.configure(state="normal" if self.is_pc_access_allowed else "disabled"))
+            # Start
             self.after(0, self.start_services)
             self.after(0, lambda: self.btn_restart.configure(text="Restart Server"))
 
@@ -468,16 +509,14 @@ class LauncherApp(ctk.CTk):
 
     def open_browser(self, auto=False):
         # Open the allowed URL on PC
-        webbrowser.open(PC_URL)
+        webbrowser.open(self.pc_url)
 
     def open_settings(self):
-        global config_editor_process, config_editor_url
-
-        if config_editor_process and config_editor_process.poll() is None:
-            if config_editor_url:
+        if self.config_editor_process and self.config_editor_process.poll() is None:
+            if self.config_editor_url:
                 import webbrowser
 
-                webbrowser.open(config_editor_url)
+                webbrowser.open(self.config_editor_url)
             return
 
         # Find an available port for config editor
@@ -490,7 +529,7 @@ class LauncherApp(ctk.CTk):
         except Exception:
             port = 5500  # Fallback
 
-        config_editor_url = f"http://127.0.0.1:{port}"
+        self.config_editor_url = f"http://127.0.0.1:{port}"
 
         startup_info = None
         if os.name == "nt":
@@ -505,7 +544,7 @@ class LauncherApp(ctk.CTk):
             cmd = ["uv", "run", "config_editor.py", "--port", str(port)]
 
         try:
-            config_editor_process = subprocess.Popen(
+            self.config_editor_process = subprocess.Popen(
                 cmd,
                 cwd=str(cwd),
                 startupinfo=startup_info,
@@ -522,8 +561,6 @@ class LauncherApp(ctk.CTk):
         self.after(0, self._handle_quit)
 
     def _handle_quit(self):
-        global tray_icon
-
         try:
             # UI Feedback
             self.btn_stop.configure(text="Stopping...", state="disabled")
@@ -537,8 +574,8 @@ class LauncherApp(ctk.CTk):
 
         self.stop_services()
 
-        if tray_icon:
-            tray_icon.stop()
+        if self.tray_icon:
+            self.tray_icon.stop()
 
         # Wait 200ms before quitting the mainloop to allow tray icon cleanup to finish.
         # This prevents the icon from lingering in the Windows taskbar until hovered.
@@ -551,8 +588,6 @@ class LauncherApp(ctk.CTk):
 
 # --- Tray Icon ---
 def setup_tray(app):
-    global tray_icon
-
     if ICON_PATH.exists():
         image = Image.open(ICON_PATH)
     else:
@@ -567,8 +602,8 @@ def setup_tray(app):
         MenuItem("Exit", lambda: app.quit_app()),
     )
 
-    tray_icon = pystray.Icon("ShogiHome LAN", image, "ShogiHome LAN", menu)
-    tray_icon.run()
+    app.tray_icon = pystray.Icon("ShogiHome LAN", image, "ShogiHome LAN", menu)
+    app.tray_icon.run()
 
 
 # --- Main ---
@@ -576,14 +611,7 @@ if __name__ == "__main__":
     app = LauncherApp()
 
     # Run tray in separate thread (pystray run is blocking)
-    # BUT customtkinter mainloop must be in main thread.
-    # And pystray requires to run in main thread on macOS, but we are on Windows.
-    # On Windows, pystray can run in background thread.
-
     threading.Thread(target=setup_tray, args=(app,), daemon=True).start()
-
-    # Hide window initially? Or show "Starting..." splash?
-    # Let's show dashboard initially.
 
     app.mainloop()
     sys.exit(0)

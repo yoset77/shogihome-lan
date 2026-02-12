@@ -17,6 +17,7 @@ describe("Server Session Reconnection", () => {
       env: {
         ...process.env,
         PORT: SERVER_PORT.toString(),
+        BIND_ADDRESS: "0.0.0.0",
         REMOTE_ENGINE_PORT: "9999",
         ALLOWED_ORIGINS: `http://localhost:${SERVER_PORT}`,
         WRAPPER_ACCESS_TOKEN: "", // Disable auth for tests

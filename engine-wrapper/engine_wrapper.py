@@ -123,45 +123,50 @@ async def handle_client(client_reader: asyncio.StreamReader, client_writer: asyn
     access_token = os.getenv("WRAPPER_ACCESS_TOKEN")
 
     try:
-        if access_token:
-            nonce = secrets.token_hex(16)
-            client_writer.write(f"auth_cram_sha256 {nonce}\n".encode())
-            await client_writer.drain()
+        try:
+            if access_token:
+                nonce = secrets.token_hex(16)
+                client_writer.write(f"auth_cram_sha256 {nonce}\n".encode())
+                await client_writer.drain()
 
-            # Wait for auth command
-            auth_line = await client_reader.readline()
-            if not auth_line:
-                logging.warning("Client disconnected during auth.")
-                return
+                # Wait for auth command
+                auth_line = await client_reader.readline()
+                if not auth_line:
+                    logging.warning("Client disconnected during auth.")
+                    return
 
-            auth_cmd = auth_line.decode().strip()
-            if auth_cmd.startswith("auth "):
-                digest = auth_cmd[5:].strip()
-                expected_digest = hmac.new(access_token.encode(), nonce.encode(), hashlib.sha256).hexdigest()
+                auth_cmd = auth_line.decode().strip()
+                if auth_cmd.startswith("auth "):
+                    digest = auth_cmd[5:].strip()
+                    expected_digest = hmac.new(access_token.encode(), nonce.encode(), hashlib.sha256).hexdigest()
 
-                # Use timing-safe comparison to prevent timing attacks
-                if hmac.compare_digest(digest, expected_digest):
-                    logging.info(f"Client authenticated successfully from {peername}")
-                    client_writer.write(b"auth_ok\n")
-                    await client_writer.drain()
+                    # Use timing-safe comparison to prevent timing attacks
+                    if hmac.compare_digest(digest, expected_digest):
+                        logging.info(f"Client authenticated successfully from {peername}")
+                        client_writer.write(b"auth_ok\n")
+                        await client_writer.drain()
+                    else:
+                        logging.warning(f"Authentication failed from {peername}")
+                        client_writer.write(b"WRAPPER_ERROR: Authentication failed\n")
+                        await client_writer.drain()
+                        client_writer.close()
+                        await client_writer.wait_closed()
+                        return
                 else:
-                    logging.warning(f"Authentication failed from {peername}")
-                    client_writer.write(b"WRAPPER_ERROR: Authentication failed\n")
+                    logging.warning(f"Unexpected command during auth from {peername}: {auth_cmd}")
+                    client_writer.write(b"WRAPPER_ERROR: Authentication required\n")
                     await client_writer.drain()
                     client_writer.close()
                     await client_writer.wait_closed()
                     return
-            else:
-                logging.warning(f"Unexpected command during auth from {peername}: {auth_cmd}")
-                client_writer.write(b"WRAPPER_ERROR: Authentication required\n")
-                await client_writer.drain()
-                client_writer.close()
-                await client_writer.wait_closed()
-                return
 
-        first_line = await client_reader.readline()
-        if not first_line:
-            logging.warning("Client disconnected before sending command.")
+            first_line = await client_reader.readline()
+            if not first_line:
+                logging.warning("Client disconnected before sending command.")
+                return
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError) as e:
+            # Handle health check disconnects or immediate client exits gracefully
+            logging.info(f"Client disconnected during handshake from {peername}: {e}")
             return
 
         command_line = first_line.decode().strip()

@@ -52,6 +52,16 @@ def get_local_ip():
         return "127.0.0.1"
 
 
+def is_port_open(port, host="127.0.0.1", timeout=0.5):
+    """Check if a TCP port is open on the specified host."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            return s.connect_ex((host, port)) == 0
+    except Exception:
+        return False
+
+
 def get_pc_url_config(bind_address, server_port, disable_auto_origins, allowed_origins, local_ip):
     """
     Determine the best PC_URL and whether access should be allowed based on configuration.

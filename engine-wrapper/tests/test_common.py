@@ -1,4 +1,4 @@
-from common import get_base_dir, is_frozen, load_env_value
+from common import get_base_dir, get_pc_url_config, is_frozen, load_env_value
 
 
 def test_is_frozen():
@@ -42,3 +42,40 @@ INVALID=abc""",
 def test_load_env_value_no_file(tmp_path):
     non_existent = tmp_path / "not_found.env"
     assert load_env_value(non_existent, "PORT", 1234) == 1234
+
+
+_IP = "192.168.1.10"
+_PORT = 8140
+
+
+class TestGetPcUrlConfig:
+    def test_default_mode(self):
+        url, ok = get_pc_url_config("0.0.0.0", _PORT, False, [], _IP)
+        assert ok is True
+        assert url == f"http://127.0.0.1:{_PORT}"
+
+    def test_localhost_only(self):
+        url, ok = get_pc_url_config("127.0.0.1", _PORT, False, [], _IP)
+        assert ok is True
+        assert "127.0.0.1" in url
+
+    def test_specific_bind(self):
+        url, ok = get_pc_url_config(_IP, _PORT, False, [], _IP)
+        assert ok is True
+        assert url == f"http://{_IP}:{_PORT}"
+
+    def test_strict_no_origins(self):
+        url, ok = get_pc_url_config("0.0.0.0", _PORT, True, [], _IP)
+        assert ok is False
+
+    def test_strict_localhost_in_origins(self):
+        origins = [f"http://127.0.0.1:{_PORT}"]
+        url, ok = get_pc_url_config("0.0.0.0", _PORT, True, origins, _IP)
+        assert ok is True
+        assert url == f"http://127.0.0.1:{_PORT}"
+
+    def test_strict_external_only(self):
+        origins = ["https://hostname.tailnet.ts.net"]
+        url, ok = get_pc_url_config("0.0.0.0", _PORT, True, origins, _IP)
+        assert url == "https://hostname.tailnet.ts.net"
+        assert ok is True  # best-effort

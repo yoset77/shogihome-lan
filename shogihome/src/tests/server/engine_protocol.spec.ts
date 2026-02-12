@@ -40,6 +40,7 @@ describe("Server USI Protocol & Implicit Stop", () => {
       env: {
         ...process.env,
         PORT: SERVER_PORT.toString(),
+        BIND_ADDRESS: "0.0.0.0",
         REMOTE_ENGINE_PORT: WRAPPER_PORT.toString(),
         ALLOWED_ORIGINS: `http://localhost:${SERVER_PORT}`,
         WRAPPER_ACCESS_TOKEN: "", // Disable auth for tests
