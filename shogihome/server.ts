@@ -207,7 +207,8 @@ app.get("/api/kifu/list", async (req, res) => {
     const list = await getKifuList(KIFU_DIR);
     res.json(list);
   } catch (e) {
-    res.status(500).send("failed to get kifu list: " + e);
+    console.error("failed to get kifu list:", e);
+    res.status(500).send("failed to get kifu list");
   }
 });
 
@@ -220,7 +221,11 @@ app.get("/api/kifu/get", async (req, res) => {
     res.status(404).send("KIFU_DIR is not configured");
     return;
   }
-  const relPath = req.query.path as string;
+  const relPath = req.query.path;
+  if (typeof relPath !== "string") {
+    res.status(400).send("path is required");
+    return;
+  }
   const fullPath = resolveKifuPath(KIFU_DIR, relPath);
   if (!fullPath) {
     res.status(403).send("forbidden");
@@ -230,7 +235,8 @@ app.get("/api/kifu/get", async (req, res) => {
     const data = await fs.promises.readFile(fullPath);
     res.send(data);
   } catch (e) {
-    res.status(500).send("failed to fetch kifu: " + e);
+    console.error("failed to fetch kifu:", e);
+    res.status(500).send("failed to fetch kifu");
   }
 });
 
@@ -239,7 +245,11 @@ app.post("/api/kifu/save", express.raw({ limit: "10mb" }), async (req, res) => {
     res.status(404).send("KIFU_DIR is not configured");
     return;
   }
-  const relPath = req.query.path as string;
+  const relPath = req.query.path;
+  if (typeof relPath !== "string") {
+    res.status(400).send("path is required");
+    return;
+  }
   const fullPath = resolveKifuPath(KIFU_DIR, relPath);
   if (!fullPath) {
     res.status(403).send("forbidden");
@@ -250,7 +260,8 @@ app.post("/api/kifu/save", express.raw({ limit: "10mb" }), async (req, res) => {
     await fs.promises.writeFile(fullPath, req.body);
     res.send("ok");
   } catch (e) {
-    res.status(500).send("failed to save kifu: " + e);
+    console.error("failed to save kifu:", e);
+    res.status(500).send("failed to save kifu");
   }
 });
 

@@ -1,34 +1,58 @@
 import fs from "fs";
 import path from "path";
 
+const SUPPORTED_EXTENSIONS = [".kif", ".kifu", ".ki2", ".ki2u", ".csa", ".jkf"];
+const MAX_DEPTH = 10;
+const MAX_FILES = 10000;
+
 /**
  * Recursively lists kifu files under the base directory.
  * @param baseDir Absolute path to the base directory.
  * @returns Relative paths of kifu files.
  */
 export const getKifuList = async (baseDir: string): Promise<string[]> => {
-  const getFiles = async (dir: string): Promise<string[]> => {
-    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      entries.map((entry) => {
-        const res = path.resolve(dir, entry.name);
-        return entry.isDirectory() ? getFiles(res) : res;
-      }),
-    );
-    return Array.prototype.concat(...files);
+  const result: string[] = [];
+
+  const walk = async (dir: string, depth: number) => {
+    if (depth > MAX_DEPTH || result.length >= MAX_FILES) {
+      return;
+    }
+
+    let entries: fs.Dirent[];
+    try {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch (e) {
+      console.error(`failed to read directory: ${dir}`, e);
+      return;
+    }
+
+    for (const entry of entries) {
+      if (result.length >= MAX_FILES) {
+        break;
+      }
+
+      if (entry.isSymbolicLink()) {
+        continue;
+      }
+
+      const res = path.resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(res, depth + 1);
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+          result.push(path.relative(baseDir, res));
+        }
+      }
+    }
   };
 
   if (!fs.existsSync(baseDir)) {
     return [];
   }
 
-  const allFiles = await getFiles(baseDir);
-  return allFiles
-    .filter((file) => {
-      const ext = path.extname(file).toLowerCase();
-      return [".kif", ".kifu", ".ki2", ".ki2u", ".csa", ".jkf"].includes(ext);
-    })
-    .map((file) => path.relative(baseDir, file));
+  await walk(baseDir, 0);
+  return result;
 };
 
 /**
@@ -38,12 +62,24 @@ export const getKifuList = async (baseDir: string): Promise<string[]> => {
  * @returns Absolute path or null if invalid or outside base directory.
  */
 export const resolveKifuPath = (baseDir: string, relPath: string): string | null => {
-  if (!relPath) {
+  if (!relPath || typeof relPath !== "string") {
     return null;
   }
+  // Security: Limit directory depth.
+  if (relPath.split(/[/\\]/).filter(Boolean).length > 11) {
+    return null;
+  }
+  // Security: Basic check for extension.
+  const ext = path.extname(relPath).toLowerCase();
+  if (!SUPPORTED_EXTENSIONS.includes(ext)) {
+    return null;
+  }
+
   const fullPath = path.resolve(baseDir, relPath);
-  // Security: Ensure the resolved path is inside the base directory
-  if (!fullPath.startsWith(baseDir)) {
+  // Security: Use path.sep suffix to prevent prefix-collision attack.
+  // e.g. baseDir="/data/kifu" must not match "/data/kifu-evil/..."
+  const baseDirWithSep = baseDir.endsWith(path.sep) ? baseDir : baseDir + path.sep;
+  if (!fullPath.startsWith(baseDirWithSep) && fullPath !== baseDir) {
     return null;
   }
   return fullPath;
