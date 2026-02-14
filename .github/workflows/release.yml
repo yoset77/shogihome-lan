@@ -82,7 +82,7 @@ jobs:
 
           # 0. Launcher & Root
           Copy-Item "engine-wrapper/launcher.exe" -Destination "$pkgName/ShogiHomeLAN.exe"
-          Copy-Item "shogihome/docs/icon.png" -Destination "$pkgName/"
+          Copy-Item "shogihome/build/icon.png" -Destination "$pkgName/icon.png"
           Copy-Item "assets/release/README.txt" -Destination "$pkgName/"
 
           # 1. Server & Webapp
