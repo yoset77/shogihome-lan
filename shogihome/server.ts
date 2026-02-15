@@ -125,7 +125,7 @@ updatePuzzlesManifest();
 const KIFU_DIR = process.env.KIFU_DIR ? path.resolve(getBasePath(), process.env.KIFU_DIR) : null;
 if (KIFU_DIR) {
   console.log(`Server-side kifu directory: ${KIFU_DIR}`);
-  setupKifuWatcher(KIFU_DIR);
+  setupKifuWatcher(KIFU_DIR, process.env.KIFU_DIR_USE_POLLING === "true");
 }
 
 // Verify Host header to prevent DNS Rebinding attacks
@@ -211,6 +211,9 @@ app.get("/api/kifu/list", async (req, res) => {
     return;
   }
   try {
+    if (req.query.reload === "true") {
+      clearKifuListCache();
+    }
     const list = await getKifuList(KIFU_DIR);
     res.json(list);
   } catch (e) {

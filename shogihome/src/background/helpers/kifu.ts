@@ -73,9 +73,10 @@ export const getKifuList = async (baseDir: string): Promise<string[]> => {
 /**
  * Sets up a file system watcher to invalidate the cache when files change.
  * @param baseDir Absolute path to the base directory.
+ * @param usePolling Whether to use polling instead of native events.
  * @returns The watcher instance or null if failed to start.
  */
-export const setupKifuWatcher = (baseDir: string): FSWatcher | null => {
+export const setupKifuWatcher = (baseDir: string, usePolling = false): FSWatcher | null => {
   if (!fs.existsSync(baseDir)) {
     return null;
   }
@@ -84,6 +85,8 @@ export const setupKifuWatcher = (baseDir: string): FSWatcher | null => {
       ignored: /(^|[/\\])\../, // ignore dotfiles
       persistent: true,
       ignoreInitial: true,
+      usePolling,
+      interval: 1000,
     });
 
     watcher.on("all", (event, filePath) => {
@@ -93,7 +96,9 @@ export const setupKifuWatcher = (baseDir: string): FSWatcher | null => {
       }
     });
 
-    console.log(`Started watching kifu directory with chokidar: ${baseDir}`);
+    console.log(
+      `Started watching kifu directory with chokidar (polling: ${usePolling}): ${baseDir}`,
+    );
     return watcher;
   } catch (e) {
     console.warn("Failed to start kifu directory watcher:", e);

@@ -143,7 +143,7 @@ export interface API {
 
   // Server Kifu (LAN only)
   isServerKifuEnabled(): Promise<boolean>;
-  listServerKifu(): Promise<string[]>;
+  listServerKifu(reload?: boolean): Promise<string[]>;
   loadServerKifu(path: string): Promise<string>;
   saveServerKifu(path: string, data: Uint8Array): Promise<void>;
 }
@@ -297,8 +297,8 @@ const api: API = {
   async isServerKifuEnabled(): Promise<boolean> {
     return await bridge.isServerKifuEnabled();
   },
-  async listServerKifu(): Promise<string[]> {
-    return await bridge.listServerKifu();
+  async listServerKifu(reload?: boolean): Promise<string[]> {
+    return await bridge.listServerKifu(reload);
   },
   loadServerKifu(path: string): Promise<string> {
     return bridge.loadServerKifu(path);

@@ -8,7 +8,7 @@
           <button @click="searchWord = ''">&#x2715;</button>
         </div>
       </div>
-      <button class="reload" @click="updateList()">{{ t.reload }}</button>
+      <button class="reload" @click="updateList(true)">{{ t.reload }}</button>
     </div>
     <div class="form-group kifu-list">
       <div v-for="file in filteredList" :key="file">
@@ -44,10 +44,10 @@ const busyState = useBusyState();
 const list = ref<string[]>([]);
 const searchWord = ref("");
 
-async function updateList() {
+async function updateList(reload?: boolean) {
   try {
     busyState.retain();
-    list.value = await api.listServerKifu();
+    list.value = await api.listServerKifu(reload);
   } catch (e) {
     console.warn(e);
     useErrorStore().add(e);

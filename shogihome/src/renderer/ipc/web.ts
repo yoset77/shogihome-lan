@@ -522,8 +522,8 @@ export const webAPI: Bridge = {
       return false;
     }
   },
-  async listServerKifu(): Promise<string[]> {
-    const response = await fetchWithTimeout("/api/kifu/list");
+  async listServerKifu(reload?: boolean): Promise<string[]> {
+    const response = await fetchWithTimeout(`/api/kifu/list${reload ? "?reload=true" : ""}`);
     if (!response.ok) {
       throw new Error(await response.text());
     }
