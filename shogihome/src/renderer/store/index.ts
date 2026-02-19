@@ -211,6 +211,7 @@ class Store {
   private _appState = AppState.NORMAL;
   private _customLayout: LayoutProfile | null = null;
   private _isAppSettingsDialogVisible = false;
+  private _isServerSideKifuEnabled = false;
   private _pvPreview?: PVPreview;
   private usiMonitor = new USIMonitor();
   private blackClock = new Clock();
@@ -351,6 +352,10 @@ class Store {
 
   get isRecordFileUnsaved(): boolean {
     return this.recordManager.unsaved;
+  }
+
+  get serverKifuPath(): string | undefined {
+    return this.recordManager.serverKifuPath;
   }
 
   get inCommentPVs(): Move[][] {
@@ -520,6 +525,12 @@ class Store {
     }
   }
 
+  showServerKifuDialog(): void {
+    if (this.appState === AppState.NORMAL) {
+      this._appState = AppState.SERVER_KIFU_DIALOG;
+    }
+  }
+
   destroyModalDialog(): void {
     if (
       this.appState === AppState.PASTE_DIALOG ||
@@ -535,7 +546,8 @@ class Store {
       this.appState === AppState.CONNECT_TO_CSA_SERVER_DIALOG ||
       this.appState === AppState.LOAD_REMOTE_FILE_DIALOG ||
       this.appState === AppState.SHARE_DIALOG ||
-      this.appState === AppState.ADD_BOOK_MOVES_DIALOG
+      this.appState === AppState.ADD_BOOK_MOVES_DIALOG ||
+      this.appState === AppState.SERVER_KIFU_DIALOG
     ) {
       this._appState = AppState.NORMAL;
     }
@@ -549,6 +561,14 @@ class Store {
 
   get isAppSettingsDialogVisible(): boolean {
     return this._isAppSettingsDialogVisible;
+  }
+
+  get isServerSideKifuEnabled(): boolean {
+    return this._isServerSideKifuEnabled;
+  }
+
+  updateServerSideKifuEnabled(enabled: boolean): void {
+    this._isServerSideKifuEnabled = enabled;
   }
 
   showAppSettingsDialog(): void {
@@ -1572,20 +1592,24 @@ class Store {
       });
   }
 
-  saveRecord(options?: { overwrite?: boolean; format?: RecordFileFormat }): void {
+  saveRecord(options?: { overwrite?: boolean; format?: RecordFileFormat; path?: string }): void {
     if (this.appState !== AppState.NORMAL || useBusyState().isBusy) {
       return;
     }
     useBusyState().retain();
     Promise.resolve()
       .then(() => {
+        if (options?.path) {
+          return options.path;
+        }
         const path = this.recordManager.recordFilePath;
-        if (options?.overwrite && path) {
-          return path;
+        const serverPath = this.recordManager.serverKifuPath;
+        if (options?.overwrite && (path || serverPath)) {
+          return path || "server://" + serverPath;
         }
         const appSettings = useAppSettings();
         const defaultPath =
-          (!options?.format && path) ||
+          (!options?.format && (path || (serverPath && "server://" + serverPath))) ||
           generateRecordFileName(this.recordManager.record, {
             template: appSettings.recordFileNameTemplate,
             extension: options?.format || appSettings.defaultRecordFileFormat,
@@ -1597,7 +1621,8 @@ class Store {
           return;
         }
         return this.saveRecordByPath(path, { detectGarbled: true }).then(() => {
-          const fileFormat = detectRecordFileFormatByPath(path) as RecordFileFormat;
+          const actualPath = path.startsWith("server://") ? path.substring(9) : path;
+          const fileFormat = detectRecordFileFormatByPath(actualPath) as RecordFileFormat;
           const props = detectUnsupportedRecordProperties(this.recordManager.record, fileFormat);
           const items = Object.entries(props)
             .filter(([, v]) => v)
@@ -1641,7 +1666,11 @@ class Store {
       throw result;
     }
     try {
-      await api.saveRecord(path, result.data);
+      if (path.startsWith("server://")) {
+        await api.saveServerKifu(path.substring(9), result.data);
+      } else {
+        await api.saveRecord(path, result.data);
+      }
       if (result.garbled && !this.garbledNotified) {
         useMessageStore().enqueue({
           text: `${t.recordSavedWithGarbledCharacters}\n${t.pleaseConsiderToUseKIFU}\n${t.youCanChangeDefaultRecordFileFormatFromAppSettings}`,

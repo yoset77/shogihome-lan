@@ -5,7 +5,7 @@ import "./css/control.css";
 import "./css/dialog.css";
 import { createApp, watch } from "vue";
 import App from "@/renderer/App.vue";
-import api, { appInfo, isMobileWebApp } from "@/renderer/ipc/api.js";
+import api, { appInfo, isMobileWebApp, isNative } from "@/renderer/ipc/api.js";
 import { setup as setupIPC } from "@/renderer/ipc/setup.js";
 import { useStore } from "@/renderer/store/index.js";
 import {
@@ -44,6 +44,13 @@ setupIPC();
 
 const store = useStore();
 
+// サーバー側の棋譜管理機能が有効かどうかを確認する。
+if (!isNative()) {
+  api.isServerKifuEnabled().then((enabled) => {
+    store.updateServerSideKifuEnabled(enabled);
+  });
+}
+
 // ファイル名の変更を監視してタイトルを更新する。
 function updateTitle(path: string | undefined, unsaved: boolean) {
   if (!document) {
@@ -63,9 +70,12 @@ function updateTitle(path: string | undefined, unsaved: boolean) {
     document.title = `${appName} Version ${appVersion}`;
   }
 }
-watch([() => store.recordFilePath, () => store.isRecordFileUnsaved], ([path, unsaved]) => {
-  updateTitle(path, unsaved);
-});
+watch(
+  [() => store.recordFilePath, () => store.serverKifuPath, () => store.isRecordFileUnsaved],
+  ([path, serverPath, unsaved]) => {
+    updateTitle(path || serverPath, unsaved);
+  },
+);
 
 Promise.allSettled([
   // アプリ設定の読み込み
@@ -128,7 +138,7 @@ Promise.allSettled([
   setLanguage(language);
 
   // タイトルの更新
-  updateTitle(store.recordFilePath, store.isRecordFileUnsaved);
+  updateTitle(store.recordFilePath || store.serverKifuPath, store.isRecordFileUnsaved);
 
   api.log(LogLevel.INFO, "mount app");
   createApp(App).mount("#app");

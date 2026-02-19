@@ -29,6 +29,24 @@ enum STORAGE_KEY {
 
 const fileCache = new Map<string, ArrayBuffer>();
 
+async function fetchWithTimeout(
+  url: string,
+  init?: RequestInit,
+  timeoutMs = 10000,
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 // Web/LAN アプリケーションとして実行した場合に使用します。
 export const webAPI: Bridge = {
   // Core
@@ -492,5 +510,44 @@ export const webAPI: Bridge = {
   },
   onProgress(): void {
     // Do Nothing
+  },
+
+  // Server Kifu (LAN only)
+  async isServerKifuEnabled(): Promise<boolean> {
+    try {
+      const response = await fetchWithTimeout("/api/kifu/enabled");
+      const json = await response.json();
+      return !!json.enabled;
+    } catch (e) {
+      return false;
+    }
+  },
+  async listServerKifu(reload?: boolean): Promise<string[]> {
+    const response = await fetchWithTimeout(`/api/kifu/list${reload ? "?reload=true" : ""}`);
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    return await response.json();
+  },
+  async loadServerKifu(path: string): Promise<string> {
+    const response = await fetchWithTimeout(`/api/kifu/get?path=${encodeURIComponent(path)}`);
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    const data = await response.arrayBuffer();
+    const fileURI = "server://" + path;
+    fileCache.set(fileURI, data);
+    return fileURI;
+  },
+  async saveServerKifu(path: string, data: Uint8Array): Promise<void> {
+    const response = await fetchWithTimeout(`/api/kifu/save?path=${encodeURIComponent(path)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/octet-stream" },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      body: data as any,
+    });
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
   },
 };

@@ -11,6 +11,13 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import { getLocalIpAddresses } from "./src/background/helpers/ip";
+import {
+  getKifuList,
+  resolveKifuPath,
+  clearKifuListCache,
+  setupKifuWatcher,
+} from "./src/background/helpers/kifu";
+import { writeFileAtomic, writeFileAtomicSync } from "./src/background/file/atomic";
 
 const getBasePath = () => {
   // SEA (Single Executable Application) environment check
@@ -24,6 +31,7 @@ const getBasePath = () => {
 dotenv.config({ path: path.join(getBasePath(), ".env") });
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 
 const PORT = parseInt(process.env.PORT || "8140", 10);
@@ -105,7 +113,7 @@ const updatePuzzlesManifest = () => {
       }
     });
 
-    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    writeFileAtomicSync(manifestPath, JSON.stringify(manifest, null, 2));
     console.log(`Updated puzzle manifest at ${manifestPath}`);
   } catch (error) {
     console.error("Failed to update puzzle manifest:", error);
@@ -113,6 +121,12 @@ const updatePuzzlesManifest = () => {
 };
 
 updatePuzzlesManifest();
+
+const KIFU_DIR = process.env.KIFU_DIR ? path.resolve(getBasePath(), process.env.KIFU_DIR) : null;
+if (KIFU_DIR) {
+  console.log(`Server-side kifu directory: ${KIFU_DIR}`);
+  setupKifuWatcher(KIFU_DIR, process.env.KIFU_DIR_USE_POLLING === "true");
+}
 
 // Verify Host header to prevent DNS Rebinding attacks
 const isValidHost = (req: http.IncomingMessage) => {
@@ -190,6 +204,76 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+app.get("/api/kifu/list", async (req, res) => {
+  if (!KIFU_DIR) {
+    res.status(404).send("KIFU_DIR is not configured");
+    return;
+  }
+  try {
+    if (req.query.reload === "true") {
+      clearKifuListCache();
+    }
+    const list = await getKifuList(KIFU_DIR);
+    res.json(list);
+  } catch (e) {
+    console.error("failed to get kifu list:", e);
+    res.status(500).send("failed to get kifu list");
+  }
+});
+
+app.get("/api/kifu/enabled", (req, res) => {
+  res.json({ enabled: !!KIFU_DIR });
+});
+
+app.get("/api/kifu/get", async (req, res) => {
+  if (!KIFU_DIR) {
+    res.status(404).send("KIFU_DIR is not configured");
+    return;
+  }
+  const relPath = req.query.path;
+  if (typeof relPath !== "string") {
+    res.status(400).send("path is required");
+    return;
+  }
+  const fullPath = resolveKifuPath(KIFU_DIR, relPath);
+  if (!fullPath) {
+    res.status(403).send("forbidden");
+    return;
+  }
+  try {
+    const data = await fs.promises.readFile(fullPath);
+    res.send(data);
+  } catch (e) {
+    console.error("failed to fetch kifu:", e);
+    res.status(500).send("failed to fetch kifu");
+  }
+});
+
+app.post("/api/kifu/save", express.raw({ limit: "10mb" }), async (req, res) => {
+  if (!KIFU_DIR) {
+    res.status(404).send("KIFU_DIR is not configured");
+    return;
+  }
+  const relPath = req.query.path;
+  if (typeof relPath !== "string") {
+    res.status(400).send("path is required");
+    return;
+  }
+  const fullPath = resolveKifuPath(KIFU_DIR, relPath);
+  if (!fullPath) {
+    res.status(403).send("forbidden");
+    return;
+  }
+  try {
+    await writeFileAtomic(fullPath, req.body);
+    clearKifuListCache();
+    res.send("ok");
+  } catch (e) {
+    console.error("failed to save kifu:", e);
+    res.status(500).send("failed to save kifu");
+  }
+});
 
 app.use(express.static(shogiHomePath));
 

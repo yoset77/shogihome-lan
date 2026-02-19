@@ -1,0 +1,151 @@
+import fs from "fs";
+import path from "path";
+import { watch, FSWatcher } from "chokidar";
+
+const SUPPORTED_EXTENSIONS = [".kif", ".kifu", ".ki2", ".ki2u", ".csa", ".jkf"];
+const MAX_DEPTH = 10;
+const MAX_FILES = 10000;
+
+let cachedKifuList: string[] | null = null;
+
+/**
+ * Clears the in-memory kifu list cache.
+ */
+export const clearKifuListCache = (): void => {
+  cachedKifuList = null;
+};
+
+/**
+ * Recursively lists kifu files under the base directory.
+ * @param baseDir Absolute path to the base directory.
+ * @returns Relative paths of kifu files.
+ */
+export const getKifuList = async (baseDir: string): Promise<string[]> => {
+  if (cachedKifuList !== null) {
+    return cachedKifuList;
+  }
+
+  const result: string[] = [];
+
+  const walk = async (dir: string, depth: number) => {
+    if (depth > MAX_DEPTH || result.length >= MAX_FILES) {
+      return;
+    }
+
+    let entries: fs.Dirent[];
+    try {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch (e) {
+      console.error(`failed to read directory: ${dir}`, e);
+      return;
+    }
+
+    for (const entry of entries) {
+      if (result.length >= MAX_FILES) {
+        break;
+      }
+
+      if (entry.isSymbolicLink()) {
+        continue;
+      }
+
+      const res = path.resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(res, depth + 1);
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+          result.push(path.relative(baseDir, res));
+        }
+      }
+    }
+  };
+
+  if (!fs.existsSync(baseDir)) {
+    return [];
+  }
+
+  await walk(baseDir, 0);
+  cachedKifuList = result;
+  return result;
+};
+
+/**
+ * Sets up a file system watcher to invalidate the cache when files change.
+ * @param baseDir Absolute path to the base directory.
+ * @param usePolling Whether to use polling instead of native events.
+ * @returns The watcher instance or null if failed to start.
+ */
+export const setupKifuWatcher = (baseDir: string, usePolling = false): FSWatcher | null => {
+  if (!fs.existsSync(baseDir)) {
+    return null;
+  }
+  try {
+    const watcher = watch(baseDir, {
+      ignored: /(^|[/\\])\../, // ignore dotfiles
+      persistent: true,
+      ignoreInitial: true,
+      usePolling,
+      interval: 1000,
+    });
+
+    watcher.on("all", (event, filePath) => {
+      const ext = path.extname(filePath).toLowerCase();
+      if (SUPPORTED_EXTENSIONS.includes(ext) || event === "addDir" || event === "unlinkDir") {
+        clearKifuListCache();
+      }
+    });
+
+    console.log(
+      `Started watching kifu directory with chokidar (polling: ${usePolling}): ${baseDir}`,
+    );
+    return watcher;
+  } catch (e) {
+    console.warn("Failed to start kifu directory watcher:", e);
+    return null;
+  }
+};
+
+/**
+ * Resolves a relative path to an absolute path and verifies it's within the base directory.
+ * @param baseDir Absolute path to the base directory.
+ * @param relPath Relative path to resolve.
+ * @returns Absolute path or null if invalid or outside base directory.
+ */
+export const resolveKifuPath = (baseDir: string, relPath: string): string | null => {
+  if (!relPath || typeof relPath !== "string") {
+    return null;
+  }
+
+  // Security: Do not allow any path traversal segments.
+  if (relPath.split(/[/\\]/).some((segment) => segment === "..")) {
+    return null;
+  }
+
+  // Security: Limit directory depth.
+  if (relPath.split(/[/\\]/).filter(Boolean).length > 11) {
+    return null;
+  }
+
+  // Security: Basic check for extension.
+  const ext = path.extname(relPath).toLowerCase();
+  if (!SUPPORTED_EXTENSIONS.includes(ext)) {
+    return null;
+  }
+
+  // Normalize and resolve the path.
+  const fullPath = path.resolve(baseDir, relPath);
+
+  // Security: Use path.sep suffix to prevent prefix-collision attack.
+  // e.g. baseDir="/data/kifu" must not match "/data/kifu-evil/..."
+  const normalizedBaseDir = path.resolve(baseDir);
+  const baseDirWithSep = normalizedBaseDir.endsWith(path.sep)
+    ? normalizedBaseDir
+    : normalizedBaseDir + path.sep;
+
+  if (!fullPath.startsWith(baseDirWithSep)) {
+    return null;
+  }
+
+  return fullPath;
+};

@@ -146,4 +146,10 @@ export interface Bridge {
   sendTestNotification(): void;
   getPathForFile(file: File): string;
   onProgress(callback: (progress: number) => void): void;
+
+  // Server Kifu (LAN only)
+  isServerKifuEnabled(): Promise<boolean>;
+  listServerKifu(reload?: boolean): Promise<string[]>;
+  loadServerKifu(path: string): Promise<string>;
+  saveServerKifu(path: string, data: Uint8Array): Promise<void>;
 }

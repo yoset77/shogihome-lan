@@ -46,10 +46,14 @@
     "server:build": "webpack --config-name server",
     "server:exe": "npm run server:build && node scripts/build-sea.mjs"
   },
+  "overrides": {
+    "minimatch": "^10.2.1"
+  },
   "dependencies": {
     "@github/hotkey": "^3.1.0",
     "async-lock": "^1.4.0",
     "chart.js": "^4.0.1",
+    "chokidar": "^5.0.0",
     "dayjs": "^1.11.12",
     "dotenv": "^17.2.2",
     "encoding-japanese": "^2.0.0",
