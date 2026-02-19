@@ -38,15 +38,16 @@ export async function writeFileAtomic(
   data: string | Uint8Array,
   encoding?: BufferEncoding,
 ): Promise<void> {
-  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-  const tempFilePath = getTempFilePath(filePath);
-  const unlock = await lockfile.lock(filePath, {
+  const resolvedPath = path.resolve(filePath);
+  await fs.promises.mkdir(path.dirname(resolvedPath), { recursive: true });
+  const tempFilePath = getTempFilePath(resolvedPath);
+  const unlock = await lockfile.lock(resolvedPath, {
     ...lockOptions,
     retries: retryOptions,
   });
   try {
     await fs.promises.writeFile(tempFilePath, data, encoding);
-    await fs.promises.rename(tempFilePath, filePath);
+    await fs.promises.rename(tempFilePath, resolvedPath);
   } finally {
     await fs.promises.unlink(tempFilePath).catch(() => {
       // ignore cleanup errors
@@ -63,12 +64,13 @@ export function writeFileAtomicSync(
   data: string | Uint8Array,
   encoding?: BufferEncoding,
 ) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const tempFilePath = getTempFilePath(filePath);
-  const unlock = lockfile.lockSync(filePath, lockOptions);
+  const resolvedPath = path.resolve(filePath);
+  fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
+  const tempFilePath = getTempFilePath(resolvedPath);
+  const unlock = lockfile.lockSync(resolvedPath, lockOptions);
   try {
     fs.writeFileSync(tempFilePath, data, encoding);
-    fs.renameSync(tempFilePath, filePath);
+    fs.renameSync(tempFilePath, resolvedPath);
   } finally {
     try {
       fs.unlinkSync(tempFilePath);

@@ -116,22 +116,36 @@ export const resolveKifuPath = (baseDir: string, relPath: string): string | null
   if (!relPath || typeof relPath !== "string") {
     return null;
   }
+
+  // Security: Do not allow any path traversal segments.
+  if (relPath.split(/[/\\]/).some((segment) => segment === "..")) {
+    return null;
+  }
+
   // Security: Limit directory depth.
   if (relPath.split(/[/\\]/).filter(Boolean).length > 11) {
     return null;
   }
+
   // Security: Basic check for extension.
   const ext = path.extname(relPath).toLowerCase();
   if (!SUPPORTED_EXTENSIONS.includes(ext)) {
     return null;
   }
 
+  // Normalize and resolve the path.
   const fullPath = path.resolve(baseDir, relPath);
+
   // Security: Use path.sep suffix to prevent prefix-collision attack.
   // e.g. baseDir="/data/kifu" must not match "/data/kifu-evil/..."
-  const baseDirWithSep = baseDir.endsWith(path.sep) ? baseDir : baseDir + path.sep;
-  if (!fullPath.startsWith(baseDirWithSep) && fullPath !== baseDir) {
+  const normalizedBaseDir = path.resolve(baseDir);
+  const baseDirWithSep = normalizedBaseDir.endsWith(path.sep)
+    ? normalizedBaseDir
+    : normalizedBaseDir + path.sep;
+
+  if (!fullPath.startsWith(baseDirWithSep)) {
     return null;
   }
+
   return fullPath;
 };
