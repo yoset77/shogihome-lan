@@ -535,7 +535,7 @@ class LauncherApp(ctk.CTk):
             self.config_editor_process = subprocess.Popen(
                 cmd,
                 cwd=str(cwd),
-                startupinfo=startup_info,
+                # config_editor is a GUI app, so we don't need startupinfo to hide console
             )
             # Update button text to indicate it's already running
             self.btn_settings.configure(text="Settings Running")
