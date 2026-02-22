@@ -771,7 +771,9 @@ class EngineSession {
     console.log(`Received command (${this.sessionId}): ${command}`);
 
     if (command === "get_engine_list") {
-      getEngineList(this.ws!);
+      if (this.ws) {
+        getEngineList(this.ws);
+      }
       return;
     }
 
@@ -892,10 +894,17 @@ class EngineSession {
 
 class SessionManager {
   private sessions = new Map<string, EngineSession>();
+  private readonly MAX_SESSIONS = 50;
 
-  getOrCreateSession(sessionId: string): EngineSession {
+  getOrCreateSession(sessionId: string): EngineSession | null {
     let session = this.sessions.get(sessionId);
     if (!session) {
+      if (this.sessions.size >= this.MAX_SESSIONS) {
+        console.warn(
+          `Session limit reached (${this.MAX_SESSIONS}), rejecting new session: ${sessionId.substring(0, 8)}...`,
+        );
+        return null;
+      }
       console.log(`Creating new session: ${sessionId}`);
       session = new EngineSession(sessionId);
       this.sessions.set(sessionId, session);
@@ -916,6 +925,7 @@ const getEngineList = (ws: WebSocket) => {
   let data = "";
   const accessToken = process.env.WRAPPER_ACCESS_TOKEN;
   let authenticated = !accessToken;
+  const MAX_ENGINE_LIST_BYTES = 1 * 1024 * 1024; // 1 MB
 
   const connectionTimeout = setTimeout(() => {
     socket.destroy(new Error("Connection timed out"));
@@ -947,6 +957,10 @@ const getEngineList = (ws: WebSocket) => {
       }
     }
     data += str;
+    if (data.length > MAX_ENGINE_LIST_BYTES) {
+      console.error("Engine list response too large, aborting.");
+      socket.destroy();
+    }
   });
 
   socket.on("end", () => {
@@ -992,6 +1006,7 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
 
   const url = new URL(req.url!, `http://${req.headers.host}`);
   const sessionId = url.searchParams.get("sessionId");
+  const SESSION_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
 
   if (!sessionId) {
     console.warn("Connection attempt without sessionId. Closing.");
@@ -999,11 +1014,23 @@ wss.on("connection", (ws: ExtendedWebSocket, req) => {
     return;
   }
 
+  if (!SESSION_ID_REGEX.test(sessionId)) {
+    console.warn(
+      `Blocked connection attempt with invalid sessionId format: ${sessionId.substring(0, 32)}`,
+    );
+    ws.close(1008, "Invalid sessionId format");
+    return;
+  }
+
   const session = sessionManager.getOrCreateSession(sessionId);
+  if (!session) {
+    ws.close(1013, "Session limit reached");
+    return;
+  }
   session.attach(ws);
 });
 
-const BIND_ADDRESS = process.env.BIND_ADDRESS || "0.0.0.0";
+const BIND_ADDRESS = process.env.BIND_ADDRESS || "127.0.0.1";
 
 server.listen(PORT, BIND_ADDRESS, () => {
   console.log(`Server is listening on ${BIND_ADDRESS}:${PORT}`);

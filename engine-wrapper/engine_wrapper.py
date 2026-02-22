@@ -100,7 +100,14 @@ async def apply_engine_options(stdin: asyncio.StreamWriter, options: dict):
         if isinstance(value, bool):
             value = str(value).lower()
 
-        command = f"setoption name {name} value {value}\n"
+        # Sanitize: reject names/values containing line terminators
+        name_str = str(name)
+        value_str = str(value)
+        if "\n" in name_str or "\r" in name_str or "\n" in value_str or "\r" in value_str:
+            logging.warning(f"Skipping option with invalid characters: {name_str}")
+            continue
+
+        command = f"setoption name {name_str} value {value_str}\n"
         logging.info(f"Applying option: {command.strip()}")
 
         try:
