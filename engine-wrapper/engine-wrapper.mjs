@@ -46,8 +46,23 @@ function applyEngineOptions(engineProcess, options) {
     return;
   }
 
-  for (const [name, value] of Object.entries(options)) {
-    const command = `setoption name ${name} value ${value}`;
+  for (let [name, value] of Object.entries(options)) {
+    // Normalize boolean values to lowercase 'true'/'false' for USI compatibility
+    if (typeof value === 'boolean') {
+      value = value.toString();
+    }
+    
+    // Sanitize: reject names/values containing line terminators
+    const nameStr = String(name);
+    const valueStr = String(value);
+    
+    if (nameStr.includes('\n') || nameStr.includes('\r') || 
+        valueStr.includes('\n') || valueStr.includes('\r')) {
+      console.warn(`[${new Date().toISOString()}] Skipping option with invalid characters: ${nameStr}`);
+      continue;
+    }
+
+    const command = `setoption name ${nameStr} value ${valueStr}`;
     console.log(`[${new Date().toISOString()}] Applying option: ${command}`);
     
     if (engineProcess && engineProcess.stdin && engineProcess.stdin.writable) {
