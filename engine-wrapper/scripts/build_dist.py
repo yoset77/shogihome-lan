@@ -13,7 +13,7 @@ PYTHON_ZIP_NAME = f"python-{PYTHON_VERSION}-embed-amd64.zip"
 # Paths
 ROOT_DIR = Path(__file__).resolve().parents[2]
 ENGINE_WRAPPER_DIR = ROOT_DIR / "engine-wrapper"
-PYTHON_DIST_DIR = ROOT_DIR / "python"
+PYTHON_DIST_DIR = ENGINE_WRAPPER_DIR / "python"
 EMBED_ZIP = ROOT_DIR / PYTHON_ZIP_NAME
 PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ZIP_NAME}"
 
@@ -29,7 +29,6 @@ def download_python():
         print("Download complete.")
     except Exception as e:
         print(f"Failed to download Python {PYTHON_VERSION}: {e}")
-        print("Falling back to a known version if possible, but version mismatch might cause DLL errors.")
         raise
 
 
@@ -72,8 +71,9 @@ def fix_pth_file():
 
     # We must include the root directory (.) for DLLs to be found easily
     # and site-packages for the installed libraries.
-    # We also add the script directory (../engine-wrapper) to allow importing local modules.
-    new_content = [zip_name, ".", "../engine-wrapper", "Lib", "site-packages", "import site", ""]
+    # We also add the parent directory (..) to allow importing local modules,
+    # because the python directory is now inside engine-wrapper.
+    new_content = [zip_name, ".", "..", "Lib", "site-packages", "import site", ""]
     pth_file.write_text("\n".join(new_content))
 
 
@@ -110,14 +110,12 @@ def copy_tkinter():
         shutil.copytree(src_tkinter_lib, dest_tkinter_lib)
 
     # 2. DLLs and .pyd extensions
-    # Copy all .dll from root and DLLs from DLLs folder
     search_dirs = [host_dir, host_dir / "DLLs"]
     for sd in search_dirs:
         if not sd.exists():
             continue
         for ext in ["*.dll", "*.pyd"]:
             for f in sd.glob(ext):
-                # Copy tkinter related or common DLLs
                 if any(x in f.name.lower() for x in ["tcl", "tk", "sqlite", "zlib", "libcrypto", "libssl"]):
                     shutil.copy2(f, PYTHON_DIST_DIR)
 

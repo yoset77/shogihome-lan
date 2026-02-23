@@ -11,7 +11,7 @@ namespace ShogiHomeLauncher
         static void Main()
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string pythonPath = Path.Combine(baseDir, "python", "pythonw.exe");
+            string pythonPath = Path.Combine(baseDir, "engine-wrapper", "python", "pythonw.exe");
             string launcherScript = Path.Combine(baseDir, "engine-wrapper", "launcher.py");
 
             if (!File.Exists(pythonPath))

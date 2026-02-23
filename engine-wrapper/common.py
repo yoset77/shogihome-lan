@@ -18,11 +18,10 @@ BASE_DIR = get_resource_dir()
 
 def get_python_exe():
     """同梱されている python.exe または現在のインタープリタのパスを返す"""
-    # 同梱環境では root/python/pythonw.exe に配置される想定
+    # 同梱環境では engine-wrapper/python/pythonw.exe に配置される想定
     # (GUIアプリ用には pythonw.exe を優先)
-    root_dir = BASE_DIR.parent
-    # Check for python/ directory (Release structure) or project root (Dev structure)
-    bundled_python_dir = root_dir / "python"
+    # Check for python/ directory (Release structure)
+    bundled_python_dir = BASE_DIR / "python"
 
     pythonw = bundled_python_dir / "pythonw.exe"
     python = bundled_python_dir / "python.exe"
@@ -37,7 +36,7 @@ def get_python_exe():
 
 def is_bundled():
     """同梱環境（配布用パッケージ）として動いているか判定"""
-    return (BASE_DIR.parent / "python").exists()
+    return (BASE_DIR / "python").exists()
 
 
 def load_env_value(env_path, key, default):

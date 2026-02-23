@@ -89,11 +89,9 @@ jobs:
           Copy-Item -Path "shogihome/docs/webapp" -Destination "$pkgName/shogihome/docs/webapp" -Recurse
           Copy-Item "shogihome/.env.example" -Destination "$pkgName/shogihome/.env"
 
-          # 2. Embedded Python
-          Copy-Item -Path "python" -Destination "$pkgName/python" -Recurse
-
-          # 3. Engine Wrapper (Scripts)
+          # 2. Engine Wrapper & Embedded Python
           New-Item -ItemType Directory -Path "$pkgName/engine-wrapper" -Force
+          Copy-Item -Path "engine-wrapper/python" -Destination "$pkgName/engine-wrapper/python" -Recurse
           Copy-Item "engine-wrapper/*.py" -Destination "$pkgName/engine-wrapper/"
           Copy-Item "engine-wrapper/engines.json.default" -Destination "$pkgName/engine-wrapper/engines.json"
           Copy-Item "engine-wrapper/.env.example" -Destination "$pkgName/engine-wrapper/.env"
