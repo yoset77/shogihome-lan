@@ -28,7 +28,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.13.11'
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -62,13 +62,12 @@ jobs:
 
       - name: Build Shim (C#)
         run: |
-          & "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /target:winexe /out:ShogiHomeLAN.exe /r:System.Windows.Forms.dll "assets\release\shim.cs"
-
-      - name: Debug List Files
-        run: |
-          ls -R engine-wrapper
-          ls -R python
-          ls -R shogihome/dist
+          $csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          if (-not (Test-Path $csc)) {
+              $csc = (where.exe csc.exe | Select-Object -First 1)
+          }
+          if (-not $csc) { throw "csc.exe not found. Cannot build Shim." }
+          & $csc /target:winexe /out:ShogiHomeLAN.exe /r:System.Windows.Forms.dll "assets\release\shim.cs"
 
       # --- Packaging ---
       - name: Create Release Package
@@ -92,17 +91,21 @@ jobs:
           # 2. Engine Wrapper & Embedded Python
           New-Item -ItemType Directory -Path "$pkgName/engine-wrapper" -Force
           Copy-Item -Path "engine-wrapper/python" -Destination "$pkgName/engine-wrapper/python" -Recurse
-          Copy-Item "engine-wrapper/*.py" -Destination "$pkgName/engine-wrapper/"
+          
+          # Explicitly copy required scripts
+          @("launcher.py", "engine_wrapper.py", "config_editor.py", "common.py") | ForEach-Object {
+              Copy-Item "engine-wrapper/$_" -Destination "$pkgName/engine-wrapper/"
+          }
+
           Copy-Item "engine-wrapper/engines.json.default" -Destination "$pkgName/engine-wrapper/engines.json"
           Copy-Item "engine-wrapper/.env.example" -Destination "$pkgName/engine-wrapper/.env"
           Copy-Item "engine-wrapper/config_editor.html" -Destination "$pkgName/engine-wrapper/"
           
           # Wrapper Licenses
           New-Item -ItemType Directory -Path "$pkgName/engine-wrapper/licenses" -Force
-          Copy-Item "engine-wrapper/licenses/*" -Destination "$pkgName/engine-wrapper/licenses/"
-
-          # Zip it
-          Compress-Archive -Path "$pkgName" -DestinationPath "$pkgName.zip"
+          if (Test-Path "engine-wrapper/licenses") {
+              Copy-Item "engine-wrapper/licenses/*" -Destination "$pkgName/engine-wrapper/licenses/" -ErrorAction SilentlyContinue
+          }
 
           # Zip it
           Compress-Archive -Path "$pkgName" -DestinationPath "$pkgName.zip"

@@ -5,9 +5,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-# Configuration - Match host python version exactly
-major, minor, micro = sys.version_info[:3]
-PYTHON_VERSION = f"{major}.{minor}.{micro}"
+# Configuration - Explicitly pinned for reproducibility
+PYTHON_VERSION = "3.13.11"
 PYTHON_ZIP_NAME = f"python-{PYTHON_VERSION}-embed-amd64.zip"
 
 # Paths
@@ -48,7 +47,9 @@ def install_dependencies():
     site_packages.mkdir(parents=True, exist_ok=True)
 
     requirements_txt = ENGINE_WRAPPER_DIR / "requirements.txt"
-    subprocess.run(["uv", "export", "--format", "requirements-txt", "-o", str(requirements_txt)], cwd=ENGINE_WRAPPER_DIR, check=True)
+    subprocess.run(
+        ["uv", "export", "--no-dev", "--format", "requirements-txt", "-o", str(requirements_txt)], cwd=ENGINE_WRAPPER_DIR, check=True
+    )
 
     subprocess.run(["uv", "pip", "install", "-r", str(requirements_txt), "--target", str(site_packages), "--no-cache"], check=True)
 

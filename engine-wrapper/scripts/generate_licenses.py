@@ -29,7 +29,9 @@ def main():
 
     # 2. Python自体のライセンス取得
     print("Downloading Python license...")
-    python_license_url = "https://raw.githubusercontent.com/python/cpython/main/LICENSE"
+    # Use specific version tag instead of 'main' branch for reproducibility
+    python_version = "3.13.11"
+    python_license_url = f"https://raw.githubusercontent.com/python/cpython/v{python_version}/LICENSE"
 
     try:
         urllib.request.urlretrieve(python_license_url, output_dir / "PYTHON_LICENSE")
