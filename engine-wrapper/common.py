@@ -7,19 +7,36 @@ from pathlib import Path
 from dotenv import dotenv_values
 
 
-def is_frozen():
-    """判定: 実行ファイル形式（Nuitka/PyInstaller）で動いているか"""
-    return getattr(sys, "frozen", False) or "__compiled__" in globals()
-
-
 def get_resource_dir():
     """自分が存在するディレクトリ（engine-wrapper）を返す"""
-    target = sys.argv[0] if is_frozen() else __file__
-    return Path(target).resolve().parent
+    return Path(__file__).resolve().parent
 
 
 # 各スクリプトからの相対パスの起点となるディレクトリ
 BASE_DIR = get_resource_dir()
+
+
+def get_python_exe():
+    """同梱されている python.exe または現在のインタープリタのパスを返す"""
+    # 同梱環境では engine-wrapper/python/pythonw.exe に配置される想定
+    # (GUIアプリ用には pythonw.exe を優先)
+    # Check for python/ directory (Release structure)
+    bundled_python_dir = BASE_DIR / "python"
+
+    pythonw = bundled_python_dir / "pythonw.exe"
+    python = bundled_python_dir / "python.exe"
+
+    if pythonw.exists():
+        return pythonw
+    if python.exists():
+        return python
+
+    return Path(sys.executable)
+
+
+def is_bundled():
+    """同梱環境（配布用パッケージ）として動いているか判定"""
+    return (BASE_DIR / "python").exists()
 
 
 def load_env_value(env_path, key, default):

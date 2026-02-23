@@ -245,7 +245,7 @@
             <select id="editType">
                 <option value="game">対局 (Game)</option>
                 <option value="research">検討 (Research)</option>
-                <option value="both">両方 (Both)</option>
+                <option value="both" selected>両方 (Both)</option>
             </select>
         </div>
         <div class="form-group">
@@ -484,7 +484,7 @@
             document.getElementById('modalTitle').innerText = 'エンジン追加';
             document.getElementById('editName').value = '';
             document.getElementById('editId').value = generateId();
-            document.getElementById('editType').value = 'game';
+            document.getElementById('editType').value = 'both';
             document.getElementById('editPath').value = '';
         }
         modal.style.display = 'block';
