@@ -259,7 +259,7 @@ def run_app():
     api = Api()
     # Create window
     webview.create_window(
-        "ShogiHome Engine Config Editor",
+        "ShogiHome LAN Config Editor",
         str(HTML_PATH),
         js_api=api,
         width=800,
