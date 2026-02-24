@@ -306,6 +306,40 @@ interface ExtendedWebSocket extends WebSocket {
   isAlive?: boolean;
 }
 
+async function authenticateSocket(
+  socket: net.Socket,
+  accessToken: string,
+): Promise<readline.Interface> {
+  return new Promise((resolve, reject) => {
+    const rl = readline.createInterface({ input: socket });
+    const onLine = (line: string) => {
+      const msg = line.trim();
+      if (msg.startsWith("auth_cram_sha256 ")) {
+        const nonce = msg.substring("auth_cram_sha256 ".length).trim();
+        const digest = crypto.createHmac("sha256", accessToken).update(nonce).digest("hex");
+        socket.write(`auth ${digest}\n`);
+      } else if (msg === "auth_ok") {
+        rl.off("line", onLine);
+        resolve(rl);
+      } else if (msg.includes("WRAPPER_ERROR:")) {
+        rl.close();
+        reject(new Error(msg));
+      } else if (msg !== "") {
+        console.warn("Unexpected message during auth:", msg);
+      }
+    };
+    rl.on("line", onLine);
+    socket.once("error", (err) => {
+      rl.close();
+      reject(err);
+    });
+    socket.once("close", () => {
+      rl.close();
+      reject(new Error("Socket closed during authentication"));
+    });
+  });
+}
+
 class EngineSession {
   private currentEngineId: string | null = null;
   private engineHandle: EngineHandle | null = null;
@@ -593,9 +627,9 @@ class EngineSession {
     this.sendToClient({ info: "info: engine stopped" });
   }
 
-  private setupEngineHandlers(stream: NodeJS.ReadableStream) {
-    const rl = readline.createInterface({ input: stream });
-    rl.on("line", (line) => {
+  private setupEngineHandlers(stream: NodeJS.ReadableStream, rl?: readline.Interface) {
+    const interface_ = rl || readline.createInterface({ input: stream });
+    interface_.on("line", (line) => {
       if (!line.startsWith("info")) {
         console.log(`Engine output (${this.sessionId}): ${line}`);
       }
@@ -697,14 +731,14 @@ class EngineSession {
       this.onEngineClose();
     }, 5000);
 
-    socket.on("connect", () => {
+    socket.on("connect", async () => {
       clearTimeout(connectionTimeout);
       this.connectingSocket = null;
       console.log(`Connected to remote engine. Specifying engine ID: ${engineId}`);
 
       const accessToken = process.env.WRAPPER_ACCESS_TOKEN;
 
-      const setup = () => {
+      const setup = (rl?: readline.Interface) => {
         socket.write(`run ${engineId}\n`);
 
         this.engineState = EngineState.WAITING_USIOK;
@@ -715,7 +749,7 @@ class EngineSession {
           off: (e, l) => socket.off(e, l),
           removeAllListeners: (e) => socket.removeAllListeners(e),
         };
-        this.setupEngineHandlers(socket);
+        this.setupEngineHandlers(socket, rl);
         this.engineHandle.on("close", () => this.onEngineClose());
         this.engineHandle.on("error", (err) => {
           console.error("Remote engine connection error:", err);
@@ -726,24 +760,15 @@ class EngineSession {
       };
 
       if (accessToken) {
-        const onData = (data: Buffer) => {
-          const msg = data.toString().trim();
-          if (msg.startsWith("auth_cram_sha256 ")) {
-            const nonce = msg.substring("auth_cram_sha256 ".length).trim();
-            const digest = crypto.createHmac("sha256", accessToken).update(nonce).digest("hex");
-            socket.write(`auth ${digest}\n`);
-          } else if (msg === "auth_ok") {
-            socket.off("data", onData);
-            setup();
-          } else if (msg.includes("WRAPPER_ERROR:")) {
-            console.error(`Authentication failed: ${msg}`);
-            this.sendError(msg);
-            socket.destroy();
-          } else {
-            console.warn("Unexpected message during auth:", msg);
-          }
-        };
-        socket.on("data", onData);
+        try {
+          const rl = await authenticateSocket(socket, accessToken);
+          setup(rl);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(`Authentication failed: ${message}`);
+          this.sendError(message);
+          socket.destroy();
+        }
       } else {
         setup();
       }
@@ -924,41 +949,37 @@ const getEngineList = (ws: WebSocket) => {
   const socket = new net.Socket();
   let data = "";
   const accessToken = process.env.WRAPPER_ACCESS_TOKEN;
-  let authenticated = !accessToken;
   const MAX_ENGINE_LIST_BYTES = 1 * 1024 * 1024; // 1 MB
 
   const connectionTimeout = setTimeout(() => {
     socket.destroy(new Error("Connection timed out"));
   }, 5000);
 
-  socket.on("connect", () => {
+  socket.on("connect", async () => {
     clearTimeout(connectionTimeout);
-    if (authenticated) {
-      socket.write("list\n");
-    }
-  });
-
-  socket.on("data", (chunk) => {
-    const str = chunk.toString();
-    if (!authenticated) {
-      if (str.startsWith("auth_cram_sha256 ")) {
-        const nonce = str.substring("auth_cram_sha256 ".length).trim();
-        const digest = crypto.createHmac("sha256", accessToken!).update(nonce).digest("hex");
-        socket.write(`auth ${digest}\n`);
-        return;
-      } else if (str.trim() === "auth_ok") {
-        authenticated = true;
-        socket.write("list\n");
-        return;
-      } else if (str.includes("WRAPPER_ERROR:")) {
-        console.error(`Engine wrapper authentication failed: ${str}`);
-        socket.destroy();
-        return;
+    try {
+      let rl: readline.Interface;
+      if (accessToken) {
+        rl = await authenticateSocket(socket, accessToken);
+      } else {
+        rl = readline.createInterface({ input: socket });
       }
-    }
-    data += str;
-    if (data.length > MAX_ENGINE_LIST_BYTES) {
-      console.error("Engine list response too large, aborting.");
+
+      socket.write("list\n");
+
+      rl.on("line", (line) => {
+        const str = line.trim();
+        if (str !== "") {
+          data += str + "\n";
+          if (data.length > MAX_ENGINE_LIST_BYTES) {
+            console.error("Engine list response too large, aborting.");
+            socket.destroy();
+          }
+        }
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to get engine list: ${message}`);
       socket.destroy();
     }
   });
