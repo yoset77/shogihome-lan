@@ -67,19 +67,41 @@ export class LanPlayer implements Player {
   }
 
   async launch(): Promise<void> {
+    await this.lanEngine.connect((message: string) => {
+      this.onMessage(message);
+    });
+
     return new Promise((resolve, reject) => {
-      this.lanEngine
-        .connect((message: string) => {
-          this.onMessage(message);
-        })
-        .then(() => {
-          this.lanEngine.startEngine(this.engineId);
-          if (this._multiPV !== 1) {
-            this.lanEngine.setOption("MultiPV", this._multiPV);
+      const readyListener = (message: string) => {
+        try {
+          const data = JSON.parse(message);
+          if (data.info === "info: engine is ready" || data.state === "ready") {
+            clearTimeout(timeout);
+            this.lanEngine.removeMessageListener(readyListener);
+            resolve();
+          } else if (data.error) {
+            clearTimeout(timeout);
+            this.lanEngine.removeMessageListener(readyListener);
+            reject(new Error(data.error));
           }
-          resolve();
-        })
-        .catch(reject);
+        } catch (e) {
+          // ignore
+        }
+        return false;
+      };
+
+      this.lanEngine.addMessageListener(readyListener);
+      this.lanEngine.startEngine(this.engineId);
+      if (this._multiPV !== 1) {
+        this.lanEngine.setOption("MultiPV", this._multiPV);
+      }
+
+      // Start timeout after sending startEngine
+      const timeout = window.setTimeout(() => {
+        this.lanEngine.removeMessageListener(readyListener);
+        this.lanEngine.disconnect();
+        reject(new Error("Timeout waiting for engine to become ready"));
+      }, 15000);
     });
   }
 

@@ -269,6 +269,14 @@ export class LanEngine {
     return !!this.ws && this.ws.readyState === WebSocket.OPEN;
   }
 
+  addMessageListener(listener: MessageListener) {
+    this.messageListeners.push(listener);
+  }
+
+  removeMessageListener(listener: MessageListener) {
+    this.messageListeners = this.messageListeners.filter((l) => l !== listener);
+  }
+
   async getEngineList(force = false): Promise<LanEngineInfo[]> {
     if (this.engineListCache && !force) {
       return this.engineListCache;
