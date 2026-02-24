@@ -903,7 +903,7 @@ class EngineSession {
       if (
         this.engineHandle ||
         this.engineState === EngineState.STARTING ||
-        this.engineState === EngineState.TERMINATING
+        (this.engineState as unknown) === EngineState.TERMINATING
       ) {
         this.sendError("engine already running, starting, or stopping");
         return;
