@@ -1,6 +1,6 @@
 {
   "name": "shogihome-lan",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "Shogi Frontend Application",
   "author": "Kubo, Ryosuke",
   "license": "MIT",
@@ -47,7 +47,8 @@
     "server:exe": "npm run server:build && node scripts/build-sea.mjs"
   },
   "overrides": {
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.1",
+    "serialize-javascript": "7.0.3"
   },
   "dependencies": {
     "@github/hotkey": "^3.1.0",
