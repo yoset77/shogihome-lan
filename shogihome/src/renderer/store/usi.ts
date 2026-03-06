@@ -127,7 +127,8 @@ export class USIPlayerMonitor {
     if (update.timeMs !== undefined) {
       info.timeMs = update.timeMs;
     }
-    if (update.nodes !== undefined) {
+    const isGlobal = update.multipv === undefined || update.multipv === 1;
+    if (update.nodes !== undefined && isGlobal) {
       this.nodes = update.nodes;
     }
     if (update.pv) {
@@ -149,17 +150,17 @@ export class USIPlayerMonitor {
     if (update.upperbound !== undefined) {
       info.upperBound = update.upperbound;
     }
-    if (update.currmove !== undefined) {
+    if (update.currmove !== undefined && isGlobal) {
       this.currentMove = update.currmove;
       const move = position.createMoveByUSI(update.currmove);
       if (move) {
         this.currentMoveText = formatMove(position, move);
       }
     }
-    if (update.hashfullPerMill !== undefined) {
+    if (update.hashfullPerMill !== undefined && isGlobal) {
       this.hashfull = update.hashfullPerMill / 1000;
     }
-    if (update.nps !== undefined) {
+    if (update.nps !== undefined && isGlobal) {
       this.nps = update.nps;
     }
     if (update.string) {
@@ -255,6 +256,9 @@ export class USIMonitor {
     let monitor = this._sessions.find((session) => session.sessionID === update.sessionID);
     if (!monitor) {
       monitor = this.addSession(update.sessionID, update.name);
+    } else if (monitor.name !== update.name) {
+      monitor.name = update.name;
+      monitor.clear();
     }
     monitor.update(update.sfen, update.info, update.maxPVLength, update.ponderMove);
   }
